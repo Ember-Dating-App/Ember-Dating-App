@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, WebSocket, WebSocketDisconnect, UploadFile, File
 from fastapi.security import HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -14,6 +15,10 @@ import httpx
 import bcrypt
 import jwt
 from openai import OpenAI
+import json
+import asyncio
+import aiofiles
+import base64
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -30,6 +35,10 @@ openai_client = OpenAI(api_key=os.environ.get('EMERGENT_LLM_KEY', ''))
 JWT_SECRET = os.environ.get('JWT_SECRET', 'ember-secret-key-2024')
 JWT_ALGORITHM = 'HS256'
 
+# Upload directory
+UPLOAD_DIR = ROOT_DIR / 'uploads'
+UPLOAD_DIR.mkdir(exist_ok=True)
+
 # Create the main app
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -38,6 +47,36 @@ security = HTTPBearer(auto_error=False)
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ==================== WEBSOCKET CONNECTION MANAGER ====================
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+        self.call_sessions: Dict[str, Dict] = {}  # For WebRTC signaling
+
+    async def connect(self, websocket: WebSocket, user_id: str):
+        await websocket.accept()
+        self.active_connections[user_id] = websocket
+        logger.info(f"User {user_id} connected via WebSocket")
+
+    def disconnect(self, user_id: str):
+        if user_id in self.active_connections:
+            del self.active_connections[user_id]
+            logger.info(f"User {user_id} disconnected")
+
+    async def send_personal_message(self, message: dict, user_id: str):
+        if user_id in self.active_connections:
+            try:
+                await self.active_connections[user_id].send_json(message)
+            except Exception as e:
+                logger.error(f"Error sending message to {user_id}: {e}")
+
+    async def broadcast_to_match(self, message: dict, user_ids: List[str]):
+        for user_id in user_ids:
+            await self.send_personal_message(message, user_id)
+
+manager = ConnectionManager()
 
 # ==================== MODELS ====================
 
@@ -66,6 +105,10 @@ class UserProfile(BaseModel):
     prompts: List[Dict[str, str]] = []
     interests: List[str] = []
     is_profile_complete: bool = False
+    is_premium: bool = False
+    premium_expires: Optional[str] = None
+    roses: int = 0
+    super_likes: int = 0
     created_at: str = ""
     last_active: str = ""
 
@@ -84,6 +127,7 @@ class LikeCreate(BaseModel):
     liked_user_id: str
     liked_section: Optional[str] = None
     comment: Optional[str] = None
+    like_type: str = "regular"  # regular, super_like, rose
 
 class MessageCreate(BaseModel):
     match_id: str
@@ -106,6 +150,15 @@ class Message(BaseModel):
     content: str
     created_at: str
     read: bool = False
+
+class PremiumPurchase(BaseModel):
+    plan: str  # "weekly", "monthly", "yearly"
+
+class NotificationSettings(BaseModel):
+    new_matches: bool = True
+    new_messages: bool = True
+    new_likes: bool = True
+    standouts: bool = True
 
 # ==================== AUTH HELPERS ====================
 
@@ -152,6 +205,15 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
     
     raise HTTPException(status_code=401, detail='Not authenticated')
 
+async def get_user_from_token(token: str) -> Optional[dict]:
+    """Helper to get user from JWT token for WebSocket auth"""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user = await db.users.find_one({'user_id': payload['user_id']}, {'_id': 0})
+        return user
+    except:
+        return None
+
 # ==================== AUTH ROUTES ====================
 
 @api_router.post("/auth/register")
@@ -179,6 +241,16 @@ async def register(user_data: UserCreate):
         'prompts': [],
         'interests': [],
         'is_profile_complete': False,
+        'is_premium': False,
+        'premium_expires': None,
+        'roses': 1,  # Free rose on signup
+        'super_likes': 1,  # Free super like on signup
+        'notification_settings': {
+            'new_matches': True,
+            'new_messages': True,
+            'new_likes': True,
+            'standouts': True
+        },
         'created_at': now,
         'last_active': now
     }
@@ -238,6 +310,16 @@ async def google_session(request: Request, response: Response):
             'prompts': [],
             'interests': [],
             'is_profile_complete': False,
+            'is_premium': False,
+            'premium_expires': None,
+            'roses': 1,
+            'super_likes': 1,
+            'notification_settings': {
+                'new_matches': True,
+                'new_messages': True,
+                'new_likes': True,
+                'standouts': True
+            },
             'created_at': now.isoformat(),
             'last_active': now.isoformat()
         }
@@ -279,6 +361,56 @@ async def logout(request: Request, response: Response):
     response.delete_cookie('session_token', path='/')
     return {'message': 'Logged out'}
 
+# ==================== FILE UPLOAD ROUTES ====================
+
+@api_router.post("/upload/photo")
+async def upload_photo(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    if not file.content_type.startswith('image/'):
+        raise HTTPException(status_code=400, detail='File must be an image')
+    
+    # Generate unique filename
+    ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOAD_DIR / filename
+    
+    # Save file
+    async with aiofiles.open(filepath, 'wb') as f:
+        content = await file.read()
+        await f.write(content)
+    
+    # Return the URL
+    photo_url = f"/api/uploads/{filename}"
+    return {'url': photo_url, 'filename': filename}
+
+@api_router.post("/upload/photo/base64")
+async def upload_photo_base64(request: Request, current_user: dict = Depends(get_current_user)):
+    body = await request.json()
+    data = body.get('data')  # base64 encoded image
+    ext = body.get('extension', 'jpg')
+    
+    if not data:
+        raise HTTPException(status_code=400, detail='No image data provided')
+    
+    # Decode base64
+    try:
+        # Remove data URL prefix if present
+        if ',' in data:
+            data = data.split(',')[1]
+        image_data = base64.b64decode(data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail='Invalid base64 data')
+    
+    # Generate unique filename
+    filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOAD_DIR / filename
+    
+    # Save file
+    async with aiofiles.open(filepath, 'wb') as f:
+        await f.write(image_data)
+    
+    photo_url = f"/api/uploads/{filename}"
+    return {'url': photo_url, 'filename': filename}
+
 # ==================== PROFILE ROUTES ====================
 
 @api_router.put("/profile")
@@ -308,6 +440,14 @@ async def get_profile(user_id: str, current_user: dict = Depends(get_current_use
     if not user:
         raise HTTPException(status_code=404, detail='User not found')
     return user
+
+@api_router.put("/profile/notifications")
+async def update_notifications(settings: NotificationSettings, current_user: dict = Depends(get_current_user)):
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {'notification_settings': settings.model_dump()}}
+    )
+    return {'message': 'Notification settings updated'}
 
 # ==================== DISCOVER ROUTES ====================
 
@@ -359,13 +499,62 @@ async def most_compatible(current_user: dict = Depends(get_current_user)):
             max_tokens=100
         )
         
-        import json
         indices = json.loads(completion.choices[0].message.content)
         compatible = [profiles[i] for i in indices if i < len(profiles)]
         return compatible if compatible else profiles[:5]
     except Exception as e:
         logger.error(f"AI compatibility error: {e}")
         return profiles[:5]
+
+@api_router.get("/discover/standouts")
+async def get_standouts(current_user: dict = Depends(get_current_user)):
+    """Get standout profiles - premium feature showing best matches"""
+    profiles = await discover_profiles(current_user)
+    
+    if not profiles:
+        return []
+    
+    # Use AI to find standouts based on profile quality and compatibility
+    try:
+        user_data = {
+            'interests': current_user.get('interests', []),
+            'bio': current_user.get('bio', ''),
+            'prompts': current_user.get('prompts', [])
+        }
+        profiles_summary = [
+            {
+                'index': i,
+                'name': p.get('name'),
+                'interests': p.get('interests', []),
+                'bio': p.get('bio', ''),
+                'prompts': p.get('prompts', []),
+                'photo_count': len(p.get('photos', []))
+            }
+            for i, p in enumerate(profiles[:30])
+        ]
+        
+        completion = openai_client.chat.completions.create(
+            model='gpt-4o-mini',
+            messages=[
+                {'role': 'system', 'content': 'You are a dating app matchmaker. Select the 5 best standout profiles based on profile completeness, interesting prompts, and compatibility. Return ONLY a JSON array of indices.'},
+                {'role': 'user', 'content': f"User: {user_data}\n\nProfiles:\n{profiles_summary}"}
+            ],
+            max_tokens=100
+        )
+        
+        indices = json.loads(completion.choices[0].message.content)
+        standouts = [profiles[i] for i in indices if i < len(profiles)]
+        
+        # Mark as standout
+        for s in standouts:
+            s['is_standout'] = True
+        
+        return standouts if standouts else profiles[:5]
+    except Exception as e:
+        logger.error(f"AI standouts error: {e}")
+        # Fallback: return profiles with most photos and complete prompts
+        sorted_profiles = sorted(profiles, key=lambda p: (len(p.get('photos', [])), len(p.get('prompts', []))), reverse=True)
+        return sorted_profiles[:5]
 
 # ==================== LIKES ROUTES ====================
 
@@ -381,15 +570,57 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
     if existing:
         raise HTTPException(status_code=400, detail='Already liked this user')
     
+    # Handle premium like types
+    if like.like_type == 'super_like':
+        if current_user.get('super_likes', 0) <= 0 and not current_user.get('is_premium'):
+            raise HTTPException(status_code=400, detail='No super likes available')
+        if not current_user.get('is_premium'):
+            await db.users.update_one(
+                {'user_id': current_user['user_id']},
+                {'$inc': {'super_likes': -1}}
+            )
+    elif like.like_type == 'rose':
+        if current_user.get('roses', 0) <= 0:
+            raise HTTPException(status_code=400, detail='No roses available')
+        await db.users.update_one(
+            {'user_id': current_user['user_id']},
+            {'$inc': {'roses': -1}}
+        )
+    
     like_doc = {
         'like_id': f"like_{uuid.uuid4().hex[:12]}",
         'liker_id': current_user['user_id'],
         'liked_user_id': like.liked_user_id,
         'liked_section': like.liked_section,
         'comment': like.comment,
+        'like_type': like.like_type,
         'created_at': now
     }
     await db.likes.insert_one(like_doc)
+    
+    # Send notification via WebSocket
+    notification = {
+        'type': 'new_like',
+        'like_type': like.like_type,
+        'from_user': {
+            'user_id': current_user['user_id'],
+            'name': current_user['name'],
+            'photo': current_user.get('photos', [None])[0]
+        },
+        'comment': like.comment,
+        'timestamp': now
+    }
+    await manager.send_personal_message(notification, like.liked_user_id)
+    
+    # Store notification in DB
+    await db.notifications.insert_one({
+        'notification_id': f"notif_{uuid.uuid4().hex[:12]}",
+        'user_id': like.liked_user_id,
+        'type': 'new_like',
+        'data': notification,
+        'read': False,
+        'created_at': now
+    })
     
     # Check for mutual like (match)
     mutual = await db.likes.find_one({
@@ -407,6 +638,34 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
             'last_message_at': None
         }
         await db.matches.insert_one(match_doc)
+        
+        # Send match notification to both users
+        other_user = await db.users.find_one({'user_id': like.liked_user_id}, {'_id': 0, 'password': 0})
+        
+        match_notification_1 = {
+            'type': 'new_match',
+            'match_id': match_doc['match_id'],
+            'matched_user': {
+                'user_id': other_user['user_id'],
+                'name': other_user['name'],
+                'photo': other_user.get('photos', [None])[0]
+            },
+            'timestamp': now
+        }
+        match_notification_2 = {
+            'type': 'new_match',
+            'match_id': match_doc['match_id'],
+            'matched_user': {
+                'user_id': current_user['user_id'],
+                'name': current_user['name'],
+                'photo': current_user.get('photos', [None])[0]
+            },
+            'timestamp': now
+        }
+        
+        await manager.send_personal_message(match_notification_1, current_user['user_id'])
+        await manager.send_personal_message(match_notification_2, like.liked_user_id)
+        
         return {'like': like_doc, 'match': match_doc}
     
     return {'like': like_doc, 'match': None}
@@ -508,29 +767,27 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
         {'$set': {'last_message': msg.content, 'last_message_at': now}}
     )
     
+    # Send via WebSocket
+    other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+    ws_message = {
+        'type': 'new_message',
+        'message': message_doc,
+        'sender': {
+            'user_id': current_user['user_id'],
+            'name': current_user['name'],
+            'photo': current_user.get('photos', [None])[0]
+        }
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
     return message_doc
 
 # ==================== AI ROUTES ====================
 
 @api_router.post("/ai/conversation-starters")
 async def get_conversation_starters(current_user: dict = Depends(get_current_user)):
-    body_data = {}
-    try:
-        from fastapi import Body
-    except:
-        pass
-    
-    # Get other user's profile from request
-    other_user_id = body_data.get('other_user_id') if body_data else None
-    other_profile = None
-    
-    if other_user_id:
-        other_profile = await db.users.find_one({'user_id': other_user_id}, {'_id': 0, 'password': 0})
-    
     try:
         prompt = "Generate 3 creative, fun, and engaging conversation starters for a dating app."
-        if other_profile:
-            prompt += f" The person's interests are: {other_profile.get('interests', [])}. Their bio: {other_profile.get('bio', 'Not provided')}"
         
         completion = openai_client.chat.completions.create(
             model='gpt-4o-mini',
@@ -541,7 +798,6 @@ async def get_conversation_starters(current_user: dict = Depends(get_current_use
             max_tokens=200
         )
         
-        import json
         starters = json.loads(completion.choices[0].message.content)
         return {'starters': starters}
     except Exception as e:
@@ -568,7 +824,6 @@ async def get_personalized_starters(other_user_id: str, current_user: dict = Dep
             max_tokens=200
         )
         
-        import json
         starters = json.loads(completion.choices[0].message.content)
         return {'starters': starters}
     except Exception as e:
@@ -578,6 +833,156 @@ async def get_personalized_starters(other_user_id: str, current_user: dict = Dep
             "I noticed we have some things in common! What do you enjoy most about your interests?",
             "What's the story behind your profile? I'd love to know more!"
         ]}
+
+# ==================== PREMIUM ROUTES ====================
+
+PREMIUM_PRICES = {
+    'weekly': {'price': 9.99, 'days': 7},
+    'monthly': {'price': 29.99, 'days': 30},
+    'yearly': {'price': 149.99, 'days': 365}
+}
+
+@api_router.get("/premium/plans")
+async def get_premium_plans():
+    return {
+        'plans': [
+            {
+                'id': 'weekly',
+                'name': 'Weekly',
+                'price': 9.99,
+                'duration': '1 week',
+                'features': ['Unlimited likes', '5 Super Likes/day', '3 Roses/week', 'See who likes you', 'Standouts access']
+            },
+            {
+                'id': 'monthly',
+                'name': 'Monthly',
+                'price': 29.99,
+                'duration': '1 month',
+                'features': ['Unlimited likes', '5 Super Likes/day', '5 Roses/week', 'See who likes you', 'Standouts access', 'Priority likes']
+            },
+            {
+                'id': 'yearly',
+                'name': 'Yearly',
+                'price': 149.99,
+                'duration': '1 year',
+                'features': ['Unlimited likes', 'Unlimited Super Likes', '10 Roses/week', 'See who likes you', 'Standouts access', 'Priority likes', 'Profile boost']
+            }
+        ]
+    }
+
+@api_router.post("/premium/purchase")
+async def purchase_premium(purchase: PremiumPurchase, current_user: dict = Depends(get_current_user)):
+    if purchase.plan not in PREMIUM_PRICES:
+        raise HTTPException(status_code=400, detail='Invalid plan')
+    
+    plan = PREMIUM_PRICES[purchase.plan]
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(days=plan['days'])
+    
+    # In production, this would integrate with Stripe
+    # For now, we'll just activate premium
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {
+            '$set': {
+                'is_premium': True,
+                'premium_expires': expires.isoformat(),
+                'premium_plan': purchase.plan
+            }
+        }
+    )
+    
+    # Record transaction
+    await db.transactions.insert_one({
+        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
+        'user_id': current_user['user_id'],
+        'type': 'premium_subscription',
+        'plan': purchase.plan,
+        'amount': plan['price'],
+        'created_at': now.isoformat()
+    })
+    
+    return {
+        'success': True,
+        'message': f'Premium activated for {plan["days"]} days',
+        'expires': expires.isoformat()
+    }
+
+@api_router.post("/premium/purchase-roses")
+async def purchase_roses(request: Request, current_user: dict = Depends(get_current_user)):
+    body = await request.json()
+    quantity = body.get('quantity', 3)
+    
+    # Price: $3.99 for 3 roses, $9.99 for 12
+    price = 3.99 if quantity <= 3 else 9.99
+    
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$inc': {'roses': quantity}}
+    )
+    
+    await db.transactions.insert_one({
+        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
+        'user_id': current_user['user_id'],
+        'type': 'roses_purchase',
+        'quantity': quantity,
+        'amount': price,
+        'created_at': datetime.now(timezone.utc).isoformat()
+    })
+    
+    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    return {'success': True, 'roses': user.get('roses', 0)}
+
+@api_router.post("/premium/purchase-super-likes")
+async def purchase_super_likes(request: Request, current_user: dict = Depends(get_current_user)):
+    body = await request.json()
+    quantity = body.get('quantity', 5)
+    
+    # Price: $4.99 for 5 super likes
+    price = 4.99
+    
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$inc': {'super_likes': quantity}}
+    )
+    
+    await db.transactions.insert_one({
+        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
+        'user_id': current_user['user_id'],
+        'type': 'super_likes_purchase',
+        'quantity': quantity,
+        'amount': price,
+        'created_at': datetime.now(timezone.utc).isoformat()
+    })
+    
+    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    return {'success': True, 'super_likes': user.get('super_likes', 0)}
+
+# ==================== NOTIFICATIONS ROUTES ====================
+
+@api_router.get("/notifications")
+async def get_notifications(current_user: dict = Depends(get_current_user)):
+    notifications = await db.notifications.find(
+        {'user_id': current_user['user_id']},
+        {'_id': 0}
+    ).sort('created_at', -1).limit(50).to_list(50)
+    return notifications
+
+@api_router.put("/notifications/read")
+async def mark_notifications_read(current_user: dict = Depends(get_current_user)):
+    await db.notifications.update_many(
+        {'user_id': current_user['user_id'], 'read': False},
+        {'$set': {'read': True}}
+    )
+    return {'message': 'Notifications marked as read'}
+
+@api_router.get("/notifications/unread-count")
+async def get_unread_count(current_user: dict = Depends(get_current_user)):
+    count = await db.notifications.count_documents({
+        'user_id': current_user['user_id'],
+        'read': False
+    })
+    return {'count': count}
 
 # ==================== PROMPTS LIBRARY ====================
 
@@ -603,12 +1008,171 @@ async def get_prompts_library():
         ]
     }
 
-# ==================== VIDEO CALL SIGNALING ====================
+# ==================== WEBRTC SIGNALING ====================
 
 @api_router.post("/calls/initiate")
-async def initiate_call(current_user: dict = Depends(get_current_user)):
-    from fastapi import Body
-    return {'message': 'Call signaling would be handled via WebSocket in production'}
+async def initiate_call(request: Request, current_user: dict = Depends(get_current_user)):
+    body = await request.json()
+    match_id = body.get('match_id')
+    call_type = body.get('type', 'video')  # 'video' or 'voice'
+    
+    # Verify match exists
+    match = await db.matches.find_one({
+        'match_id': match_id,
+        '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail='Match not found')
+    
+    other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+    
+    call_id = f"call_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Create call session
+    call_doc = {
+        'call_id': call_id,
+        'match_id': match_id,
+        'caller_id': current_user['user_id'],
+        'callee_id': other_id,
+        'type': call_type,
+        'status': 'ringing',
+        'created_at': now
+    }
+    await db.calls.insert_one(call_doc)
+    
+    # Notify callee via WebSocket
+    call_notification = {
+        'type': 'incoming_call',
+        'call_id': call_id,
+        'call_type': call_type,
+        'caller': {
+            'user_id': current_user['user_id'],
+            'name': current_user['name'],
+            'photo': current_user.get('photos', [None])[0]
+        },
+        'match_id': match_id
+    }
+    await manager.send_personal_message(call_notification, other_id)
+    
+    return {'call_id': call_id, 'status': 'ringing'}
+
+@api_router.post("/calls/{call_id}/answer")
+async def answer_call(call_id: str, current_user: dict = Depends(get_current_user)):
+    call = await db.calls.find_one({'call_id': call_id, 'callee_id': current_user['user_id']})
+    if not call:
+        raise HTTPException(status_code=404, detail='Call not found')
+    
+    await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'connected'}})
+    
+    # Notify caller
+    await manager.send_personal_message({
+        'type': 'call_answered',
+        'call_id': call_id
+    }, call['caller_id'])
+    
+    return {'status': 'connected'}
+
+@api_router.post("/calls/{call_id}/reject")
+async def reject_call(call_id: str, current_user: dict = Depends(get_current_user)):
+    call = await db.calls.find_one({'call_id': call_id, 'callee_id': current_user['user_id']})
+    if not call:
+        raise HTTPException(status_code=404, detail='Call not found')
+    
+    await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'rejected'}})
+    
+    # Notify caller
+    await manager.send_personal_message({
+        'type': 'call_rejected',
+        'call_id': call_id
+    }, call['caller_id'])
+    
+    return {'status': 'rejected'}
+
+@api_router.post("/calls/{call_id}/end")
+async def end_call(call_id: str, current_user: dict = Depends(get_current_user)):
+    call = await db.calls.find_one({
+        'call_id': call_id,
+        '$or': [{'caller_id': current_user['user_id']}, {'callee_id': current_user['user_id']}]
+    })
+    if not call:
+        raise HTTPException(status_code=404, detail='Call not found')
+    
+    await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'ended', 'ended_at': datetime.now(timezone.utc).isoformat()}})
+    
+    # Notify other party
+    other_id = call['callee_id'] if call['caller_id'] == current_user['user_id'] else call['caller_id']
+    await manager.send_personal_message({
+        'type': 'call_ended',
+        'call_id': call_id
+    }, other_id)
+    
+    return {'status': 'ended'}
+
+@api_router.post("/calls/{call_id}/signal")
+async def send_signal(call_id: str, request: Request, current_user: dict = Depends(get_current_user)):
+    """Handle WebRTC signaling (offer, answer, ICE candidates)"""
+    body = await request.json()
+    signal_type = body.get('signal_type')  # 'offer', 'answer', 'ice-candidate'
+    signal_data = body.get('data')
+    
+    call = await db.calls.find_one({
+        'call_id': call_id,
+        '$or': [{'caller_id': current_user['user_id']}, {'callee_id': current_user['user_id']}]
+    })
+    if not call:
+        raise HTTPException(status_code=404, detail='Call not found')
+    
+    other_id = call['callee_id'] if call['caller_id'] == current_user['user_id'] else call['caller_id']
+    
+    # Forward signal to other party
+    await manager.send_personal_message({
+        'type': 'webrtc_signal',
+        'call_id': call_id,
+        'signal_type': signal_type,
+        'data': signal_data
+    }, other_id)
+    
+    return {'status': 'signal_sent'}
+
+# ==================== WEBSOCKET ENDPOINT ====================
+
+@app.websocket("/ws/{token}")
+async def websocket_endpoint(websocket: WebSocket, token: str):
+    user = await get_user_from_token(token)
+    if not user:
+        await websocket.close(code=4001)
+        return
+    
+    await manager.connect(websocket, user['user_id'])
+    try:
+        while True:
+            data = await websocket.receive_json()
+            
+            # Handle different message types
+            if data.get('type') == 'ping':
+                await websocket.send_json({'type': 'pong'})
+            elif data.get('type') == 'typing':
+                # Forward typing indicator to match
+                match_id = data.get('match_id')
+                match = await db.matches.find_one({'match_id': match_id})
+                if match:
+                    other_id = match['user2_id'] if match['user1_id'] == user['user_id'] else match['user1_id']
+                    await manager.send_personal_message({
+                        'type': 'typing',
+                        'match_id': match_id,
+                        'user_id': user['user_id']
+                    }, other_id)
+    except WebSocketDisconnect:
+        manager.disconnect(user['user_id'])
+    except Exception as e:
+        logger.error(f"WebSocket error: {e}")
+        manager.disconnect(user['user_id'])
+
+# ==================== STATIC FILES ====================
+
+# Serve uploaded files
+app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Include router
 app.include_router(api_router)
