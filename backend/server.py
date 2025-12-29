@@ -1887,6 +1887,145 @@ async def send_signal(call_id: str, request: Request, current_user: dict = Depen
     
     return {'status': 'signal_sent'}
 
+# ==================== AUTO-DISCONNECT MATCHES ====================
+
+@api_router.post("/matches/check-expired")
+async def check_expired_matches():
+    """Background job to check and disconnect expired matches (no messages after 12h)"""
+    now = datetime.now(timezone.utc)
+    results = {
+        'warnings_3h': 0,
+        'warnings_6h': 0,
+        'disconnected': 0
+    }
+    
+    # Find all matches without first message
+    matches = await db.matches.find({'first_message_sent': False}, {'_id': 0}).to_list(10000)
+    
+    for match in matches:
+        matched_at = match.get('matched_at')
+        if not matched_at:
+            continue
+        
+        if isinstance(matched_at, str):
+            matched_at = datetime.fromisoformat(matched_at)
+        if matched_at.tzinfo is None:
+            matched_at = matched_at.replace(tzinfo=timezone.utc)
+        
+        hours_since_match = (now - matched_at).total_seconds() / 3600
+        warnings_sent = match.get('disconnect_warnings_sent', [])
+        
+        # 12 hours: Auto-disconnect
+        if hours_since_match >= 12:
+            # Move to disconnected collection
+            await db.disconnected_matches.insert_one({
+                'match_id': match['match_id'],
+                'user1_id': match['user1_id'],
+                'user2_id': match['user2_id'],
+                'matched_at': match.get('matched_at'),
+                'disconnected_at': now.isoformat(),
+                'reason': 'no_message_12h'
+            })
+            
+            # Delete the match
+            await db.matches.delete_one({'match_id': match['match_id']})
+            
+            # Send disconnect notifications
+            disconnect_message = {
+                'type': 'match_expired',
+                'match_id': match['match_id'],
+                'message': 'This match has expired due to inactivity. You can find them again in Discover!'
+            }
+            
+            await manager.send_personal_message(disconnect_message, match['user1_id'])
+            await manager.send_personal_message(disconnect_message, match['user2_id'])
+            
+            results['disconnected'] += 1
+        
+        # 6 hour warning
+        elif hours_since_match >= 6 and '6h' not in warnings_sent:
+            user1 = await db.users.find_one({'user_id': match['user1_id']}, {'_id': 0, 'password': 0})
+            user2 = await db.users.find_one({'user_id': match['user2_id']}, {'_id': 0, 'password': 0})
+            
+            warning_message_1 = {
+                'type': 'match_expiring_soon',
+                'match_id': match['match_id'],
+                'hours_remaining': 6,
+                'matched_user': {
+                    'user_id': user2['user_id'],
+                    'name': user2['name'],
+                    'photo': user2.get('photos', [None])[0]
+                },
+                'message': f"Your match with {user2['name']} will expire in 6 hours if no one sends a message!"
+            }
+            
+            warning_message_2 = {
+                'type': 'match_expiring_soon',
+                'match_id': match['match_id'],
+                'hours_remaining': 6,
+                'matched_user': {
+                    'user_id': user1['user_id'],
+                    'name': user1['name'],
+                    'photo': user1.get('photos', [None])[0]
+                },
+                'message': f"Your match with {user1['name']} will expire in 6 hours if no one sends a message!"
+            }
+            
+            await manager.send_personal_message(warning_message_1, match['user1_id'])
+            await manager.send_personal_message(warning_message_2, match['user2_id'])
+            
+            # Update warnings sent
+            warnings_sent.append('6h')
+            await db.matches.update_one(
+                {'match_id': match['match_id']},
+                {'$set': {'disconnect_warnings_sent': warnings_sent}}
+            )
+            
+            results['warnings_6h'] += 1
+        
+        # 3 hour warning
+        elif hours_since_match >= 3 and '3h' not in warnings_sent:
+            user1 = await db.users.find_one({'user_id': match['user1_id']}, {'_id': 0, 'password': 0})
+            user2 = await db.users.find_one({'user_id': match['user2_id']}, {'_id': 0, 'password': 0})
+            
+            warning_message_1 = {
+                'type': 'match_expiring_soon',
+                'match_id': match['match_id'],
+                'hours_remaining': 9,
+                'matched_user': {
+                    'user_id': user2['user_id'],
+                    'name': user2['name'],
+                    'photo': user2.get('photos', [None])[0]
+                },
+                'message': f"Your match with {user2['name']} will expire in 9 hours if no one sends a message!"
+            }
+            
+            warning_message_2 = {
+                'type': 'match_expiring_soon',
+                'match_id': match['match_id'],
+                'hours_remaining': 9,
+                'matched_user': {
+                    'user_id': user1['user_id'],
+                    'name': user1['name'],
+                    'photo': user1.get('photos', [None])[0]
+                },
+                'message': f"Your match with {user1['name']} will expire in 9 hours if no one sends a message!"
+            }
+            
+            await manager.send_personal_message(warning_message_1, match['user1_id'])
+            await manager.send_personal_message(warning_message_2, match['user2_id'])
+            
+            # Update warnings sent
+            warnings_sent.append('3h')
+            await db.matches.update_one(
+                {'match_id': match['match_id']},
+                {'$set': {'disconnect_warnings_sent': warnings_sent}}
+            )
+            
+            results['warnings_3h'] += 1
+    
+    return results
+
 # ==================== WEBSOCKET ENDPOINT ====================
 
 @app.websocket("/ws/{token}")
