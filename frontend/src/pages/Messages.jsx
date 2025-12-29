@@ -255,7 +255,7 @@ export default function Messages() {
               {starters.map((starter, i) => (
                 <button
                   key={i}
-                  onClick={() => useStarter(starter)}
+                  onClick={() => selectStarter(starter)}
                   className="w-full text-left p-3 bg-muted rounded-xl hover:bg-muted/80 transition-colors text-sm"
                   data-testid={`starter-${i}`}
                 >
