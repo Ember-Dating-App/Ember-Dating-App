@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Flame, Settings, LogOut, Camera, Plus, X, Edit2 } from 'lucide-react';
+import { Settings, LogOut, Camera, Plus, X, Edit2, MapPin, Crown, Star } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
+import LocationPicker from '@/components/LocationPicker';
 
 const INTERESTS = [
   'Travel', 'Music', 'Movies', 'Fitness', 'Cooking', 'Art', 'Photography', 'Reading',
@@ -37,6 +38,7 @@ export default function Profile() {
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [profile, setProfile] = useState({
     age: user?.age || '',
     gender: user?.gender || '',
@@ -186,6 +188,11 @@ export default function Profile() {
                 alt={user?.name}
                 className="w-full h-full rounded-full object-cover ring-4 ring-primary/20"
               />
+              {user?.is_premium && (
+                <div className="absolute -top-1 -right-1 w-8 h-8 ember-gradient rounded-full flex items-center justify-center">
+                  <Crown className="w-4 h-4 text-white" />
+                </div>
+              )}
               {editing && (
                 <button
                   onClick={() => {
@@ -206,7 +213,42 @@ export default function Profile() {
               )}
             </div>
             <h1 className="text-2xl font-bold">{user?.name}, {profile.age || user?.age}</h1>
-            <p className="text-muted-foreground">{profile.location || user?.location || 'No location set'}</p>
+            
+            {/* Location with edit button */}
+            <button
+              onClick={() => setShowLocationPicker(true)}
+              className="flex items-center gap-1 mx-auto mt-1 text-muted-foreground hover:text-primary transition-colors"
+              data-testid="edit-location-btn"
+            >
+              <MapPin className="w-4 h-4" />
+              <span>{user?.location || 'Set your location'}</span>
+              <Edit2 className="w-3 h-3 ml-1" />
+            </button>
+
+            {/* Premium status / Upgrade button */}
+            {!user?.is_premium ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/premium')}
+                className="mt-3 rounded-full border-primary/50 text-primary hover:bg-primary/10"
+                data-testid="upgrade-btn"
+              >
+                <Crown className="w-4 h-4 mr-1" />
+                Upgrade to Premium
+              </Button>
+            ) : (
+              <div className="flex items-center justify-center gap-4 mt-3">
+                <div className="flex items-center gap-1 text-sm">
+                  <span>🌹</span>
+                  <span className="font-semibold">{user.roses || 0}</span>
+                </div>
+                <div className="flex items-center gap-1 text-sm">
+                  <Star className="w-4 h-4 text-blue-400" fill="#60a5fa" />
+                  <span className="font-semibold">{user.super_likes || 0}</span>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Basic Info */}
@@ -227,12 +269,14 @@ export default function Profile() {
                 </div>
                 <div className="space-y-2">
                   <Label>Location</Label>
-                  <Input
-                    value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    className="bg-muted/50 border-muted rounded-xl"
-                    data-testid="edit-location-input"
-                  />
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="w-full justify-start text-left font-normal bg-muted/50 border-muted rounded-xl"
+                  >
+                    <MapPin className="w-4 h-4 mr-2" />
+                    {profile.location || 'Set location'}
+                  </Button>
                 </div>
               </div>
 
@@ -411,6 +455,15 @@ export default function Profile() {
         </div>
       </main>
 
+      {/* Location Picker */}
+      <LocationPicker
+        open={showLocationPicker}
+        onOpenChange={setShowLocationPicker}
+        onLocationUpdate={(updatedUser) => {
+          setProfile({ ...profile, location: updatedUser.location });
+        }}
+      />
+
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="bg-card border-border">
@@ -422,6 +475,19 @@ export default function Profile() {
               <p className="text-sm text-muted-foreground">Signed in as</p>
               <p className="font-medium">{user?.email}</p>
             </div>
+            
+            <Button
+              variant="outline"
+              className="w-full rounded-xl"
+              onClick={() => {
+                setShowSettings(false);
+                navigate('/premium');
+              }}
+            >
+              <Crown className="w-4 h-4 mr-2" />
+              {user?.is_premium ? 'Manage Premium' : 'Get Premium'}
+            </Button>
+
             <Button
               variant="destructive"
               className="w-full rounded-xl"
