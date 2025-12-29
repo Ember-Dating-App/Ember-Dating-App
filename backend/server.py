@@ -224,6 +224,106 @@ def create_token(user_id: str) -> str:
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
+# ==================== PHASE 1 HELPER FUNCTIONS ====================
+
+async def reset_daily_limits_if_needed(user: dict) -> dict:
+    """Reset swipe/super like/rose limits if 24 hours have passed"""
+    now = datetime.now(timezone.utc)
+    updated = False
+    updates = {}
+    
+    # Reset swipe limit
+    if 'swipe_limit' in user:
+        last_reset = user['swipe_limit'].get('last_reset')
+        if isinstance(last_reset, str):
+            last_reset = datetime.fromisoformat(last_reset)
+        if last_reset.tzinfo is None:
+            last_reset = last_reset.replace(tzinfo=timezone.utc)
+        
+        if (now - last_reset).total_seconds() >= 86400:  # 24 hours
+            updates['swipe_limit.count'] = 0
+            updates['swipe_limit.last_reset'] = now.isoformat()
+            updated = True
+    
+    # Reset super like limit
+    if 'super_like_limit' in user:
+        last_reset = user['super_like_limit'].get('last_reset')
+        if isinstance(last_reset, str):
+            last_reset = datetime.fromisoformat(last_reset)
+        if last_reset.tzinfo is None:
+            last_reset = last_reset.replace(tzinfo=timezone.utc)
+        
+        if (now - last_reset).total_seconds() >= 86400:
+            updates['super_like_limit.count'] = 0
+            updates['super_like_limit.last_reset'] = now.isoformat()
+            updated = True
+    
+    # Reset rose limit
+    if 'rose_limit' in user:
+        last_reset = user['rose_limit'].get('last_reset')
+        if isinstance(last_reset, str):
+            last_reset = datetime.fromisoformat(last_reset)
+        if last_reset.tzinfo is None:
+            last_reset = last_reset.replace(tzinfo=timezone.utc)
+        
+        if (now - last_reset).total_seconds() >= 86400:
+            updates['rose_limit.count'] = 0
+            updates['rose_limit.last_reset'] = now.isoformat()
+            updated = True
+    
+    if updated:
+        await db.users.update_one({'user_id': user['user_id']}, {'$set': updates})
+        user = await db.users.find_one({'user_id': user['user_id']}, {'_id': 0})
+    
+    return user
+
+async def check_swipe_limit(user: dict) -> bool:
+    """Check if user has swipes remaining (returns True if can swipe)"""
+    # Premium users have unlimited swipes
+    if user.get('is_premium'):
+        return True
+    
+    # Reset limits if needed
+    user = await reset_daily_limits_if_needed(user)
+    
+    swipe_limit = user.get('swipe_limit', {})
+    count = swipe_limit.get('count', 0)
+    daily_max = swipe_limit.get('daily_max', 10)
+    
+    return count < daily_max
+
+async def increment_swipe_count(user_id: str):
+    """Increment the swipe counter"""
+    await db.users.update_one(
+        {'user_id': user_id},
+        {'$inc': {'swipe_limit.count': 1}}
+    )
+
+async def check_super_like_limit(user: dict) -> bool:
+    """Check if user has super likes remaining"""
+    user = await reset_daily_limits_if_needed(user)
+    
+    limit = user.get('super_like_limit', {})
+    count = limit.get('count', 0)
+    daily_max = limit.get('daily_max', 3)
+    
+    return count < daily_max
+
+async def check_rose_limit(user: dict) -> bool:
+    """Check if user has roses remaining"""
+    user = await reset_daily_limits_if_needed(user)
+    
+    limit = user.get('rose_limit', {})
+    count = limit.get('count', 0)
+    daily_max = limit.get('daily_max', 1)
+    
+    return count < daily_max
+
+def generate_verification_code() -> str:
+    """Generate 6-digit verification code"""
+    import random
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
 async def get_current_user(request: Request, credentials = Depends(security)) -> dict:
     session_token = request.cookies.get('session_token')
     if session_token:
