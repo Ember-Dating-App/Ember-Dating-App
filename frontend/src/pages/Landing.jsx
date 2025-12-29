@@ -33,7 +33,6 @@ export default function Landing() {
           {/* Nav */}
           <nav className="flex items-center justify-between mb-20">
             <div className="flex items-center gap-2">
-              <Flame className="w-8 h-8 text-primary" />
               <span className="font-heading text-2xl font-bold tracking-wider ember-text-gradient">EMBER</span>
             </div>
             <div className="flex gap-4">
@@ -172,8 +171,7 @@ export default function Landing() {
       <footer className="border-t border-border/50 py-8">
         <div className="container mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-primary" />
-            <span className="font-heading text-lg font-bold tracking-wider">EMBER</span>
+            <span className="font-heading text-lg font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
           <p className="text-muted-foreground text-sm">© 2024 Ember. Spark something real.</p>
         </div>

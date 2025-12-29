@@ -50,7 +50,6 @@ export default function Login() {
           </button>
 
           <div className="flex items-center gap-2 mb-8">
-            <Flame className="w-8 h-8 text-primary" />
             <span className="font-heading text-2xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
 

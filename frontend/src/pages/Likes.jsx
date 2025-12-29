@@ -75,7 +75,6 @@ export default function Likes() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Flame className="w-6 h-6 text-primary" />
             <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
           <h1 className="text-lg font-semibold">Likes You</h1>
