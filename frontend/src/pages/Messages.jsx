@@ -104,7 +104,7 @@ export default function Messages() {
     }
   };
 
-  const useStarter = (starter) => {
+  const selectStarter = (starter) => {
     setNewMessage(starter);
     setShowStarters(false);
   };
