@@ -135,6 +135,11 @@ function AppRouter() {
           <ProfileSetup />
         </ProtectedRoute>
       } />
+      <Route path="/verification" element={
+        <ProtectedRoute>
+          <Verification />
+        </ProtectedRoute>
+      } />
       <Route path="/discover" element={
         <ProtectedRoute>
           <Discover />
