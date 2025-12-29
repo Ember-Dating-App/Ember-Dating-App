@@ -15,6 +15,11 @@ import Matches from "@/pages/Matches";
 import Messages from "@/pages/Messages";
 import Profile from "@/pages/Profile";
 import AuthCallback from "@/pages/AuthCallback";
+import Premium from "@/pages/Premium";
+import Standouts from "@/pages/Standouts";
+
+// Contexts
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -148,6 +153,16 @@ function AppRouter() {
           <Profile />
         </ProtectedRoute>
       } />
+      <Route path="/premium" element={
+        <ProtectedRoute>
+          <Premium />
+        </ProtectedRoute>
+      } />
+      <Route path="/standouts" element={
+        <ProtectedRoute>
+          <Standouts />
+        </ProtectedRoute>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
@@ -158,8 +173,10 @@ function App() {
     <div className="min-h-screen bg-background">
       <BrowserRouter>
         <AuthProvider>
-          <AppRouter />
-          <Toaster position="top-center" richColors />
+          <WebSocketProvider>
+            <AppRouter />
+            <Toaster position="top-center" richColors />
+          </WebSocketProvider>
         </AuthProvider>
       </BrowserRouter>
     </div>
