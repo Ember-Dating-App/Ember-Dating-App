@@ -1041,6 +1041,10 @@ async def get_popular_locations():
 
 @api_router.get("/discover")
 async def discover_profiles(current_user: dict = Depends(get_current_user)):
+    # Check verification status
+    if current_user.get('verification_status') != 'verified':
+        raise HTTPException(status_code=403, detail='Profile verification required to use Ember')
+    
     # Get blocked users
     blocks = await db.blocks.find({'blocker_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
     blocked_ids = [b['blocked_id'] for b in blocks]
