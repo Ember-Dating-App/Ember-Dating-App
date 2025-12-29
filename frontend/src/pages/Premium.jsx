@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Sparkles, Crown, Heart, Star, Check, X } from 'lucide-react';
+import { Crown, Check, X, Loader2, Star } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -11,9 +11,10 @@ export default function Premium() {
   const navigate = useNavigate();
   const { user, setUser } = useAuth();
   const [plans, setPlans] = useState([]);
+  const [addons, setAddons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedItem, setSelectedItem] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const token = localStorage.getItem('ember_token');
@@ -27,6 +28,7 @@ export default function Premium() {
     try {
       const response = await axios.get(`${API}/premium/plans`, { headers, withCredentials: true });
       setPlans(response.data.plans);
+      setAddons(response.data.addons || []);
     } catch (error) {
       toast.error('Failed to load plans');
     } finally {
@@ -35,30 +37,32 @@ export default function Premium() {
   };
 
   const handlePurchase = async () => {
-    if (!selectedPlan) return;
+    if (!selectedItem) return;
     setPurchasing(true);
+    
     try {
-      const response = await axios.post(`${API}/premium/purchase`, {
-        plan: selectedPlan.id
+      // Get current origin for redirect URLs
+      const originUrl = window.location.origin;
+      
+      const response = await axios.post(`${API}/payments/checkout`, {
+        package_id: selectedItem.id,
+        origin_url: originUrl
       }, { headers, withCredentials: true });
 
-      toast.success(response.data.message);
-      setShowConfirm(false);
-      
-      // Update user
-      const meResponse = await axios.get(`${API}/auth/me`, { headers, withCredentials: true });
-      setUser(meResponse.data);
-      
-      navigate('/discover');
+      // Redirect to Stripe Checkout
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Purchase failed');
-    } finally {
+      toast.error(error.response?.data?.detail || 'Failed to start checkout');
       setPurchasing(false);
     }
   };
 
-  const selectPlan = (plan) => {
-    setSelectedPlan(plan);
+  const selectItem = (item, type) => {
+    setSelectedItem({ ...item, type });
     setShowConfirm(true);
   };
 
@@ -119,7 +123,7 @@ export default function Premium() {
           {plans.map((plan, index) => (
             <div
               key={plan.id}
-              onClick={() => selectPlan(plan)}
+              onClick={() => selectItem(plan, 'premium')}
               className={`relative bg-card rounded-2xl p-5 border cursor-pointer transition-all ${
                 index === 1 
                   ? 'border-primary shadow-lg shadow-primary/20' 
@@ -155,53 +159,31 @@ export default function Premium() {
           ))}
         </div>
 
-        {/* Purchase extras */}
+        {/* Addons */}
         <div className="mt-8">
           <h3 className="font-semibold mb-4">Or buy extras</h3>
           <div className="grid grid-cols-2 gap-4">
-            <button
-              onClick={async () => {
-                try {
-                  await axios.post(`${API}/premium/purchase-roses`, { quantity: 3 }, { headers, withCredentials: true });
-                  toast.success('3 Roses added!');
-                  const meResponse = await axios.get(`${API}/auth/me`, { headers, withCredentials: true });
-                  setUser(meResponse.data);
-                } catch (error) {
-                  toast.error('Purchase failed');
-                }
-              }}
-              className="bg-card rounded-xl p-4 border border-border/50 hover:border-primary/50 transition-colors text-left"
-              data-testid="buy-roses-btn"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-2xl">🌹</span>
-                <span className="font-semibold">3 Roses</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Stand out to someone special</p>
-              <p className="text-primary font-bold mt-2">$3.99</p>
-            </button>
-
-            <button
-              onClick={async () => {
-                try {
-                  await axios.post(`${API}/premium/purchase-super-likes`, { quantity: 5 }, { headers, withCredentials: true });
-                  toast.success('5 Super Likes added!');
-                  const meResponse = await axios.get(`${API}/auth/me`, { headers, withCredentials: true });
-                  setUser(meResponse.data);
-                } catch (error) {
-                  toast.error('Purchase failed');
-                }
-              }}
-              className="bg-card rounded-xl p-4 border border-border/50 hover:border-primary/50 transition-colors text-left"
-              data-testid="buy-super-likes-btn"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <Star className="w-6 h-6 text-blue-400" fill="#60a5fa" />
-                <span className="font-semibold">5 Super Likes</span>
-              </div>
-              <p className="text-sm text-muted-foreground">3x more likely to match</p>
-              <p className="text-primary font-bold mt-2">$4.99</p>
-            </button>
+            {addons.map((addon) => (
+              <button
+                key={addon.id}
+                onClick={() => selectItem(addon, 'addon')}
+                className="bg-card rounded-xl p-4 border border-border/50 hover:border-primary/50 transition-colors text-left"
+                data-testid={`addon-${addon.id}`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {addon.id.includes('roses') ? (
+                    <span className="text-2xl">🌹</span>
+                  ) : (
+                    <Star className="w-6 h-6 text-blue-400" fill="#60a5fa" />
+                  )}
+                  <span className="font-semibold">{addon.name}</span>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {addon.id.includes('roses') ? 'Stand out to someone special' : '3x more likely to match'}
+                </p>
+                <p className="text-primary font-bold mt-2">${addon.price}</p>
+              </button>
+            ))}
           </div>
         </div>
 
@@ -231,17 +213,19 @@ export default function Premium() {
           </DialogHeader>
           <div className="py-4">
             <p className="text-center mb-4">
-              Subscribe to <strong>{selectedPlan?.name}</strong> for{' '}
-              <strong className="text-primary">${selectedPlan?.price}</strong>?
+              {selectedItem?.type === 'premium' ? 'Subscribe to ' : 'Purchase '}
+              <strong>{selectedItem?.name}</strong> for{' '}
+              <strong className="text-primary">${selectedItem?.price}</strong>?
             </p>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              This is a demo purchase. In production, this would connect to Stripe.
+              You'll be redirected to Stripe for secure payment.
             </p>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 onClick={() => setShowConfirm(false)}
                 className="flex-1 rounded-full"
+                disabled={purchasing}
               >
                 Cancel
               </Button>
@@ -251,7 +235,14 @@ export default function Premium() {
                 className="flex-1 ember-gradient rounded-full"
                 data-testid="confirm-purchase-btn"
               >
-                {purchasing ? 'Processing...' : 'Confirm'}
+                {purchasing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Redirecting...
+                  </>
+                ) : (
+                  'Pay with Stripe'
+                )}
               </Button>
             </div>
           </div>
