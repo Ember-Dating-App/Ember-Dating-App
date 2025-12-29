@@ -18,6 +18,7 @@ import AuthCallback from "@/pages/AuthCallback";
 import Premium from "@/pages/Premium";
 import Standouts from "@/pages/Standouts";
 import PaymentSuccess from "@/pages/PaymentSuccess";
+import Verification from "@/pages/Verification";
 
 // Contexts
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
