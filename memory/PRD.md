@@ -9,12 +9,14 @@ Build a fully functioning dating app with a similar style of Hinge. The name of 
 - **Authentication**: JWT-based + Emergent Google OAuth
 - **AI Integration**: OpenAI GPT-4o-mini for match suggestions and conversation starters
 - **Real-time**: WebSocket for messaging and notifications
-- **Calling**: WebRTC infrastructure for video/voice calls
+- **Calling**: WebRTC with STUN + TURN servers for reliable video/voice calls
+- **Payments**: Stripe Checkout for premium subscriptions
 
 ## User Personas
 1. **Primary Users**: Singles (18-45) seeking meaningful relationships
 2. **Power Users**: Active daters who engage daily with likes and messages
 3. **Premium Users**: Users who pay for enhanced features
+4. **Global Users**: Users who travel or want to match in different locations
 
 ## Core Requirements (Static)
 1. User authentication (email/password + Google OAuth)
@@ -24,8 +26,9 @@ Build a fully functioning dating app with a similar style of Hinge. The name of 
 5. Match system (mutual likes create matches)
 6. Real-time messaging between matches
 7. AI-powered features (most compatible, conversation starters)
-8. Video/voice calling
-9. Premium subscription model
+8. Video/voice calling with TURN server support
+9. Premium subscription model with Stripe
+10. Location change feature (city, state, country)
 
 ## What's Been Implemented (December 2024)
 
@@ -44,97 +47,129 @@ Build a fully functioning dating app with a similar style of Hinge. The name of 
 - [x] Bottom navigation
 - [x] Responsive design
 
-### Phase 2 Features ✅ (Implemented)
+### Phase 2 Features ✅
 - [x] **WebSocket Real-time Messaging** - Live message delivery without polling
 - [x] **Typing Indicators** - See when match is typing
 - [x] **WebRTC Video/Voice Calling** - In-app calling with signaling server
 - [x] **Incoming Call UI** - Answer/reject incoming calls
 - [x] **Photo Upload** - Base64 photo upload to server
-- [x] **Premium Subscription System**
-  - Weekly ($9.99), Monthly ($29.99), Yearly ($149.99) plans
-  - Unlimited likes for premium users
-  - Priority likes
-  - Profile boost
+- [x] **Premium Subscription System** (Weekly/Monthly/Yearly)
 - [x] **Super Likes** - 3x more likely to match (blue star button)
 - [x] **Roses** - Stand out to someone special (🌹 button)
 - [x] **Standouts Page** - AI-curated exceptional profiles
 - [x] **Notifications System** - Real-time push notifications via WebSocket
-- [x] **Premium Purchase Flow** (mocked payment)
+
+### Phase 3 Features ✅ (Just Implemented)
+- [x] **Stripe Payment Integration** - Real payment processing
+  - Checkout session creation with server-side pricing
+  - Payment status polling and webhook support
+  - Automatic premium/addon application on payment success
+  - Payment success/failure pages
+- [x] **TURN Server Support** - Reliable video calling
+  - STUN servers (Google)
+  - TURN servers (openrelay.metered.ca) for NAT traversal
+  - ICE servers endpoint for dynamic configuration
+- [x] **Location Change Feature** - Change location anytime
+  - PUT /api/profile/location endpoint
+  - LocationPicker modal component
+  - 20+ popular cities for quick selection
+  - Custom city/state/country input
+  - Location details stored (city, state, country, coordinates)
 
 ### Backend Endpoints
+
 #### Auth
-- POST /api/auth/register - User registration
-- POST /api/auth/login - JWT login
-- POST /api/auth/google/session - Google OAuth
-- GET /api/auth/me - Current user
-- POST /api/auth/logout - Logout
+- POST /api/auth/register
+- POST /api/auth/login
+- POST /api/auth/google/session
+- GET /api/auth/me
+- POST /api/auth/logout
 
 #### Profile
-- PUT /api/profile - Update profile
-- GET /api/profile/{user_id} - Get profile
-- PUT /api/profile/notifications - Update notification settings
+- PUT /api/profile
+- GET /api/profile/{user_id}
+- PUT /api/profile/notifications
+- PUT /api/profile/location - **NEW**
+
+#### Location
+- GET /api/locations/popular - **NEW**
 
 #### Discovery
-- GET /api/discover - Get profiles to discover
-- GET /api/discover/most-compatible - AI-ranked matches
-- GET /api/discover/standouts - AI-curated standouts
+- GET /api/discover
+- GET /api/discover/most-compatible
+- GET /api/discover/standouts
 
 #### Likes & Matches
-- POST /api/likes - Send like (regular, super_like, rose)
-- GET /api/likes/received - Get received likes
-- DELETE /api/likes/{like_id} - Reject like
-- GET /api/matches - Get all matches
-- DELETE /api/matches/{match_id} - Unmatch
+- POST /api/likes
+- GET /api/likes/received
+- DELETE /api/likes/{like_id}
+- GET /api/matches
+- DELETE /api/matches/{match_id}
 
 #### Messaging
-- GET /api/messages/{match_id} - Get messages
-- POST /api/messages - Send message
+- GET /api/messages/{match_id}
+- POST /api/messages
 
 #### AI
-- POST /api/ai/conversation-starters - Get generic starters
-- POST /api/ai/conversation-starters/{user_id} - Get personalized starters
+- POST /api/ai/conversation-starters
+- POST /api/ai/conversation-starters/{user_id}
 
-#### Premium
-- GET /api/premium/plans - Get subscription plans
-- POST /api/premium/purchase - Purchase premium
-- POST /api/premium/purchase-roses - Buy roses
-- POST /api/premium/purchase-super-likes - Buy super likes
+#### Premium & Payments
+- GET /api/premium/plans
+- POST /api/payments/checkout - **NEW (Stripe)**
+- GET /api/payments/status/{session_id} - **NEW**
+- POST /api/webhook/stripe - **NEW**
 
 #### Calling
-- POST /api/calls/initiate - Start a call
-- POST /api/calls/{call_id}/answer - Answer call
-- POST /api/calls/{call_id}/reject - Reject call
-- POST /api/calls/{call_id}/end - End call
-- POST /api/calls/{call_id}/signal - WebRTC signaling
-
-#### Notifications
-- GET /api/notifications - Get notifications
-- PUT /api/notifications/read - Mark as read
-- GET /api/notifications/unread-count - Unread count
+- GET /api/calls/ice-servers - **NEW (TURN)**
+- POST /api/calls/initiate
+- POST /api/calls/{call_id}/answer
+- POST /api/calls/{call_id}/reject
+- POST /api/calls/{call_id}/end
+- POST /api/calls/{call_id}/signal
 
 #### Uploads
-- POST /api/upload/photo - Upload photo file
-- POST /api/upload/photo/base64 - Upload base64 photo
+- POST /api/upload/photo
+- POST /api/upload/photo/base64
+
+#### Notifications
+- GET /api/notifications
+- PUT /api/notifications/read
+- GET /api/notifications/unread-count
 
 #### WebSocket
-- WS /ws/{token} - Real-time messaging & notifications
+- WS /ws/{token}
+
+## Technical Configuration
+
+### Stripe (Production Setup Required)
+```
+STRIPE_API_KEY=sk_live_xxx (or sk_test_xxx for testing)
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+```
+
+### TURN Servers (Current Config)
+Using free openrelay.metered.ca servers. For production, consider:
+- Twilio TURN
+- Xirsys
+- Self-hosted coturn
 
 ## Prioritized Backlog
 
-### P0 - Critical (Next Sprint)
-- [ ] Stripe payment integration for real payments
-- [ ] Push notifications (browser/mobile)
-- [ ] TURN server for WebRTC reliability
+### P0 - Production Ready
+- [ ] Configure production Stripe API keys
+- [ ] Set up Stripe webhooks
+- [ ] Configure paid TURN server (Twilio/Xirsys)
+- [ ] Cloud storage for photos (S3/Cloudinary)
 
 ### P1 - High Priority
-- [ ] Cloud storage for photos (S3/Cloudinary)
-- [ ] Video profile recording
+- [ ] Location-based matching with distance filters
 - [ ] Block/report user functionality
 - [ ] Read receipts in messages
-- [ ] Profile verification (photo verification)
+- [ ] Profile verification
+- [ ] Push notifications (browser/mobile)
 
 ### P2 - Medium Priority
-- [ ] Location-based matching with distance filters
 - [ ] Advanced filters (age, interests)
 - [ ] Undo last pass
 - [ ] Daily picks feature
@@ -144,10 +179,3 @@ Build a fully functioning dating app with a similar style of Hinge. The name of 
 - [ ] Spotify/Instagram integration
 - [ ] Analytics dashboard
 - [ ] A/B testing for match algorithms
-- [ ] Machine learning for better compatibility
-
-## Technical Notes
-- Premium purchases are currently MOCKED (no real payment processing)
-- Video calling uses STUN servers only (may need TURN for reliability)
-- Photos stored locally on server (should move to cloud storage)
-- WebSocket requires valid JWT token for authentication
