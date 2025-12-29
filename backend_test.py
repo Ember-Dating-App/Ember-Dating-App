@@ -229,6 +229,72 @@ class EmberAPITester:
             return True
         return False
 
+    def test_premium_plans(self):
+        """Test premium plans endpoint"""
+        success, response = self.run_test(
+            "Get Premium Plans",
+            "GET",
+            "premium/plans",
+            200
+        )
+        
+        if success and 'plans' in response:
+            plans_count = len(response['plans'])
+            print(f"   Found {plans_count} premium plans")
+            return True
+        return False
+
+    def test_standouts(self):
+        """Test standouts endpoint"""
+        success, response = self.run_test(
+            "Get Standouts",
+            "GET",
+            "discover/standouts",
+            200
+        )
+        
+        if success:
+            standouts_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {standouts_count} standout profiles")
+            return True
+        return False
+
+    def test_notifications(self):
+        """Test notifications endpoint"""
+        success, response = self.run_test(
+            "Get Notifications",
+            "GET",
+            "notifications",
+            200
+        )
+        
+        if success:
+            notifications_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {notifications_count} notifications")
+            return True
+        return False
+
+    def test_photo_upload_base64(self):
+        """Test base64 photo upload endpoint"""
+        # Simple base64 encoded 1x1 pixel image
+        test_data = {
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77zgAAAABJRU5ErkJggg==",
+            "extension": "png"
+        }
+        
+        success, response = self.run_test(
+            "Upload Photo Base64",
+            "POST",
+            "upload/photo/base64",
+            200,
+            data=test_data
+        )
+        
+        if success and 'url' in response:
+            print(f"   Photo uploaded: {response['url']}")
+            return True
+        return False
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🔥 Starting Ember Dating App API Tests\n")
