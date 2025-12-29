@@ -531,6 +531,325 @@ async def logout(request: Request, response: Response):
     response.delete_cookie('session_token', path='/')
     return {'message': 'Logged out'}
 
+# ==================== VERIFICATION ROUTES ====================
+
+@api_router.get("/verification/status")
+async def get_verification_status(current_user: dict = Depends(get_current_user)):
+    """Get current verification status"""
+    return {
+        'verification_status': current_user.get('verification_status', 'unverified'),
+        'verification_methods': current_user.get('verification_methods', []),
+        'photo_verification': current_user.get('photo_verification', {}),
+        'phone_verification': {
+            'status': current_user.get('phone_verification', {}).get('status', 'pending'),
+            'phone': current_user.get('phone_verification', {}).get('phone'),
+            'verified_at': current_user.get('phone_verification', {}).get('verified_at')
+        },
+        'id_verification': current_user.get('id_verification', {})
+    }
+
+@api_router.post("/verification/photo")
+async def verify_photo(data: PhotoVerification, current_user: dict = Depends(get_current_user)):
+    """Upload selfie for photo verification"""
+    try:
+        # Upload selfie to Cloudinary
+        result = cloudinary.uploader.upload(
+            data.selfie_data,
+            folder=f"ember/verification/{current_user['user_id']}",
+            public_id=f"selfie_{uuid.uuid4().hex[:8]}",
+            transformation=[
+                {'width': 500, 'height': 500, 'crop': 'fill'},
+                {'quality': 'auto'},
+                {'fetch_format': 'auto'}
+            ]
+        )
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        # Update user verification
+        updates = {
+            'photo_verification.status': 'verified',
+            'photo_verification.selfie_url': result['secure_url'],
+            'photo_verification.verified_at': now
+        }
+        
+        # Add to verification methods if not already there
+        user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+        methods = user.get('verification_methods', [])
+        if 'photo' not in methods:
+            methods.append('photo')
+            updates['verification_methods'] = methods
+        
+        # Mark as verified if at least one method is complete
+        if len(methods) >= 1:
+            updates['verification_status'] = 'verified'
+        
+        await db.users.update_one({'user_id': current_user['user_id']}, {'$set': updates})
+        
+        return {'message': 'Photo verification successful', 'status': 'verified'}
+    
+    except Exception as e:
+        logger.error(f"Photo verification error: {e}")
+        raise HTTPException(status_code=500, detail='Photo upload failed')
+
+@api_router.post("/verification/phone/send")
+async def send_phone_code(data: PhoneSendCode, current_user: dict = Depends(get_current_user)):
+    """Send SMS verification code"""
+    # Generate 6-digit code
+    code = generate_verification_code()
+    expires_at = (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat()
+    
+    # Store code in user document
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {
+            'phone_verification.phone': data.phone,
+            'phone_verification.code': code,
+            'phone_verification.expires_at': expires_at
+        }}
+    )
+    
+    # TODO: In production, integrate Twilio to send actual SMS
+    # For now, return the code for testing purposes
+    logger.info(f"Verification code for {data.phone}: {code}")
+    
+    return {
+        'message': 'Verification code sent',
+        'phone': data.phone,
+        # Remove this in production
+        'debug_code': code if os.environ.get('ENV') != 'production' else None
+    }
+
+@api_router.post("/verification/phone/verify")
+async def verify_phone_code(data: PhoneVerifyCode, current_user: dict = Depends(get_current_user)):
+    """Verify SMS code"""
+    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    phone_data = user.get('phone_verification', {})
+    
+    stored_code = phone_data.get('code')
+    stored_phone = phone_data.get('phone')
+    expires_at = phone_data.get('expires_at')
+    
+    if not stored_code or not stored_phone:
+        raise HTTPException(status_code=400, detail='No verification code sent')
+    
+    if stored_phone != data.phone:
+        raise HTTPException(status_code=400, detail='Phone number mismatch')
+    
+    # Check expiration
+    if isinstance(expires_at, str):
+        expires_at = datetime.fromisoformat(expires_at)
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=timezone.utc)
+    
+    if datetime.now(timezone.utc) > expires_at:
+        raise HTTPException(status_code=400, detail='Verification code expired')
+    
+    if stored_code != data.code:
+        raise HTTPException(status_code=400, detail='Invalid verification code')
+    
+    # Mark as verified
+    now = datetime.now(timezone.utc).isoformat()
+    updates = {
+        'phone_verification.status': 'verified',
+        'phone_verification.verified_at': now
+    }
+    
+    # Add to verification methods
+    methods = user.get('verification_methods', [])
+    if 'phone' not in methods:
+        methods.append('phone')
+        updates['verification_methods'] = methods
+    
+    # Mark as verified if at least one method is complete
+    if len(methods) >= 1:
+        updates['verification_status'] = 'verified'
+    
+    await db.users.update_one({'user_id': current_user['user_id']}, {'$set': updates})
+    
+    return {'message': 'Phone verification successful', 'status': 'verified'}
+
+@api_router.post("/verification/id")
+async def verify_id(data: IDVerification, current_user: dict = Depends(get_current_user)):
+    """Upload ID document for verification"""
+    try:
+        # Upload ID to Cloudinary
+        result = cloudinary.uploader.upload(
+            data.id_photo_data,
+            folder=f"ember/verification/{current_user['user_id']}",
+            public_id=f"id_{uuid.uuid4().hex[:8]}",
+            transformation=[
+                {'quality': 'auto'},
+                {'fetch_format': 'auto'}
+            ]
+        )
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        # Update user verification
+        updates = {
+            'id_verification.status': 'verified',
+            'id_verification.id_photo_url': result['secure_url'],
+            'id_verification.verified_at': now
+        }
+        
+        # Add to verification methods
+        user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+        methods = user.get('verification_methods', [])
+        if 'id' not in methods:
+            methods.append('id')
+            updates['verification_methods'] = methods
+        
+        # Mark as verified if at least one method is complete
+        if len(methods) >= 1:
+            updates['verification_status'] = 'verified'
+        
+        await db.users.update_one({'user_id': current_user['user_id']}, {'$set': updates})
+        
+        return {'message': 'ID verification successful', 'status': 'verified'}
+    
+    except Exception as e:
+        logger.error(f"ID verification error: {e}")
+        raise HTTPException(status_code=500, detail='ID upload failed')
+
+# ==================== SWIPE LIMITS ROUTES ====================
+
+@api_router.get("/limits/swipes")
+async def get_swipe_limits(current_user: dict = Depends(get_current_user)):
+    """Get remaining swipes, super likes, and roses"""
+    # Reset limits if needed
+    user = await reset_daily_limits_if_needed(current_user)
+    
+    swipe_limit = user.get('swipe_limit', {})
+    super_like_limit = user.get('super_like_limit', {})
+    rose_limit = user.get('rose_limit', {})
+    
+    is_premium = user.get('is_premium', False)
+    
+    return {
+        'swipes': {
+            'used': swipe_limit.get('count', 0),
+            'max': swipe_limit.get('daily_max', 10),
+            'remaining': 'unlimited' if is_premium else max(0, swipe_limit.get('daily_max', 10) - swipe_limit.get('count', 0)),
+            'unlimited': is_premium
+        },
+        'super_likes': {
+            'used': super_like_limit.get('count', 0),
+            'max': super_like_limit.get('daily_max', 3),
+            'remaining': max(0, super_like_limit.get('daily_max', 3) - super_like_limit.get('count', 0))
+        },
+        'roses': {
+            'used': rose_limit.get('count', 0),
+            'max': rose_limit.get('daily_max', 1),
+            'remaining': max(0, rose_limit.get('daily_max', 1) - rose_limit.get('count', 0))
+        }
+    }
+
+@api_router.post("/discover/pass")
+async def pass_profile(liked_user_id: str, current_user: dict = Depends(get_current_user)):
+    """Pass on a profile (counts toward daily swipe limit)"""
+    # Check verification
+    if current_user.get('verification_status') != 'verified':
+        raise HTTPException(status_code=403, detail='Profile verification required')
+    
+    # Check swipe limit
+    if not await check_swipe_limit(current_user):
+        raise HTTPException(status_code=429, detail='Daily swipe limit reached. Upgrade to premium for unlimited swipes!')
+    
+    # Increment swipe count
+    await increment_swipe_count(current_user['user_id'])
+    
+    # Store last passed user for undo feature
+    now = datetime.now(timezone.utc).isoformat()
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {
+            'last_passed_user_id': liked_user_id,
+            'last_passed_at': now
+        }}
+    )
+    
+    return {'message': 'Profile passed', 'swipes_remaining': await get_swipe_limits(current_user)}
+
+# ==================== BLOCK/REPORT ROUTES ====================
+
+@api_router.post("/users/block")
+async def block_user(data: BlockUser, current_user: dict = Depends(get_current_user)):
+    """Block a user"""
+    # Check if already blocked
+    existing = await db.blocks.find_one({
+        'blocker_id': current_user['user_id'],
+        'blocked_id': data.blocked_user_id
+    })
+    
+    if existing:
+        raise HTTPException(status_code=400, detail='User already blocked')
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    block_doc = {
+        'block_id': f"block_{uuid.uuid4().hex[:12]}",
+        'blocker_id': current_user['user_id'],
+        'blocked_id': data.blocked_user_id,
+        'created_at': now
+    }
+    
+    await db.blocks.insert_one(block_doc)
+    
+    # Remove any existing matches
+    await db.matches.delete_many({
+        '$or': [
+            {'user1_id': current_user['user_id'], 'user2_id': data.blocked_user_id},
+            {'user1_id': data.blocked_user_id, 'user2_id': current_user['user_id']}
+        ]
+    })
+    
+    return {'message': 'User blocked successfully'}
+
+@api_router.get("/users/blocked")
+async def get_blocked_users(current_user: dict = Depends(get_current_user)):
+    """Get list of blocked users"""
+    blocks = await db.blocks.find({'blocker_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
+    
+    # Fetch user details
+    for block in blocks:
+        user = await db.users.find_one({'user_id': block['blocked_id']}, {'_id': 0, 'password': 0})
+        block['user'] = user
+    
+    return blocks
+
+@api_router.post("/users/unblock")
+async def unblock_user(data: BlockUser, current_user: dict = Depends(get_current_user)):
+    """Unblock a user"""
+    result = await db.blocks.delete_one({
+        'blocker_id': current_user['user_id'],
+        'blocked_id': data.blocked_user_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail='Block not found')
+    
+    return {'message': 'User unblocked successfully'}
+
+@api_router.post("/users/report")
+async def report_user(data: ReportUser, current_user: dict = Depends(get_current_user)):
+    """Report a user for violations"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    report_doc = {
+        'report_id': f"report_{uuid.uuid4().hex[:12]}",
+        'reporter_id': current_user['user_id'],
+        'reported_id': data.reported_user_id,
+        'reason': data.reason,
+        'details': data.details,
+        'status': 'pending',
+        'created_at': now
+    }
+    
+    await db.reports.insert_one(report_doc)
+    
+    return {'message': 'Report submitted successfully'}
+
 # ==================== FILE UPLOAD ROUTES (CLOUDINARY) ====================
 
 @api_router.post("/upload/photo")
