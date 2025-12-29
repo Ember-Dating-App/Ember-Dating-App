@@ -78,8 +78,8 @@ export const VideoCall = ({ callData, onEnd }) => {
         localVideoRef.current.srcObject = stream;
       }
 
-      // Create peer connection
-      peerConnectionRef.current = new RTCPeerConnection(configuration);
+      // Create peer connection with TURN servers
+      peerConnectionRef.current = new RTCPeerConnection(getConfiguration());
 
       // Add local tracks
       stream.getTracks().forEach(track => {
