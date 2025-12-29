@@ -181,6 +181,32 @@ class NotificationSettings(BaseModel):
     new_likes: bool = True
     standouts: bool = True
 
+# ==================== PHASE 1 MODELS ====================
+
+class PhotoVerification(BaseModel):
+    selfie_data: str  # base64 image
+
+class PhoneSendCode(BaseModel):
+    phone: str
+
+class PhoneVerifyCode(BaseModel):
+    phone: str
+    code: str
+
+class IDVerification(BaseModel):
+    id_photo_data: str  # base64 image
+
+class BlockUser(BaseModel):
+    blocked_user_id: str
+
+class ReportUser(BaseModel):
+    reported_user_id: str
+    reason: str
+    details: Optional[str] = None
+
+class MarkMessageRead(BaseModel):
+    message_id: str
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
