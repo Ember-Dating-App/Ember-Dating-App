@@ -379,6 +379,18 @@ async def google_session(request: Request, response: Response):
                 'new_likes': True,
                 'standouts': True
             },
+            # Verification fields
+            'verification_status': 'unverified',
+            'verification_methods': [],
+            'photo_verification': {'status': 'pending', 'selfie_url': None, 'verified_at': None},
+            'phone_verification': {'status': 'pending', 'phone': None, 'verified_at': None, 'code': None, 'expires_at': None},
+            'id_verification': {'status': 'pending', 'id_photo_url': None, 'verified_at': None},
+            # Swipe limits
+            'swipe_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 10},
+            'super_like_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 3},
+            'rose_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 1},
+            'last_passed_user_id': None,
+            'last_passed_at': None,
             'created_at': now.isoformat(),
             'last_active': now.isoformat()
         }
