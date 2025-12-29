@@ -103,8 +103,13 @@ const ProtectedRoute = ({ children }) => {
   }
 
   // Redirect to profile setup if not complete
-  if (!user.is_profile_complete && location.pathname !== '/setup') {
+  if (!user.is_profile_complete && location.pathname !== '/setup' && location.pathname !== '/verification') {
     return <Navigate to="/setup" replace />;
+  }
+
+  // Redirect to verification if not verified
+  if (user.is_profile_complete && user.verification_status !== 'verified' && location.pathname !== '/verification') {
+    return <Navigate to="/verification" replace />;
   }
 
   return children;
