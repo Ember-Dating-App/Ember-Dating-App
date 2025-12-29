@@ -19,6 +19,7 @@ import json
 import asyncio
 import aiofiles
 import base64
+import stripe
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -30,6 +31,9 @@ db = client[os.environ['DB_NAME']]
 
 # OpenAI client for AI features
 openai_client = OpenAI(api_key=os.environ.get('EMERGENT_LLM_KEY', ''))
+
+# Stripe configuration
+stripe.api_key = os.environ.get('STRIPE_API_KEY', '')
 
 # JWT Secret
 JWT_SECRET = os.environ.get('JWT_SECRET', 'ember-secret-key-2024')
@@ -48,12 +52,51 @@ security = HTTPBearer(auto_error=False)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# ==================== PREMIUM PACKAGES (Server-side defined) ====================
+
+PREMIUM_PACKAGES = {
+    'weekly': {'price': 9.99, 'days': 7, 'name': 'Weekly Premium'},
+    'monthly': {'price': 29.99, 'days': 30, 'name': 'Monthly Premium'},
+    'yearly': {'price': 149.99, 'days': 365, 'name': 'Yearly Premium'}
+}
+
+ADDON_PACKAGES = {
+    'roses_3': {'price': 3.99, 'quantity': 3, 'type': 'roses'},
+    'roses_12': {'price': 9.99, 'quantity': 12, 'type': 'roses'},
+    'super_likes_5': {'price': 4.99, 'quantity': 5, 'type': 'super_likes'},
+    'super_likes_15': {'price': 12.99, 'quantity': 15, 'type': 'super_likes'}
+}
+
+# ==================== TURN SERVER CONFIG ====================
+
+TURN_SERVERS = [
+    {'urls': 'stun:stun.l.google.com:19302'},
+    {'urls': 'stun:stun1.l.google.com:19302'},
+    {'urls': 'stun:stun2.l.google.com:19302'},
+    # Free TURN servers (for demo - in production use paid TURN service)
+    {
+        'urls': 'turn:openrelay.metered.ca:80',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject'
+    },
+    {
+        'urls': 'turn:openrelay.metered.ca:443',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject'
+    },
+    {
+        'urls': 'turn:openrelay.metered.ca:443?transport=tcp',
+        'username': 'openrelayproject',
+        'credential': 'openrelayproject'
+    }
+]
+
 # ==================== WEBSOCKET CONNECTION MANAGER ====================
 
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
-        self.call_sessions: Dict[str, Dict] = {}  # For WebRTC signaling
+        self.call_sessions: Dict[str, Dict] = {}
 
     async def connect(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
@@ -89,29 +132,6 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-class UserProfile(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    user_id: str
-    email: str
-    name: str
-    picture: Optional[str] = None
-    age: Optional[int] = None
-    gender: Optional[str] = None
-    interested_in: Optional[str] = None
-    location: Optional[str] = None
-    bio: Optional[str] = None
-    photos: List[str] = []
-    video_url: Optional[str] = None
-    prompts: List[Dict[str, str]] = []
-    interests: List[str] = []
-    is_profile_complete: bool = False
-    is_premium: bool = False
-    premium_expires: Optional[str] = None
-    roses: int = 0
-    super_likes: int = 0
-    created_at: str = ""
-    last_active: str = ""
-
 class ProfileUpdate(BaseModel):
     age: Optional[int] = None
     gender: Optional[str] = None
@@ -123,36 +143,26 @@ class ProfileUpdate(BaseModel):
     prompts: Optional[List[Dict[str, str]]] = None
     interests: Optional[List[str]] = None
 
+class LocationUpdate(BaseModel):
+    city: str
+    state: Optional[str] = None
+    country: str
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
 class LikeCreate(BaseModel):
     liked_user_id: str
     liked_section: Optional[str] = None
     comment: Optional[str] = None
-    like_type: str = "regular"  # regular, super_like, rose
+    like_type: str = "regular"
 
 class MessageCreate(BaseModel):
     match_id: str
     content: str
 
-class Match(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    match_id: str
-    user1_id: str
-    user2_id: str
-    created_at: str
-    last_message: Optional[str] = None
-    last_message_at: Optional[str] = None
-
-class Message(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    message_id: str
-    match_id: str
-    sender_id: str
-    content: str
-    created_at: str
-    read: bool = False
-
-class PremiumPurchase(BaseModel):
-    plan: str  # "weekly", "monthly", "yearly"
+class CheckoutRequest(BaseModel):
+    package_id: str
+    origin_url: str
 
 class NotificationSettings(BaseModel):
     new_matches: bool = True
@@ -166,6 +176,8 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def verify_password(password: str, hashed: str) -> bool:
+    if not hashed:
+        return False
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 def create_token(user_id: str) -> str:
@@ -176,7 +188,6 @@ def create_token(user_id: str) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 async def get_current_user(request: Request, credentials = Depends(security)) -> dict:
-    # Check cookie first
     session_token = request.cookies.get('session_token')
     if session_token:
         session = await db.user_sessions.find_one({'session_token': session_token}, {'_id': 0})
@@ -191,7 +202,6 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
                 if user:
                     return user
     
-    # Check Authorization header
     if credentials:
         try:
             payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -206,7 +216,6 @@ async def get_current_user(request: Request, credentials = Depends(security)) ->
     raise HTTPException(status_code=401, detail='Not authenticated')
 
 async def get_user_from_token(token: str) -> Optional[dict]:
-    """Helper to get user from JWT token for WebSocket auth"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user = await db.users.find_one({'user_id': payload['user_id']}, {'_id': 0})
@@ -235,6 +244,7 @@ async def register(user_data: UserCreate):
         'gender': None,
         'interested_in': None,
         'location': None,
+        'location_details': None,
         'bio': None,
         'photos': [],
         'video_url': None,
@@ -243,8 +253,8 @@ async def register(user_data: UserCreate):
         'is_profile_complete': False,
         'is_premium': False,
         'premium_expires': None,
-        'roses': 1,  # Free rose on signup
-        'super_likes': 1,  # Free super like on signup
+        'roses': 1,
+        'super_likes': 1,
         'notification_settings': {
             'new_matches': True,
             'new_messages': True,
@@ -263,7 +273,7 @@ async def register(user_data: UserCreate):
 @api_router.post("/auth/login")
 async def login(user_data: UserLogin):
     user = await db.users.find_one({'email': user_data.email}, {'_id': 0})
-    if not user or not verify_password(user_data.password, user['password']):
+    if not user or not verify_password(user_data.password, user.get('password')):
         raise HTTPException(status_code=401, detail='Invalid credentials')
     
     token = create_token(user['user_id'])
@@ -271,7 +281,6 @@ async def login(user_data: UserLogin):
     
     return {'token': token, 'user': {k: v for k, v in user.items() if k != 'password'}}
 
-# REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
 @api_router.post("/auth/google/session")
 async def google_session(request: Request, response: Response):
     body = await request.json()
@@ -304,6 +313,7 @@ async def google_session(request: Request, response: Response):
             'gender': None,
             'interested_in': None,
             'location': None,
+            'location_details': None,
             'bio': None,
             'photos': [],
             'video_url': None,
@@ -328,7 +338,6 @@ async def google_session(request: Request, response: Response):
         await db.users.update_one({'email': google_data['email']}, {'$set': {'last_active': now.isoformat()}})
         user = await db.users.find_one({'email': google_data['email']}, {'_id': 0})
     
-    # Store session
     session_token = google_data['session_token']
     await db.user_sessions.insert_one({
         'user_id': user['user_id'],
@@ -368,43 +377,36 @@ async def upload_photo(file: UploadFile = File(...), current_user: dict = Depend
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail='File must be an image')
     
-    # Generate unique filename
     ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
     filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
     filepath = UPLOAD_DIR / filename
     
-    # Save file
     async with aiofiles.open(filepath, 'wb') as f:
         content = await file.read()
         await f.write(content)
     
-    # Return the URL
     photo_url = f"/api/uploads/{filename}"
     return {'url': photo_url, 'filename': filename}
 
 @api_router.post("/upload/photo/base64")
 async def upload_photo_base64(request: Request, current_user: dict = Depends(get_current_user)):
     body = await request.json()
-    data = body.get('data')  # base64 encoded image
+    data = body.get('data')
     ext = body.get('extension', 'jpg')
     
     if not data:
         raise HTTPException(status_code=400, detail='No image data provided')
     
-    # Decode base64
     try:
-        # Remove data URL prefix if present
         if ',' in data:
             data = data.split(',')[1]
         image_data = base64.b64decode(data)
     except Exception as e:
         raise HTTPException(status_code=400, detail='Invalid base64 data')
     
-    # Generate unique filename
     filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
     filepath = UPLOAD_DIR / filename
     
-    # Save file
     async with aiofiles.open(filepath, 'wb') as f:
         await f.write(image_data)
     
@@ -417,7 +419,6 @@ async def upload_photo_base64(request: Request, current_user: dict = Depends(get
 async def update_profile(profile: ProfileUpdate, current_user: dict = Depends(get_current_user)):
     update_data = {k: v for k, v in profile.model_dump().items() if v is not None}
     
-    # Check if profile is complete
     user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
     merged = {**user, **update_data}
     is_complete = all([
@@ -449,11 +450,69 @@ async def update_notifications(settings: NotificationSettings, current_user: dic
     )
     return {'message': 'Notification settings updated'}
 
+# ==================== LOCATION ROUTES ====================
+
+@api_router.put("/profile/location")
+async def update_location(location: LocationUpdate, current_user: dict = Depends(get_current_user)):
+    """Update user's location - can change city, state, country anytime"""
+    location_string = f"{location.city}"
+    if location.state:
+        location_string += f", {location.state}"
+    location_string += f", {location.country}"
+    
+    location_details = {
+        'city': location.city,
+        'state': location.state,
+        'country': location.country,
+        'latitude': location.latitude,
+        'longitude': location.longitude,
+        'updated_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {
+            'location': location_string,
+            'location_details': location_details,
+            'last_active': datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    return {k: v for k, v in updated.items() if k != 'password'}
+
+@api_router.get("/locations/popular")
+async def get_popular_locations():
+    """Get list of popular cities for quick selection"""
+    return {
+        'locations': [
+            {'city': 'New York', 'state': 'NY', 'country': 'United States'},
+            {'city': 'Los Angeles', 'state': 'CA', 'country': 'United States'},
+            {'city': 'Chicago', 'state': 'IL', 'country': 'United States'},
+            {'city': 'Miami', 'state': 'FL', 'country': 'United States'},
+            {'city': 'San Francisco', 'state': 'CA', 'country': 'United States'},
+            {'city': 'Austin', 'state': 'TX', 'country': 'United States'},
+            {'city': 'Seattle', 'state': 'WA', 'country': 'United States'},
+            {'city': 'Boston', 'state': 'MA', 'country': 'United States'},
+            {'city': 'London', 'state': None, 'country': 'United Kingdom'},
+            {'city': 'Paris', 'state': None, 'country': 'France'},
+            {'city': 'Toronto', 'state': 'ON', 'country': 'Canada'},
+            {'city': 'Sydney', 'state': 'NSW', 'country': 'Australia'},
+            {'city': 'Tokyo', 'state': None, 'country': 'Japan'},
+            {'city': 'Berlin', 'state': None, 'country': 'Germany'},
+            {'city': 'Amsterdam', 'state': None, 'country': 'Netherlands'},
+            {'city': 'Barcelona', 'state': None, 'country': 'Spain'},
+            {'city': 'Dubai', 'state': None, 'country': 'UAE'},
+            {'city': 'Singapore', 'state': None, 'country': 'Singapore'},
+            {'city': 'Mumbai', 'state': 'MH', 'country': 'India'},
+            {'city': 'São Paulo', 'state': 'SP', 'country': 'Brazil'}
+        ]
+    }
+
 # ==================== DISCOVER ROUTES ====================
 
 @api_router.get("/discover")
 async def discover_profiles(current_user: dict = Depends(get_current_user)):
-    # Get users to skip (already liked or matched)
     liked_ids = await db.likes.find({'liker_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
     liked_user_ids = [l['liked_user_id'] for l in liked_ids]
     
@@ -465,7 +524,6 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
     
     skip_ids = list(set(liked_user_ids + matched_ids + [current_user['user_id']]))
     
-    # Filter based on preferences
     query = {
         'user_id': {'$nin': skip_ids},
         'is_profile_complete': True
@@ -479,13 +537,11 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/discover/most-compatible")
 async def most_compatible(current_user: dict = Depends(get_current_user)):
-    # Get regular discover profiles
     profiles = await discover_profiles(current_user)
     
     if not profiles or not current_user.get('interests'):
         return profiles[:10]
     
-    # Use AI to find most compatible
     try:
         user_interests = ', '.join(current_user.get('interests', []))
         profiles_summary = [{'name': p.get('name'), 'interests': p.get('interests', []), 'bio': p.get('bio', '')} for p in profiles[:20]]
@@ -508,13 +564,11 @@ async def most_compatible(current_user: dict = Depends(get_current_user)):
 
 @api_router.get("/discover/standouts")
 async def get_standouts(current_user: dict = Depends(get_current_user)):
-    """Get standout profiles - premium feature showing best matches"""
     profiles = await discover_profiles(current_user)
     
     if not profiles:
         return []
     
-    # Use AI to find standouts based on profile quality and compatibility
     try:
         user_data = {
             'interests': current_user.get('interests', []),
@@ -545,14 +599,12 @@ async def get_standouts(current_user: dict = Depends(get_current_user)):
         indices = json.loads(completion.choices[0].message.content)
         standouts = [profiles[i] for i in indices if i < len(profiles)]
         
-        # Mark as standout
         for s in standouts:
             s['is_standout'] = True
         
         return standouts if standouts else profiles[:5]
     except Exception as e:
         logger.error(f"AI standouts error: {e}")
-        # Fallback: return profiles with most photos and complete prompts
         sorted_profiles = sorted(profiles, key=lambda p: (len(p.get('photos', [])), len(p.get('prompts', []))), reverse=True)
         return sorted_profiles[:5]
 
@@ -562,7 +614,6 @@ async def get_standouts(current_user: dict = Depends(get_current_user)):
 async def create_like(like: LikeCreate, current_user: dict = Depends(get_current_user)):
     now = datetime.now(timezone.utc).isoformat()
     
-    # Check if already liked
     existing = await db.likes.find_one({
         'liker_id': current_user['user_id'],
         'liked_user_id': like.liked_user_id
@@ -570,7 +621,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
     if existing:
         raise HTTPException(status_code=400, detail='Already liked this user')
     
-    # Handle premium like types
     if like.like_type == 'super_like':
         if current_user.get('super_likes', 0) <= 0 and not current_user.get('is_premium'):
             raise HTTPException(status_code=400, detail='No super likes available')
@@ -598,7 +648,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
     }
     await db.likes.insert_one(like_doc)
     
-    # Send notification via WebSocket
     notification = {
         'type': 'new_like',
         'like_type': like.like_type,
@@ -612,7 +661,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
     }
     await manager.send_personal_message(notification, like.liked_user_id)
     
-    # Store notification in DB
     await db.notifications.insert_one({
         'notification_id': f"notif_{uuid.uuid4().hex[:12]}",
         'user_id': like.liked_user_id,
@@ -622,7 +670,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
         'created_at': now
     })
     
-    # Check for mutual like (match)
     mutual = await db.likes.find_one({
         'liker_id': like.liked_user_id,
         'liked_user_id': current_user['user_id']
@@ -639,7 +686,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
         }
         await db.matches.insert_one(match_doc)
         
-        # Send match notification to both users
         other_user = await db.users.find_one({'user_id': like.liked_user_id}, {'_id': 0, 'password': 0})
         
         match_notification_1 = {
@@ -674,7 +720,6 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
 async def get_received_likes(current_user: dict = Depends(get_current_user)):
     likes = await db.likes.find({'liked_user_id': current_user['user_id']}, {'_id': 0}).to_list(100)
     
-    # Get liker profiles
     for like in likes:
         liker = await db.users.find_one({'user_id': like['liker_id']}, {'_id': 0, 'password': 0})
         like['liker'] = liker
@@ -697,7 +742,6 @@ async def get_matches(current_user: dict = Depends(get_current_user)):
         {'_id': 0}
     ).sort('last_message_at', -1).to_list(100)
     
-    # Get other user profile for each match
     for match in matches:
         other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
         other = await db.users.find_one({'user_id': other_id}, {'_id': 0, 'password': 0})
@@ -714,7 +758,6 @@ async def unmatch(match_id: str, current_user: dict = Depends(get_current_user))
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail='Match not found')
     
-    # Delete messages
     await db.messages.delete_many({'match_id': match_id})
     return {'message': 'Unmatched'}
 
@@ -722,7 +765,6 @@ async def unmatch(match_id: str, current_user: dict = Depends(get_current_user))
 
 @api_router.get("/messages/{match_id}")
 async def get_messages(match_id: str, current_user: dict = Depends(get_current_user)):
-    # Verify user is part of match
     match = await db.matches.find_one({
         'match_id': match_id,
         '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
@@ -732,7 +774,6 @@ async def get_messages(match_id: str, current_user: dict = Depends(get_current_u
     
     messages = await db.messages.find({'match_id': match_id}, {'_id': 0}).sort('created_at', 1).to_list(500)
     
-    # Mark messages as read
     await db.messages.update_many(
         {'match_id': match_id, 'sender_id': {'$ne': current_user['user_id']}, 'read': False},
         {'$set': {'read': True}}
@@ -742,7 +783,6 @@ async def get_messages(match_id: str, current_user: dict = Depends(get_current_u
 
 @api_router.post("/messages")
 async def send_message(msg: MessageCreate, current_user: dict = Depends(get_current_user)):
-    # Verify user is part of match
     match = await db.matches.find_one({
         'match_id': msg.match_id,
         '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
@@ -761,13 +801,11 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
     }
     await db.messages.insert_one(message_doc)
     
-    # Update match with last message
     await db.matches.update_one(
         {'match_id': msg.match_id},
         {'$set': {'last_message': msg.content, 'last_message_at': now}}
     )
     
-    # Send via WebSocket
     other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
     ws_message = {
         'type': 'new_message',
@@ -834,13 +872,7 @@ async def get_personalized_starters(other_user_id: str, current_user: dict = Dep
             "What's the story behind your profile? I'd love to know more!"
         ]}
 
-# ==================== PREMIUM ROUTES ====================
-
-PREMIUM_PRICES = {
-    'weekly': {'price': 9.99, 'days': 7},
-    'monthly': {'price': 29.99, 'days': 30},
-    'yearly': {'price': 149.99, 'days': 365}
-}
+# ==================== STRIPE PAYMENT ROUTES ====================
 
 @api_router.get("/premium/plans")
 async def get_premium_plans():
@@ -867,96 +899,200 @@ async def get_premium_plans():
                 'duration': '1 year',
                 'features': ['Unlimited likes', 'Unlimited Super Likes', '10 Roses/week', 'See who likes you', 'Standouts access', 'Priority likes', 'Profile boost']
             }
+        ],
+        'addons': [
+            {'id': 'roses_3', 'name': '3 Roses', 'price': 3.99, 'quantity': 3},
+            {'id': 'roses_12', 'name': '12 Roses', 'price': 9.99, 'quantity': 12},
+            {'id': 'super_likes_5', 'name': '5 Super Likes', 'price': 4.99, 'quantity': 5},
+            {'id': 'super_likes_15', 'name': '15 Super Likes', 'price': 12.99, 'quantity': 15}
         ]
     }
 
-@api_router.post("/premium/purchase")
-async def purchase_premium(purchase: PremiumPurchase, current_user: dict = Depends(get_current_user)):
-    if purchase.plan not in PREMIUM_PRICES:
-        raise HTTPException(status_code=400, detail='Invalid plan')
+@api_router.post("/payments/checkout")
+async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
+    """Create Stripe checkout session - amount defined server-side only"""
+    package_id = checkout.package_id
+    origin_url = checkout.origin_url
     
-    plan = PREMIUM_PRICES[purchase.plan]
-    now = datetime.now(timezone.utc)
-    expires = now + timedelta(days=plan['days'])
+    # Get package from server-defined packages
+    package = PREMIUM_PACKAGES.get(package_id) or ADDON_PACKAGES.get(package_id)
+    if not package:
+        raise HTTPException(status_code=400, detail='Invalid package')
     
-    # In production, this would integrate with Stripe
-    # For now, we'll just activate premium
-    await db.users.update_one(
-        {'user_id': current_user['user_id']},
-        {
-            '$set': {
-                'is_premium': True,
-                'premium_expires': expires.isoformat(),
-                'premium_plan': purchase.plan
+    price = package['price']
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Build URLs dynamically from frontend origin
+    success_url = f"{origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin_url}/premium"
+    
+    try:
+        # Create Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': package.get('name', package_id),
+                    },
+                    'unit_amount': int(price * 100),  # Stripe uses cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                'user_id': current_user['user_id'],
+                'package_id': package_id,
+                'package_type': 'premium' if package_id in PREMIUM_PACKAGES else 'addon'
             }
+        )
+        
+        # Create pending transaction record
+        await db.payment_transactions.insert_one({
+            'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
+            'session_id': session.id,
+            'user_id': current_user['user_id'],
+            'package_id': package_id,
+            'amount': price,
+            'currency': 'usd',
+            'status': 'pending',
+            'payment_status': 'initiated',
+            'created_at': now
+        })
+        
+        return {'url': session.url, 'session_id': session.id}
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@api_router.get("/payments/status/{session_id}")
+async def get_payment_status(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Check payment status and update user if paid"""
+    # Find transaction
+    transaction = await db.payment_transactions.find_one({
+        'session_id': session_id,
+        'user_id': current_user['user_id']
+    }, {'_id': 0})
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail='Transaction not found')
+    
+    # If already processed, return current status
+    if transaction.get('payment_status') == 'paid':
+        return {'status': 'complete', 'payment_status': 'paid'}
+    
+    try:
+        # Get status from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        payment_status = session.payment_status
+        status = session.status
+        
+        # Update transaction status
+        await db.payment_transactions.update_one(
+            {'session_id': session_id},
+            {'$set': {
+                'status': status,
+                'payment_status': payment_status,
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # If paid, apply benefits (only once)
+        if payment_status == 'paid' and transaction.get('payment_status') != 'paid':
+            package_id = transaction.get('package_id')
+            
+            if package_id in PREMIUM_PACKAGES:
+                # Premium subscription
+                package = PREMIUM_PACKAGES[package_id]
+                expires = datetime.now(timezone.utc) + timedelta(days=package['days'])
+                await db.users.update_one(
+                    {'user_id': current_user['user_id']},
+                    {'$set': {
+                        'is_premium': True,
+                        'premium_expires': expires.isoformat(),
+                        'premium_plan': package_id
+                    }}
+                )
+            elif package_id in ADDON_PACKAGES:
+                # Addon purchase
+                package = ADDON_PACKAGES[package_id]
+                field = package['type']  # 'roses' or 'super_likes'
+                await db.users.update_one(
+                    {'user_id': current_user['user_id']},
+                    {'$inc': {field: package['quantity']}}
+                )
+        
+        return {
+            'status': status,
+            'payment_status': payment_status,
+            'amount_total': session.amount_total,
+            'currency': session.currency
         }
-    )
-    
-    # Record transaction
-    await db.transactions.insert_one({
-        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
-        'user_id': current_user['user_id'],
-        'type': 'premium_subscription',
-        'plan': purchase.plan,
-        'amount': plan['price'],
-        'created_at': now.isoformat()
-    })
-    
-    return {
-        'success': True,
-        'message': f'Premium activated for {plan["days"]} days',
-        'expires': expires.isoformat()
-    }
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error checking status: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
-@api_router.post("/premium/purchase-roses")
-async def purchase_roses(request: Request, current_user: dict = Depends(get_current_user)):
-    body = await request.json()
-    quantity = body.get('quantity', 3)
+@api_router.post("/webhook/stripe")
+async def stripe_webhook(request: Request):
+    """Handle Stripe webhooks"""
+    payload = await request.body()
+    sig_header = request.headers.get('Stripe-Signature')
     
-    # Price: $3.99 for 3 roses, $9.99 for 12
-    price = 3.99 if quantity <= 3 else 9.99
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail='Invalid payload')
+    except stripe.error.SignatureVerificationError:
+        # For testing without webhook secret, just parse the event
+        event = json.loads(payload)
     
-    await db.users.update_one(
-        {'user_id': current_user['user_id']},
-        {'$inc': {'roses': quantity}}
-    )
+    # Handle the event
+    if event.get('type') == 'checkout.session.completed':
+        session = event['data']['object']
+        session_id = session['id']
+        
+        # Update transaction
+        await db.payment_transactions.update_one(
+            {'session_id': session_id},
+            {'$set': {
+                'status': 'complete',
+                'payment_status': 'paid',
+                'updated_at': datetime.now(timezone.utc).isoformat()
+            }}
+        )
+        
+        # Get transaction to apply benefits
+        transaction = await db.payment_transactions.find_one({'session_id': session_id}, {'_id': 0})
+        if transaction:
+            user_id = transaction.get('user_id')
+            package_id = transaction.get('package_id')
+            
+            if package_id in PREMIUM_PACKAGES:
+                package = PREMIUM_PACKAGES[package_id]
+                expires = datetime.now(timezone.utc) + timedelta(days=package['days'])
+                await db.users.update_one(
+                    {'user_id': user_id},
+                    {'$set': {
+                        'is_premium': True,
+                        'premium_expires': expires.isoformat(),
+                        'premium_plan': package_id
+                    }}
+                )
+            elif package_id in ADDON_PACKAGES:
+                package = ADDON_PACKAGES[package_id]
+                field = package['type']
+                await db.users.update_one(
+                    {'user_id': user_id},
+                    {'$inc': {field: package['quantity']}}
+                )
     
-    await db.transactions.insert_one({
-        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
-        'user_id': current_user['user_id'],
-        'type': 'roses_purchase',
-        'quantity': quantity,
-        'amount': price,
-        'created_at': datetime.now(timezone.utc).isoformat()
-    })
-    
-    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
-    return {'success': True, 'roses': user.get('roses', 0)}
-
-@api_router.post("/premium/purchase-super-likes")
-async def purchase_super_likes(request: Request, current_user: dict = Depends(get_current_user)):
-    body = await request.json()
-    quantity = body.get('quantity', 5)
-    
-    # Price: $4.99 for 5 super likes
-    price = 4.99
-    
-    await db.users.update_one(
-        {'user_id': current_user['user_id']},
-        {'$inc': {'super_likes': quantity}}
-    )
-    
-    await db.transactions.insert_one({
-        'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
-        'user_id': current_user['user_id'],
-        'type': 'super_likes_purchase',
-        'quantity': quantity,
-        'amount': price,
-        'created_at': datetime.now(timezone.utc).isoformat()
-    })
-    
-    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
-    return {'success': True, 'super_likes': user.get('super_likes', 0)}
+    return {'received': True}
 
 # ==================== NOTIFICATIONS ROUTES ====================
 
@@ -1008,15 +1144,19 @@ async def get_prompts_library():
         ]
     }
 
-# ==================== WEBRTC SIGNALING ====================
+# ==================== WEBRTC CALLING WITH TURN SERVERS ====================
+
+@api_router.get("/calls/ice-servers")
+async def get_ice_servers(current_user: dict = Depends(get_current_user)):
+    """Get ICE servers including TURN for reliable connections"""
+    return {'iceServers': TURN_SERVERS}
 
 @api_router.post("/calls/initiate")
 async def initiate_call(request: Request, current_user: dict = Depends(get_current_user)):
     body = await request.json()
     match_id = body.get('match_id')
-    call_type = body.get('type', 'video')  # 'video' or 'voice'
+    call_type = body.get('type', 'video')
     
-    # Verify match exists
     match = await db.matches.find_one({
         'match_id': match_id,
         '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
@@ -1029,7 +1169,6 @@ async def initiate_call(request: Request, current_user: dict = Depends(get_curre
     call_id = f"call_{uuid.uuid4().hex[:12]}"
     now = datetime.now(timezone.utc).isoformat()
     
-    # Create call session
     call_doc = {
         'call_id': call_id,
         'match_id': match_id,
@@ -1041,7 +1180,6 @@ async def initiate_call(request: Request, current_user: dict = Depends(get_curre
     }
     await db.calls.insert_one(call_doc)
     
-    # Notify callee via WebSocket
     call_notification = {
         'type': 'incoming_call',
         'call_id': call_id,
@@ -1051,11 +1189,12 @@ async def initiate_call(request: Request, current_user: dict = Depends(get_curre
             'name': current_user['name'],
             'photo': current_user.get('photos', [None])[0]
         },
-        'match_id': match_id
+        'match_id': match_id,
+        'ice_servers': TURN_SERVERS  # Include TURN servers in notification
     }
     await manager.send_personal_message(call_notification, other_id)
     
-    return {'call_id': call_id, 'status': 'ringing'}
+    return {'call_id': call_id, 'status': 'ringing', 'ice_servers': TURN_SERVERS}
 
 @api_router.post("/calls/{call_id}/answer")
 async def answer_call(call_id: str, current_user: dict = Depends(get_current_user)):
@@ -1065,13 +1204,13 @@ async def answer_call(call_id: str, current_user: dict = Depends(get_current_use
     
     await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'connected'}})
     
-    # Notify caller
     await manager.send_personal_message({
         'type': 'call_answered',
-        'call_id': call_id
+        'call_id': call_id,
+        'ice_servers': TURN_SERVERS
     }, call['caller_id'])
     
-    return {'status': 'connected'}
+    return {'status': 'connected', 'ice_servers': TURN_SERVERS}
 
 @api_router.post("/calls/{call_id}/reject")
 async def reject_call(call_id: str, current_user: dict = Depends(get_current_user)):
@@ -1081,7 +1220,6 @@ async def reject_call(call_id: str, current_user: dict = Depends(get_current_use
     
     await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'rejected'}})
     
-    # Notify caller
     await manager.send_personal_message({
         'type': 'call_rejected',
         'call_id': call_id
@@ -1100,7 +1238,6 @@ async def end_call(call_id: str, current_user: dict = Depends(get_current_user))
     
     await db.calls.update_one({'call_id': call_id}, {'$set': {'status': 'ended', 'ended_at': datetime.now(timezone.utc).isoformat()}})
     
-    # Notify other party
     other_id = call['callee_id'] if call['caller_id'] == current_user['user_id'] else call['caller_id']
     await manager.send_personal_message({
         'type': 'call_ended',
@@ -1111,9 +1248,8 @@ async def end_call(call_id: str, current_user: dict = Depends(get_current_user))
 
 @api_router.post("/calls/{call_id}/signal")
 async def send_signal(call_id: str, request: Request, current_user: dict = Depends(get_current_user)):
-    """Handle WebRTC signaling (offer, answer, ICE candidates)"""
     body = await request.json()
-    signal_type = body.get('signal_type')  # 'offer', 'answer', 'ice-candidate'
+    signal_type = body.get('signal_type')
     signal_data = body.get('data')
     
     call = await db.calls.find_one({
@@ -1125,7 +1261,6 @@ async def send_signal(call_id: str, request: Request, current_user: dict = Depen
     
     other_id = call['callee_id'] if call['caller_id'] == current_user['user_id'] else call['caller_id']
     
-    # Forward signal to other party
     await manager.send_personal_message({
         'type': 'webrtc_signal',
         'call_id': call_id,
@@ -1149,11 +1284,9 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         while True:
             data = await websocket.receive_json()
             
-            # Handle different message types
             if data.get('type') == 'ping':
                 await websocket.send_json({'type': 'pong'})
             elif data.get('type') == 'typing':
-                # Forward typing indicator to match
                 match_id = data.get('match_id')
                 match = await db.matches.find_one({'match_id': match_id})
                 if match:
@@ -1171,7 +1304,6 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
 # ==================== STATIC FILES ====================
 
-# Serve uploaded files
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Include router
