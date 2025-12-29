@@ -186,7 +186,7 @@ async def register(user_data: UserCreate):
     await db.users.insert_one(user_doc)
     token = create_token(user_id)
     
-    return {'token': token, 'user': {k: v for k, v in user_doc.items() if k != 'password'}}
+    return {'token': token, 'user': {k: v for k, v in user_doc.items() if k not in ['password', '_id']}}
 
 @api_router.post("/auth/login")
 async def login(user_data: UserLogin):
