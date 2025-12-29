@@ -295,6 +295,111 @@ class EmberAPITester:
             return True
         return False
 
+    def test_popular_locations(self):
+        """Test popular locations endpoint"""
+        success, response = self.run_test(
+            "Get Popular Locations",
+            "GET",
+            "locations/popular",
+            200
+        )
+        
+        if success and 'locations' in response:
+            locations_count = len(response['locations'])
+            print(f"   Found {locations_count} popular locations")
+            # Check if expected cities are present
+            cities = [loc['city'] for loc in response['locations']]
+            if 'New York' in cities and 'Tokyo' in cities and 'London' in cities:
+                print(f"   Popular cities include: {', '.join(cities[:5])}...")
+                return True
+        return False
+
+    def test_location_update(self):
+        """Test profile location update"""
+        location_data = {
+            "city": "Tokyo",
+            "state": None,
+            "country": "Japan",
+            "latitude": 35.6762,
+            "longitude": 139.6503
+        }
+        
+        success, response = self.run_test(
+            "Update Profile Location",
+            "PUT",
+            "profile/location",
+            200,
+            data=location_data
+        )
+        
+        if success and 'location' in response:
+            print(f"   Location updated to: {response['location']}")
+            return True
+        return False
+
+    def test_stripe_checkout(self):
+        """Test Stripe checkout session creation"""
+        checkout_data = {
+            "package_id": "monthly",
+            "origin_url": "https://ember-dating-app.preview.emergentagent.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Stripe Checkout Session",
+            "POST",
+            "payments/checkout",
+            200,
+            data=checkout_data
+        )
+        
+        if success and 'url' in response and 'session_id' in response:
+            print(f"   Checkout session created: {response['session_id']}")
+            print(f"   Checkout URL: {response['url'][:50]}...")
+            return True, response['session_id']
+        return False, None
+
+    def test_payment_status(self, session_id):
+        """Test payment status check"""
+        if not session_id:
+            return False
+            
+        success, response = self.run_test(
+            "Check Payment Status",
+            "GET",
+            f"payments/status/{session_id}",
+            200
+        )
+        
+        if success:
+            status = response.get('status', 'unknown')
+            print(f"   Payment status: {status}")
+            return True
+        return False
+
+    def test_ice_servers(self):
+        """Test ICE servers endpoint for TURN support"""
+        success, response = self.run_test(
+            "Get ICE Servers",
+            "GET",
+            "calls/ice-servers",
+            200
+        )
+        
+        if success and 'iceServers' in response:
+            ice_servers = response['iceServers']
+            print(f"   Found {len(ice_servers)} ICE servers")
+            
+            # Check for TURN servers
+            turn_servers = [server for server in ice_servers if 'turn:' in server.get('urls', '')]
+            stun_servers = [server for server in ice_servers if 'stun:' in server.get('urls', '')]
+            
+            print(f"   STUN servers: {len(stun_servers)}, TURN servers: {len(turn_servers)}")
+            
+            if turn_servers:
+                print(f"   TURN server example: {turn_servers[0]['urls']}")
+                return True
+        return False
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🔥 Starting Ember Dating App API Tests\n")
