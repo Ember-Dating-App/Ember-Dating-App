@@ -381,48 +381,96 @@ async def logout(request: Request, response: Response):
     response.delete_cookie('session_token', path='/')
     return {'message': 'Logged out'}
 
-# ==================== FILE UPLOAD ROUTES ====================
+# ==================== FILE UPLOAD ROUTES (CLOUDINARY) ====================
 
 @api_router.post("/upload/photo")
 async def upload_photo(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Upload photo to Cloudinary cloud storage"""
     if not file.content_type.startswith('image/'):
         raise HTTPException(status_code=400, detail='File must be an image')
     
-    ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
-    filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = UPLOAD_DIR / filename
-    
-    async with aiofiles.open(filepath, 'wb') as f:
+    try:
+        # Read file content
         content = await file.read()
-        await f.write(content)
-    
-    photo_url = f"/api/uploads/{filename}"
-    return {'url': photo_url, 'filename': filename}
+        
+        # Upload to Cloudinary with transformations
+        result = cloudinary.uploader.upload(
+            content,
+            folder=f"ember/users/{current_user['user_id']}",
+            public_id=f"photo_{uuid.uuid4().hex[:8]}",
+            overwrite=True,
+            transformation=[
+                {'width': 1080, 'height': 1350, 'crop': 'limit'},  # Max size
+                {'quality': 'auto:good'},  # Auto quality optimization
+                {'fetch_format': 'auto'}  # Auto format (webp when supported)
+            ]
+        )
+        
+        # Return the secure URL
+        return {
+            'url': result['secure_url'],
+            'public_id': result['public_id'],
+            'width': result.get('width'),
+            'height': result.get('height')
+        }
+    except Exception as e:
+        logger.error(f"Cloudinary upload error: {e}")
+        raise HTTPException(status_code=500, detail=f'Upload failed: {str(e)}')
 
 @api_router.post("/upload/photo/base64")
 async def upload_photo_base64(request: Request, current_user: dict = Depends(get_current_user)):
+    """Upload base64 encoded photo to Cloudinary"""
     body = await request.json()
     data = body.get('data')
-    ext = body.get('extension', 'jpg')
     
     if not data:
         raise HTTPException(status_code=400, detail='No image data provided')
     
     try:
-        if ',' in data:
-            data = data.split(',')[1]
-        image_data = base64.b64decode(data)
+        # Upload base64 directly to Cloudinary
+        result = cloudinary.uploader.upload(
+            data,  # Cloudinary accepts base64 with data URI prefix
+            folder=f"ember/users/{current_user['user_id']}",
+            public_id=f"photo_{uuid.uuid4().hex[:8]}",
+            overwrite=True,
+            transformation=[
+                {'width': 1080, 'height': 1350, 'crop': 'limit'},
+                {'quality': 'auto:good'},
+                {'fetch_format': 'auto'}
+            ]
+        )
+        
+        return {
+            'url': result['secure_url'],
+            'public_id': result['public_id'],
+            'width': result.get('width'),
+            'height': result.get('height')
+        }
     except Exception as e:
-        raise HTTPException(status_code=400, detail='Invalid base64 data')
+        logger.error(f"Cloudinary base64 upload error: {e}")
+        raise HTTPException(status_code=500, detail=f'Upload failed: {str(e)}')
+
+@api_router.delete("/upload/photo/{public_id:path}")
+async def delete_photo(public_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete photo from Cloudinary"""
+    # Verify the photo belongs to the user
+    if not public_id.startswith(f"ember/users/{current_user['user_id']}"):
+        raise HTTPException(status_code=403, detail='Not authorized to delete this photo')
     
-    filename = f"{current_user['user_id']}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = UPLOAD_DIR / filename
-    
-    async with aiofiles.open(filepath, 'wb') as f:
-        await f.write(image_data)
-    
-    photo_url = f"/api/uploads/{filename}"
-    return {'url': photo_url, 'filename': filename}
+    try:
+        result = cloudinary.uploader.destroy(public_id)
+        return {'result': result.get('result', 'ok')}
+    except Exception as e:
+        logger.error(f"Cloudinary delete error: {e}")
+        raise HTTPException(status_code=500, detail=f'Delete failed: {str(e)}')
+
+@api_router.get("/cloudinary/config")
+async def get_cloudinary_config():
+    """Get Cloudinary config for frontend unsigned uploads"""
+    return {
+        'cloud_name': os.environ.get('CLOUDINARY_CLOUD_NAME'),
+        'upload_preset': 'ember_unsigned'  # Create this preset in Cloudinary dashboard
+    }
 
 # ==================== PROFILE ROUTES ====================
 
