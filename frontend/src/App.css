@@ -1,34 +1,182 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Profile card styles */
+.profile-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  background: #18181B;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.profile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.profile-card-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
 }
 
-.App-link {
-    color: #61dafb;
+.profile-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.profile-card:hover .profile-card-image img {
+  transform: scale(1.05);
+}
+
+.profile-card-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.9) 100%);
+}
+
+/* Prompt card */
+.prompt-card {
+  background: #27272A;
+  border-radius: 1rem;
+  padding: 1.25rem;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.prompt-card:hover {
+  background: #3F3F46;
+  transform: translateY(-2px);
+}
+
+/* Like button animation */
+.like-button {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.like-button:hover {
+  transform: scale(1.1);
+}
+
+.like-button:active {
+  transform: scale(0.95);
+}
+
+/* Message bubble */
+.message-bubble {
+  max-width: 75%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+}
+
+.message-sent {
+  background: linear-gradient(135deg, #FF4D4D 0%, #FF8C00 100%);
+  color: white;
+  border-bottom-right-radius: 0.25rem;
+  margin-left: auto;
+}
+
+.message-received {
+  background: #27272A;
+  color: #FAFAFA;
+  border-bottom-left-radius: 0.25rem;
+}
+
+/* Navigation bar */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  color: #A1A1AA;
+  transition: color 0.3s ease;
+}
+
+.nav-item.active {
+  color: #FF5500;
+}
+
+.nav-item:hover {
+  color: #FF7538;
+}
+
+/* Form inputs */
+.ember-input {
+  background: rgba(39, 39, 42, 0.5);
+  border: 1px solid #27272A;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: #FAFAFA;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ember-input:focus {
+  outline: none;
+  border-color: #FF5500;
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.2);
+}
+
+.ember-input::placeholder {
+  color: #71717A;
+}
+
+/* Photo grid */
+.photo-grid {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.photo-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.photo-grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.photo-item {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  cursor: pointer;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.photo-item:hover img {
+  transform: scale(1.1);
+}
+
+/* Match animation */
+@keyframes matchPop {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.match-animation {
+  animation: matchPop 0.5s ease-out forwards;
+}
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, #27272A 0%, #3F3F46 50%, #27272A 100%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
