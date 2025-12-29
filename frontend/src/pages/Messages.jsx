@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, Phone, Video, Sparkles, MoreVertical } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth, API } from '@/App';
+import { useWebSocket } from '@/contexts/WebSocketContext';
+import { VideoCall, IncomingCallModal } from '@/components/VideoCall';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
@@ -13,6 +15,7 @@ export default function Messages() {
   const { matchId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { lastMessage, sendTypingIndicator, isConnected } = useWebSocket();
   const [messages, setMessages] = useState([]);
   const [match, setMatch] = useState(null);
   const [newMessage, setNewMessage] = useState('');
@@ -20,16 +23,45 @@ export default function Messages() {
   const [sending, setSending] = useState(false);
   const [starters, setStarters] = useState([]);
   const [showStarters, setShowStarters] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [activeCall, setActiveCall] = useState(null);
+  const [incomingCall, setIncomingCall] = useState(null);
   const messagesEndRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchMessages, 5000); // Poll every 5 seconds
-    return () => clearInterval(interval);
-  }, [matchId]);
+    // Only poll if WebSocket is not connected
+    let interval;
+    if (!isConnected) {
+      interval = setInterval(fetchMessages, 5000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [matchId, isConnected]);
+
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    if (lastMessage.type === 'new_message' && lastMessage.message?.match_id === matchId) {
+      setMessages(prev => [...prev, lastMessage.message]);
+      scrollToBottom();
+    } else if (lastMessage.type === 'typing' && lastMessage.match_id === matchId) {
+      setIsTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 3000);
+    } else if (lastMessage.type === 'incoming_call') {
+      setIncomingCall(lastMessage);
+    } else if (lastMessage.type === 'call_ended' && activeCall?.call_id === lastMessage.call_id) {
+      setActiveCall(null);
+    }
+  }, [lastMessage, matchId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -41,7 +73,6 @@ export default function Messages() {
 
   const fetchData = async () => {
     try {
-      // Get match details
       const matchesRes = await axios.get(`${API}/matches`, { headers, withCredentials: true });
       const currentMatch = matchesRes.data.find(m => m.match_id === matchId);
       if (!currentMatch) {
@@ -50,8 +81,6 @@ export default function Messages() {
         return;
       }
       setMatch(currentMatch);
-
-      // Get messages
       await fetchMessages();
     } catch (error) {
       toast.error('Failed to load conversation');
@@ -89,6 +118,14 @@ export default function Messages() {
     }
   };
 
+  const handleTyping = (e) => {
+    setNewMessage(e.target.value);
+    // Send typing indicator via WebSocket
+    if (isConnected) {
+      sendTypingIndicator(matchId);
+    }
+  };
+
   const fetchStarters = async () => {
     try {
       const otherUserId = match?.other_user?.user_id;
@@ -109,9 +146,48 @@ export default function Messages() {
     setShowStarters(false);
   };
 
-  const initiateCall = (type) => {
-    toast.info(`${type === 'video' ? 'Video' : 'Voice'} calling coming soon!`);
-    // In production, this would initiate WebRTC call
+  const initiateCall = async (type) => {
+    try {
+      const response = await axios.post(`${API}/calls/initiate`, {
+        match_id: matchId,
+        type
+      }, { headers, withCredentials: true });
+
+      setActiveCall({
+        call_id: response.data.call_id,
+        call_type: type,
+        is_caller: true,
+        other_user: match?.other_user,
+        status: 'ringing'
+      });
+    } catch (error) {
+      toast.error('Failed to start call');
+    }
+  };
+
+  const answerCall = async () => {
+    try {
+      await axios.post(`${API}/calls/${incomingCall.call_id}/answer`, {}, { headers, withCredentials: true });
+      setActiveCall({
+        call_id: incomingCall.call_id,
+        call_type: incomingCall.call_type,
+        is_caller: false,
+        other_user: incomingCall.caller,
+        status: 'connected'
+      });
+      setIncomingCall(null);
+    } catch (error) {
+      toast.error('Failed to answer call');
+    }
+  };
+
+  const rejectCall = async () => {
+    try {
+      await axios.post(`${API}/calls/${incomingCall.call_id}/reject`, {}, { headers, withCredentials: true });
+      setIncomingCall(null);
+    } catch (error) {
+      console.error('Failed to reject call:', error);
+    }
   };
 
   if (loading) {
@@ -124,8 +200,25 @@ export default function Messages() {
 
   const otherUser = match?.other_user;
 
+  // If in a call, show VideoCall component
+  if (activeCall) {
+    return (
+      <VideoCall
+        callData={activeCall}
+        onEnd={() => setActiveCall(null)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col" data-testid="messages-page">
+      {/* Incoming call modal */}
+      <IncomingCallModal
+        callData={incomingCall}
+        onAnswer={answerCall}
+        onReject={rejectCall}
+      />
+
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -138,16 +231,23 @@ export default function Messages() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/20">
-                <img
-                  src={otherUser?.photos?.[0] || 'https://via.placeholder.com/40'}
-                  alt={otherUser?.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative">
+                <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/20">
+                  <img
+                    src={otherUser?.photos?.[0] || 'https://via.placeholder.com/40'}
+                    alt={otherUser?.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {isConnected && (
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
+                )}
               </div>
               <div>
                 <h1 className="font-semibold">{otherUser?.name}</h1>
-                <p className="text-xs text-muted-foreground">Online</p>
+                <p className="text-xs text-muted-foreground">
+                  {isTyping ? 'Typing...' : isConnected ? 'Online' : 'Offline'}
+                </p>
               </div>
             </div>
           </div>
@@ -231,6 +331,20 @@ export default function Messages() {
               </div>
             </div>
           ))}
+
+          {/* Typing indicator */}
+          {isTyping && (
+            <div className="flex justify-start">
+              <div className="message-bubble message-received">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </div>
+              </div>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
       </main>
@@ -280,7 +394,7 @@ export default function Messages() {
           </button>
           <Input
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={handleTyping}
             placeholder="Type a message..."
             className="flex-1 h-12 bg-muted/50 border-muted focus:border-primary rounded-full px-5"
             data-testid="message-input"
