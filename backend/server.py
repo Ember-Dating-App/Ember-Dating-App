@@ -1041,6 +1041,14 @@ async def get_popular_locations():
 
 @api_router.get("/discover")
 async def discover_profiles(current_user: dict = Depends(get_current_user)):
+    # Get blocked users
+    blocks = await db.blocks.find({'blocker_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
+    blocked_ids = [b['blocked_id'] for b in blocks]
+    
+    # Get users who blocked me
+    blocked_by = await db.blocks.find({'blocked_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
+    blocked_by_ids = [b['blocker_id'] for b in blocked_by]
+    
     liked_ids = await db.likes.find({'liker_id': current_user['user_id']}, {'_id': 0}).to_list(1000)
     liked_user_ids = [l['liked_user_id'] for l in liked_ids]
     
@@ -1050,11 +1058,13 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
     ).to_list(1000)
     matched_ids = [m['user1_id'] if m['user2_id'] == current_user['user_id'] else m['user2_id'] for m in matches]
     
-    skip_ids = list(set(liked_user_ids + matched_ids + [current_user['user_id']]))
+    # Combine all IDs to skip
+    skip_ids = list(set(liked_user_ids + matched_ids + blocked_ids + blocked_by_ids + [current_user['user_id']]))
     
     query = {
         'user_id': {'$nin': skip_ids},
-        'is_profile_complete': True
+        'is_profile_complete': True,
+        'verification_status': 'verified'  # Only show verified users
     }
     
     if current_user.get('interested_in') and current_user['interested_in'] != 'everyone':
