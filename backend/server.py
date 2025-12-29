@@ -1140,6 +1140,10 @@ async def get_standouts(current_user: dict = Depends(get_current_user)):
 
 @api_router.post("/likes")
 async def create_like(like: LikeCreate, current_user: dict = Depends(get_current_user)):
+    # Check verification
+    if current_user.get('verification_status') != 'verified':
+        raise HTTPException(status_code=403, detail='Profile verification required to use this feature')
+    
     now = datetime.now(timezone.utc).isoformat()
     
     existing = await db.likes.find_one({
@@ -1149,20 +1153,31 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
     if existing:
         raise HTTPException(status_code=400, detail='Already liked this user')
     
-    if like.like_type == 'super_like':
-        if current_user.get('super_likes', 0) <= 0 and not current_user.get('is_premium'):
-            raise HTTPException(status_code=400, detail='No super likes available')
-        if not current_user.get('is_premium'):
-            await db.users.update_one(
-                {'user_id': current_user['user_id']},
-                {'$inc': {'super_likes': -1}}
-            )
-    elif like.like_type == 'rose':
-        if current_user.get('roses', 0) <= 0:
-            raise HTTPException(status_code=400, detail='No roses available')
+    # Check swipe limit for regular likes
+    if like.like_type == 'regular':
+        if not await check_swipe_limit(current_user):
+            raise HTTPException(status_code=429, detail='Daily swipe limit reached. Upgrade to premium for unlimited swipes!')
+        # Increment swipe count
+        await increment_swipe_count(current_user['user_id'])
+    
+    # Check super like limit
+    elif like.like_type == 'super_like':
+        if not await check_super_like_limit(current_user):
+            raise HTTPException(status_code=429, detail='Daily super like limit reached')
+        # Increment super like count
         await db.users.update_one(
             {'user_id': current_user['user_id']},
-            {'$inc': {'roses': -1}}
+            {'$inc': {'super_like_limit.count': 1}}
+        )
+    
+    # Check rose limit
+    elif like.like_type == 'rose':
+        if not await check_rose_limit(current_user):
+            raise HTTPException(status_code=429, detail='Daily rose limit reached')
+        # Increment rose count
+        await db.users.update_one(
+            {'user_id': current_user['user_id']},
+            {'$inc': {'rose_limit.count': 1}}
         )
     
     like_doc = {
@@ -1209,6 +1224,9 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
             'user1_id': current_user['user_id'],
             'user2_id': like.liked_user_id,
             'created_at': now,
+            'matched_at': now,
+            'first_message_sent': False,
+            'disconnect_warnings_sent': [],
             'last_message': None,
             'last_message_at': None
         }
