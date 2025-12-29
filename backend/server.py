@@ -1264,13 +1264,50 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
 
 @api_router.get("/likes/received")
 async def get_received_likes(current_user: dict = Depends(get_current_user)):
+    """Get received likes - full details for premium users only"""
     likes = await db.likes.find({'liked_user_id': current_user['user_id']}, {'_id': 0}).to_list(100)
     
-    for like in likes:
-        liker = await db.users.find_one({'user_id': like['liker_id']}, {'_id': 0, 'password': 0})
-        like['liker'] = liker
+    # Premium users can see who liked them
+    if current_user.get('is_premium'):
+        for like in likes:
+            liker = await db.users.find_one({'user_id': like['liker_id']}, {'_id': 0, 'password': 0})
+            like['liker'] = liker
+        return {'likes': likes, 'premium': True, 'count': len(likes)}
+    else:
+        # Free users only see count and blurred info
+        return {
+            'likes': [],
+            'premium': False,
+            'count': len(likes),
+            'message': 'Upgrade to premium to see who liked you'
+        }
+
+@api_router.get("/likes/roses-received")
+async def get_roses_received(current_user: dict = Depends(get_current_user)):
+    """Get roses sent to you - premium only"""
+    if not current_user.get('is_premium'):
+        roses = await db.likes.find({
+            'liked_user_id': current_user['user_id'],
+            'like_type': 'rose'
+        }, {'_id': 0}).to_list(100)
+        
+        return {
+            'roses': [],
+            'premium': False,
+            'count': len(roses),
+            'message': 'Upgrade to premium to see who sent you roses'
+        }
     
-    return likes
+    roses = await db.likes.find({
+        'liked_user_id': current_user['user_id'],
+        'like_type': 'rose'
+    }, {'_id': 0}).to_list(100)
+    
+    for rose in roses:
+        sender = await db.users.find_one({'user_id': rose['liker_id']}, {'_id': 0, 'password': 0})
+        rose['sender'] = sender
+    
+    return {'roses': roses, 'premium': True, 'count': len(roses)}
 
 @api_router.delete("/likes/{like_id}")
 async def reject_like(like_id: str, current_user: dict = Depends(get_current_user)):
