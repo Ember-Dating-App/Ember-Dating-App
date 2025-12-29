@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Flame, Heart, X, MapPin, Sparkles, MessageCircle, ChevronDown } from 'lucide-react';
+import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -11,13 +11,14 @@ import Navigation from '@/components/Navigation';
 
 export default function Discover() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profiles, setProfiles] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showLikeModal, setShowLikeModal] = useState(false);
   const [selectedSection, setSelectedSection] = useState(null);
   const [likeComment, setLikeComment] = useState('');
+  const [likeType, setLikeType] = useState('regular');
   const [showCompatible, setShowCompatible] = useState(false);
   const [sendingLike, setSendingLike] = useState(false);
 
@@ -42,16 +43,47 @@ export default function Discover() {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const response = await axios.get(`${API}/auth/me`, { headers, withCredentials: true });
+      setUser(response.data);
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
+
   const currentProfile = profiles[currentIndex];
 
   const handleLike = async () => {
     if (!currentProfile) return;
+
+    // Check if user has resources for special likes
+    if (likeType === 'super_like' && !user?.is_premium && (user?.super_likes || 0) <= 0) {
+      toast.error('No Super Likes available', {
+        action: {
+          label: 'Get More',
+          onClick: () => navigate('/premium')
+        }
+      });
+      return;
+    }
+    if (likeType === 'rose' && (user?.roses || 0) <= 0) {
+      toast.error('No Roses available', {
+        action: {
+          label: 'Get More',
+          onClick: () => navigate('/premium')
+        }
+      });
+      return;
+    }
+
     setSendingLike(true);
     try {
       const response = await axios.post(`${API}/likes`, {
         liked_user_id: currentProfile.user_id,
         liked_section: selectedSection,
-        comment: likeComment
+        comment: likeComment,
+        like_type: likeType
       }, { headers, withCredentials: true });
 
       if (response.data.match) {
@@ -62,12 +94,17 @@ export default function Discover() {
           }
         });
       } else {
-        toast.success('Like sent!');
+        const typeText = likeType === 'super_like' ? 'Super Like' : likeType === 'rose' ? 'Rose' : 'Like';
+        toast.success(`${typeText} sent!`);
       }
+
+      // Refresh user data to update super likes/roses count
+      await refreshUser();
 
       setShowLikeModal(false);
       setLikeComment('');
       setSelectedSection(null);
+      setLikeType('regular');
       nextProfile();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send like');
@@ -89,8 +126,9 @@ export default function Discover() {
     }
   };
 
-  const openLikeModal = (section = null) => {
+  const openLikeModal = (section = null, type = 'regular') => {
     setSelectedSection(section);
+    setLikeType(type);
     setShowLikeModal(true);
   };
 
@@ -110,24 +148,49 @@ export default function Discover() {
           <div className="flex items-center gap-2">
             <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
-          <Button
-            variant={showCompatible ? 'default' : 'outline'}
-            size="sm"
-            className={`rounded-full gap-2 ${showCompatible ? 'ember-gradient' : ''}`}
-            onClick={() => setShowCompatible(!showCompatible)}
-            data-testid="compatible-toggle"
-          >
-            <Sparkles className="w-4 h-4" />
-            Most Compatible
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full gap-1"
+              onClick={() => navigate('/standouts')}
+              data-testid="standouts-btn"
+            >
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              Standouts
+            </Button>
+            <Button
+              variant={showCompatible ? 'default' : 'outline'}
+              size="sm"
+              className={`rounded-full gap-2 ${showCompatible ? 'ember-gradient' : ''}`}
+              onClick={() => setShowCompatible(!showCompatible)}
+              data-testid="compatible-toggle"
+            >
+              <Sparkles className="w-4 h-4" />
+              Compatible
+            </Button>
+          </div>
         </div>
       </header>
 
+      {/* Premium banner if not premium */}
+      {!user?.is_premium && (
+        <div 
+          onClick={() => navigate('/premium')}
+          className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-primary/90 to-ember-red/90 py-2 px-4 cursor-pointer"
+        >
+          <div className="container mx-auto flex items-center justify-center gap-2 text-white text-sm">
+            <Crown className="w-4 h-4" />
+            <span>Get Premium for unlimited likes and more</span>
+          </div>
+        </div>
+      )}
+
       {/* Profile Card */}
-      <main className="pt-20 px-4">
+      <main className={`${!user?.is_premium ? 'pt-28' : 'pt-20'} px-4`}>
         {!currentProfile ? (
           <div className="max-w-md mx-auto text-center py-20">
-            <Flame className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">No more profiles</h2>
             <p className="text-muted-foreground mb-6">Check back later for new matches!</p>
             <Button onClick={fetchProfiles} className="ember-gradient rounded-full" data-testid="refresh-btn">
@@ -245,20 +308,40 @@ export default function Discover() {
             </div>
 
             {/* Action Buttons */}
-            <div className="fixed bottom-24 left-0 right-0 flex justify-center gap-6 pb-4">
+            <div className="fixed bottom-24 left-0 right-0 flex justify-center gap-4 pb-4">
               <button
                 onClick={handlePass}
-                className="w-16 h-16 bg-muted rounded-full flex items-center justify-center shadow-lg hover:bg-muted/80 transition-colors like-button"
+                className="w-14 h-14 bg-muted rounded-full flex items-center justify-center shadow-lg hover:bg-muted/80 transition-colors like-button"
                 data-testid="pass-btn"
               >
-                <X className="w-8 h-8 text-muted-foreground" />
+                <X className="w-7 h-7 text-muted-foreground" />
               </button>
+              
+              {/* Super Like Button */}
+              <button
+                onClick={() => openLikeModal(null, 'super_like')}
+                className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors like-button"
+                data-testid="super-like-btn"
+              >
+                <Star className="w-7 h-7 text-white" fill="white" />
+              </button>
+              
+              {/* Regular Like Button */}
               <button
                 onClick={() => openLikeModal()}
-                className="w-16 h-16 ember-gradient rounded-full flex items-center justify-center shadow-lg ember-glow hover:ember-glow-hover transition-all like-button"
+                className="w-14 h-14 ember-gradient rounded-full flex items-center justify-center shadow-lg ember-glow hover:ember-glow-hover transition-all like-button"
                 data-testid="like-btn"
               >
-                <Heart className="w-8 h-8 text-white" />
+                <Heart className="w-7 h-7 text-white" />
+              </button>
+              
+              {/* Rose Button */}
+              <button
+                onClick={() => openLikeModal(null, 'rose')}
+                className="w-14 h-14 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg hover:from-rose-600 hover:to-pink-600 transition-colors like-button"
+                data-testid="rose-btn"
+              >
+                <span className="text-2xl">🌹</span>
               </button>
             </div>
           </div>
@@ -270,8 +353,10 @@ export default function Discover() {
         <DialogContent className="bg-card border-border max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Heart className="w-5 h-5 text-primary" />
-              Send a like to {currentProfile?.name}
+              {likeType === 'super_like' && <Star className="w-5 h-5 text-blue-400" fill="#60a5fa" />}
+              {likeType === 'rose' && <span>🌹</span>}
+              {likeType === 'regular' && <Heart className="w-5 h-5 text-primary" />}
+              Send {likeType === 'super_like' ? 'a Super Like' : likeType === 'rose' ? 'a Rose' : 'a Like'} to {currentProfile?.name}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -280,6 +365,31 @@ export default function Discover() {
                 You're liking their {selectedSection.replace('_', ' ')}
               </p>
             )}
+
+            {likeType === 'super_like' && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3">
+                <p className="text-sm text-blue-400">
+                  Super Likes are 3x more likely to get a match!
+                  {!user?.is_premium && (
+                    <span className="block mt-1 text-muted-foreground">
+                      You have {user?.super_likes || 0} Super Likes remaining
+                    </span>
+                  )}
+                </p>
+              </div>
+            )}
+
+            {likeType === 'rose' && (
+              <div className="bg-rose-500/10 border border-rose-500/30 rounded-xl p-3">
+                <p className="text-sm text-rose-400">
+                  Roses go to the top of someone's Likes and stand out!
+                  <span className="block mt-1 text-muted-foreground">
+                    You have {user?.roses || 0} Roses remaining
+                  </span>
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Add a comment (optional)</label>
               <Textarea
@@ -302,10 +412,16 @@ export default function Discover() {
               <Button
                 onClick={handleLike}
                 disabled={sendingLike}
-                className="flex-1 ember-gradient rounded-full ember-glow"
+                className={`flex-1 rounded-full ${
+                  likeType === 'super_like' 
+                    ? 'bg-blue-500 hover:bg-blue-600' 
+                    : likeType === 'rose'
+                      ? 'bg-gradient-to-r from-rose-500 to-pink-500'
+                      : 'ember-gradient ember-glow'
+                }`}
                 data-testid="send-like-btn"
               >
-                {sendingLike ? 'Sending...' : 'Send Like'}
+                {sendingLike ? 'Sending...' : 'Send'}
               </Button>
             </div>
           </div>
