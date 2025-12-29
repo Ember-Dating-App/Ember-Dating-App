@@ -406,7 +406,8 @@ class EmberAPITester:
         
         # Test public endpoints first
         self.test_prompts_library()
-        self.test_premium_plans()  # New endpoint test
+        self.test_premium_plans()
+        self.test_popular_locations()  # NEW: Test popular locations
         
         # Test authentication flow
         if self.test_registration():
@@ -414,21 +415,31 @@ class EmberAPITester:
             
             # Test profile management
             self.test_profile_update()
+            self.test_location_update()  # NEW: Test location update
             
             # Test discovery features
             self.test_discover()
             self.test_most_compatible()
-            self.test_standouts()  # New endpoint test
+            self.test_standouts()
             
             # Test social features
             self.test_matches()
             self.test_received_likes()
             
             # Test notifications
-            self.test_notifications()  # New endpoint test
+            self.test_notifications()
             
             # Test file upload
-            self.test_photo_upload_base64()  # New endpoint test
+            self.test_photo_upload_base64()
+            
+            # NEW: Test Stripe payment integration
+            session_id = None
+            checkout_success, session_id = self.test_stripe_checkout()
+            if checkout_success and session_id:
+                self.test_payment_status(session_id)
+            
+            # NEW: Test TURN server support
+            self.test_ice_servers()
         
         # Print summary
         print(f"\n📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
