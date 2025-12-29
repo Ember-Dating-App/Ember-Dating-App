@@ -1343,9 +1343,18 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
         'sender_id': current_user['user_id'],
         'content': msg.content,
         'created_at': now,
+        'delivered_at': now,
+        'read_at': None,
         'read': False
     }
     await db.messages.insert_one(message_doc)
+    
+    # Mark that first message was sent (for auto-disconnect feature)
+    if not match.get('first_message_sent'):
+        await db.matches.update_one(
+            {'match_id': msg.match_id},
+            {'$set': {'first_message_sent': True}}
+        )
     
     await db.matches.update_one(
         {'match_id': msg.match_id},
@@ -1365,6 +1374,31 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
     await manager.send_personal_message(ws_message, other_id)
     
     return message_doc
+
+@api_router.put("/messages/{message_id}/read")
+async def mark_message_read(message_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark a message as read"""
+    now = datetime.now(timezone.utc).isoformat()
+    
+    result = await db.messages.update_one(
+        {'message_id': message_id, 'sender_id': {'$ne': current_user['user_id']}},
+        {'$set': {'read': True, 'read_at': now}}
+    )
+    
+    if result.modified_count == 0:
+        return {'message': 'Message already read or not found'}
+    
+    # Send read receipt via WebSocket
+    message = await db.messages.find_one({'message_id': message_id}, {'_id': 0})
+    if message:
+        ws_message = {
+            'type': 'message_read',
+            'message_id': message_id,
+            'read_at': now
+        }
+        await manager.send_personal_message(ws_message, message['sender_id'])
+    
+    return {'message': 'Message marked as read', 'read_at': now}
 
 # ==================== AI ROUTES ====================
 
