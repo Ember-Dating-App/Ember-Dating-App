@@ -1,0 +1,161 @@
+{
+  "identity": {
+    "name": "Ember",
+    "tagline": "Spark Something Real",
+    "fonts": {
+      "primary": "Orbitron",
+      "secondary": "Manrope",
+      "import_url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700;800;900&display=swap"
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#FF5500",
+        "foreground": "#FFFFFF",
+        "50": "#FFF1EB",
+        "100": "#FFDCC7",
+        "200": "#FFBC94",
+        "300": "#FF9661",
+        "400": "#FF7538",
+        "500": "#FF5500",
+        "600": "#CC4400",
+        "700": "#993300",
+        "800": "#662200",
+        "900": "#331100"
+      },
+      "background": "#09090B",
+      "foreground": "#FAFAFA",
+      "card": "#18181B",
+      "card_foreground": "#FAFAFA",
+      "muted": "#27272A",
+      "muted_foreground": "#A1A1AA",
+      "border": "#27272A",
+      "input": "#27272A",
+      "accent": "#FF5500",
+      "accent_foreground": "#FFFFFF"
+    },
+    "gradients": {
+      "ember": "linear-gradient(135deg, #FF4D4D 0%, #FF8C00 100%)",
+      "dark_overlay": "linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 100%)"
+    }
+  },
+  "typography": {
+    "headings": {
+      "font": "Orbitron, sans-serif",
+      "weight": "700",
+      "tracking": "tracking-wide",
+      "usage": "Logo, Main Headings, Section Titles"
+    },
+    "body": {
+      "font": "Manrope, sans-serif",
+      "weight": "400",
+      "usage": "Paragraphs, UI Elements, Buttons, Inputs"
+    },
+    "rules": [
+      "Use Orbitron sparingly for impact (Headings only).",
+      "Use Manrope for all readable text.",
+      "Headings should be uppercase or capitalized for Orbitron.",
+      "Body text should have relaxed line-height."
+    ]
+  },
+  "layout": {
+    "structure": "Mobile-first, single column for main feed.",
+    "spacing": {
+      "container_padding": "p-6",
+      "section_gap": "gap-8",
+      "element_gap": "gap-4"
+    },
+    "grid_system": "Grid is used for photo galleries (Bento style) and profile details.",
+    "border_radius": {
+      "card": "rounded-3xl",
+      "button": "rounded-full",
+      "input": "rounded-xl"
+    }
+  },
+  "components": {
+    "Card": {
+      "style": "bg-card border border-border/50 shadow-lg overflow-hidden rounded-3xl",
+      "hover": "hover:border-primary/50 transition-colors duration-300"
+    },
+    "Button": {
+      "primary": "bg-gradient-to-r from-[#FF4D4D] to-[#FF8C00] text-white font-bold shadow-[0_0_20px_rgba(255,85,0,0.3)] hover:shadow-[0_0_30px_rgba(255,85,0,0.5)] transition-all duration-300 rounded-full",
+      "secondary": "bg-muted text-white hover:bg-muted/80 rounded-full",
+      "ghost": "hover:bg-white/10 text-white rounded-full"
+    },
+    "Input": {
+      "style": "bg-muted/50 border-border focus:border-primary focus:ring-primary/20 rounded-xl h-12"
+    },
+    "Navigation": {
+      "style": "fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 h-20 flex items-center justify-around z-50"
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": "backdrop-blur-xl bg-black/40 border border-white/10",
+    "shadows": "shadow-2xl shadow-black/50",
+    "glow": "drop-shadow-[0_0_10px_rgba(255,85,0,0.5)]",
+    "textures": "Use subtle noise texture on background if possible."
+  },
+  "image_urls": {
+    "profiles": [
+      {
+        "url": "https://images.unsplash.com/photo-1759873821395-c29de82a5b99?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwxfHxwb3J0cmFpdCUyMHlvdW5nJTIwd29tYW4lMjBzbWlsaW5nJTIwbmF0dXJhbCUyMGxpZ2h0fGVufDB8fHx8MTc2NzAzODc3OXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Sarah, 24",
+        "category": "woman"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1724118135606-b4ff6b631cd3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxwb3J0cmFpdCUyMHlvdW5nJTIwbWFuJTIwY2FzdWFsJTIwc3R5bGUlMjBjaXR5fGVufDB8fHx8MTc2NzAzODc4MXww&ixlib=rb-4.1.0&q=85",
+        "alt": "James, 27",
+        "category": "man"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1761046543573-5dd23d38ea85?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2NDF8MHwxfHNlYXJjaHwyfHxwb3J0cmFpdCUyMHlvdW5nJTIwd29tYW4lMjBzbWlsaW5nJTIwbmF0dXJhbCUyMGxpZ2h0fGVufDB8fHx8MTc2NzAzODc3OXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Elena, 26",
+        "category": "woman"
+      },
+      {
+        "url": "https://images.unsplash.com/flagged/photo-1559485314-c2364caba9dd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwzfHxwb3J0cmFpdCUyMHlvdW5nJTIwbWFuJTIwY2FzdWFsJTIwc3R5bGUlMjBjaXR5fGVufDB8fHx8MTc2NzAzODc4MXww&ixlib=rb-4.1.0&q=85",
+        "alt": "Marcus, 29",
+        "category": "man"
+      }
+    ],
+    "lifestyle": [
+      {
+        "url": "https://images.unsplash.com/photo-1754932228677-62e5af60ce2c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzl8MHwxfHNlYXJjaHwxfHxjb3VwbGUlMjBoaWtpbmclMjBzdW5zZXQlMjBzaWxob3VldHRlfGVufDB8fHx8MTc2NzAzODc4M3ww&ixlib=rb-4.1.0&q=85",
+        "alt": "Hiking Date",
+        "category": "prompt_bg"
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Import Orbitron and Manrope fonts in index.css or index.html immediately.",
+    "2. THEME: Implement the custom color palette in tailwind.config.js. Ensure 'dark' mode is default or forced.",
+    "3. LAYOUT: Build a 'Card Stack' component for the main feed. It should feel like Hinge (scrollable profile details) but with Tinder-like swipe gestures if possible, or just vertical scroll.",
+    "4. COMPONENTS: Customize Shadcn components to match the 'Ember' aesthetic (rounded-3xl, dark backgrounds, orange accents).",
+    "5. NAVIGATION: Create a bottom navigation bar with: Discover (Flame icon), Likes (Heart icon), Matches (Chat icon), Profile (User icon).",
+    "6. PROFILE: Profile cards must be immersive. Image takes full width. Text overlays at bottom with gradient protection.",
+    "7. INTERACTION: Add 'Like' and 'Nope' buttons with distinct styles (Gradient Orange for Like, Muted for Nope).",
+    "8. TESTING: Add data-testid to all interactive elements."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy",
+    "Use glass-morphism effects with backdrop filters (12-24px blur)",
+    "You MUST NOT apply universal transition. Eg: transition: all. This results in breaking transforms. Always add transitions for specific interactive elements like button, input excluding transforms",
+    "You MUST NOT center align the app container, ie do not add .App { text-align: center; } in the css file. This disrupts the human natural reading flow of text",
+    "Always use modern button styles like pill-shaped, or sharp button with interaction animations & color relevant to the app style",
+    "NEVER: use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭🎬🎪🎉🎊🎁🎀🎂🍰🎈🎨🎰💰💵💳🏦💎🪙💸🤑📊📈📉💹🔢🏆🥇 etc for icons.",
+    "Every interaction needs micro-animations - hover states, transitions, parallax effects, and entrance animations. Static = dead.",
+    "Use 2-3x more spacing than feels comfortable. Cramped designs look cheap.",
+    "Subtle grain textures, noise overlays, custom cursors, selection states, and loading animations: separates good from extraordinary.",
+    "Main agent relies on these image URLs. Missing categories (especially sponsor logos) = main agent will use placeholder text which is FORBIDDEN",
+    "Prioritize using pre-existing components from src/components/ui when applicable",
+    "Create new components that match the style and conventions of existing components when needed",
+    "Examine existing components to understand the project's component patterns before creating new ones",
+    "Components MUST use named exports (export const ComponentName = ...)",
+    "Pages MUST use default exports (export default function PageName() {...})",
+    "Use sonner for toasts",
+    "Sonner component are located in /app/src/components/ui/sonner.tsx"
+  ]
+}
