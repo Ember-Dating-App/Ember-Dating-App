@@ -301,6 +301,7 @@ class EmberAPITester:
         
         # Test public endpoints first
         self.test_prompts_library()
+        self.test_premium_plans()  # New endpoint test
         
         # Test authentication flow
         if self.test_registration():
@@ -312,10 +313,17 @@ class EmberAPITester:
             # Test discovery features
             self.test_discover()
             self.test_most_compatible()
+            self.test_standouts()  # New endpoint test
             
             # Test social features
             self.test_matches()
             self.test_received_likes()
+            
+            # Test notifications
+            self.test_notifications()  # New endpoint test
+            
+            # Test file upload
+            self.test_photo_upload_base64()  # New endpoint test
         
         # Print summary
         print(f"\n📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
