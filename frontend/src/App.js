@@ -164,6 +164,11 @@ function AppRouter() {
           <Standouts />
         </ProtectedRoute>
       } />
+      <Route path="/payment/success" element={
+        <ProtectedRoute>
+          <PaymentSuccess />
+        </ProtectedRoute>
+      } />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
