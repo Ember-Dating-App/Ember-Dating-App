@@ -1,12 +1,12 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Flame, Heart, MessageCircle, User } from 'lucide-react';
+import { Compass, Heart, MessageCircle, User } from 'lucide-react';
 
 export default function Navigation() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const navItems = [
-    { path: '/discover', icon: Flame, label: 'Discover' },
+    { path: '/discover', icon: Compass, label: 'Discover' },
     { path: '/likes', icon: Heart, label: 'Likes' },
     { path: '/matches', icon: MessageCircle, label: 'Matches' },
     { path: '/profile', icon: User, label: 'Profile' },
