@@ -14,7 +14,7 @@ const SwipeLimitIndicator = () => {
 
   const fetchLimits = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       const response = await axios.get(`${API_BASE}/api/limits/swipes`, {
         headers: { Authorization: `Bearer ${token}` }
       });

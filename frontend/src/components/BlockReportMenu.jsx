@@ -14,7 +14,7 @@ const BlockReportMenu = ({ userId, userName, onBlock, onReport }) => {
   const handleBlock = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       await axios.post(
         `${API_BASE}/api/users/block`,
         { blocked_user_id: userId },
@@ -38,7 +38,7 @@ const BlockReportMenu = ({ userId, userName, onBlock, onReport }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       await axios.post(
         `${API_BASE}/api/users/report`,
         { 

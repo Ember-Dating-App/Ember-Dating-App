@@ -35,7 +35,7 @@ const VerificationWizard = () => {
       reader.onloadend = async () => {
         const base64 = reader.result;
         
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('ember_token');
         await axios.post(
           `${API_BASE}/api/verification/photo`,
           { selfie_data: base64 },
@@ -63,7 +63,7 @@ const VerificationWizard = () => {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       const response = await axios.post(
         `${API_BASE}/api/verification/phone/send`,
         { phone: phoneNumber },
@@ -92,7 +92,7 @@ const VerificationWizard = () => {
     setError('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       await axios.post(
         `${API_BASE}/api/verification/phone/verify`,
         { phone: phoneNumber, code: verificationCode },
@@ -120,7 +120,7 @@ const VerificationWizard = () => {
       reader.onloadend = async () => {
         const base64 = reader.result;
         
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('ember_token');
         await axios.post(
           `${API_BASE}/api/verification/id`,
           { id_photo_data: base64 },

@@ -16,7 +16,7 @@ const VerificationGate = ({ children }) => {
 
   const checkVerificationStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       if (!token) {
         navigate('/login');
         return;
