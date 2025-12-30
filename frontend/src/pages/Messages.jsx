@@ -332,6 +332,13 @@ export default function Messages() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowGameModal(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-primary"
+              title="Play icebreaker game"
+            >
+              <Gamepad2 className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => initiateCall('voice')}
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors"
               data-testid="voice-call-btn"
