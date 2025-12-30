@@ -152,6 +152,11 @@ function AppRouter() {
           <Likes />
         </ProtectedRoute>
       } />
+      <Route path="/tips" element={
+        <ProtectedRoute>
+          <Tips />
+        </ProtectedRoute>
+      } />
       <Route path="/matches" element={
         <ProtectedRoute>
           <Matches />
