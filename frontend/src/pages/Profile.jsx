@@ -99,6 +99,49 @@ export default function Profile() {
     setProfile({ ...profile, photos: newPhotos });
   };
 
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Photo size must be less than 10MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result;
+        
+        // Upload to server (which will use Cloudinary)
+        const response = await axios.post(
+          `${API}/upload/photo`,
+          { photo_data: base64 },
+          { headers, withCredentials: true }
+        );
+
+        const photoUrl = response.data.url;
+        addPhoto(photoUrl);
+        toast.success('Photo uploaded successfully!');
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Photo upload error:', error);
+      toast.error('Failed to upload photo');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const toggleInterest = (interest) => {
     if (profile.interests.includes(interest)) {
       setProfile({ ...profile, interests: profile.interests.filter(i => i !== interest) });
