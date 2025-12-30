@@ -8,7 +8,6 @@ import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
-import SwipeLimitIndicator from '@/components/SwipeLimitIndicator';
 import OutOfSwipesModal from '@/components/OutOfSwipesModal';
 
 export default function Discover() {
