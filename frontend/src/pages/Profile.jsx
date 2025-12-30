@@ -14,7 +14,6 @@ import Navigation from '@/components/Navigation';
 import LocationPicker from '@/components/LocationPicker';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import AmbassadorSection from '@/components/AmbassadorSection';
-import ThemeToggle from '@/components/ThemeToggle';
 import {
   DndContext,
   closestCenter,
