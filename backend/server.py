@@ -1117,10 +1117,71 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
         'verification_status': 'verified'  # Only show verified users
     }
     
+    # Apply basic gender filter
     if current_user.get('interested_in') and current_user['interested_in'] != 'everyone':
         query['gender'] = current_user['interested_in']
     
-    profiles = await db.users.find(query, {'_id': 0, 'password': 0}).to_list(50)
+    # Apply advanced filters
+    filters = current_user.get('filter_preferences', {})
+    
+    # Age filter
+    if filters.get('age_min') or filters.get('age_max'):
+        age_query = {}
+        if filters.get('age_min'):
+            age_query['$gte'] = filters['age_min']
+        if filters.get('age_max'):
+            age_query['$lte'] = filters['age_max']
+        if age_query:
+            query['age'] = age_query
+    
+    # Height filter
+    if filters.get('height_min') or filters.get('height_max'):
+        height_query = {}
+        if filters.get('height_min'):
+            height_query['$gte'] = filters['height_min']
+        if filters.get('height_max'):
+            height_query['$lte'] = filters['height_max']
+        if height_query:
+            query['height'] = height_query
+    
+    # Education filter
+    if filters.get('education_levels') and len(filters['education_levels']) > 0:
+        query['education'] = {'$in': filters['education_levels']}
+    
+    # Interest filter
+    if filters.get('specific_interests') and len(filters['specific_interests']) > 0:
+        query['interests'] = {'$in': filters['specific_interests']}
+    
+    profiles = await db.users.find(query, {'_id': 0, 'password': 0}).to_list(100)
+    
+    # Distance filter (if location details available)
+    if filters.get('max_distance') and current_user.get('location_details'):
+        user_coords = current_user['location_details']
+        if user_coords.get('latitude') and user_coords.get('longitude'):
+            filtered_profiles = []
+            for profile in profiles:
+                if profile.get('location_details'):
+                    profile_coords = profile['location_details']
+                    if profile_coords.get('latitude') and profile_coords.get('longitude'):
+                        # Calculate distance using Haversine formula
+                        from math import radians, sin, cos, sqrt, atan2
+                        
+                        lat1 = radians(user_coords['latitude'])
+                        lon1 = radians(user_coords['longitude'])
+                        lat2 = radians(profile_coords['latitude'])
+                        lon2 = radians(profile_coords['longitude'])
+                        
+                        dlon = lon2 - lon1
+                        dlat = lat2 - lat1
+                        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                        c = 2 * atan2(sqrt(a), sqrt(1-a))
+                        distance = 3959 * c  # Earth radius in miles
+                        
+                        if distance <= filters['max_distance']:
+                            profile['distance'] = round(distance, 1)
+                            filtered_profiles.append(profile)
+            profiles = filtered_profiles
+    
     return profiles
 
 @api_router.get("/discover/most-compatible")
