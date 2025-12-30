@@ -27,6 +27,7 @@ export default function Discover() {
   const [limits, setLimits] = useState(null);
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
