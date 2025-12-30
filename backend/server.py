@@ -2086,6 +2086,153 @@ async def check_expired_matches():
     
     return results
 
+# ==================== PHASE 2: ADVANCED FEATURES ====================
+
+@api_router.put("/preferences/filters")
+async def update_filter_preferences(filters: FilterPreferences, current_user: dict = Depends(get_current_user)):
+    """Update user's filter preferences"""
+    filter_dict = filters.dict(exclude_none=True)
+    
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {'filter_preferences': filter_dict}}
+    )
+    
+    return {'message': 'Filter preferences updated', 'filters': filter_dict}
+
+@api_router.get("/preferences/filters")
+async def get_filter_preferences(current_user: dict = Depends(get_current_user)):
+    """Get user's current filter preferences"""
+    return current_user.get('filter_preferences', {
+        'age_min': 18,
+        'age_max': 100,
+        'max_distance': 50,
+        'height_min': None,
+        'height_max': None,
+        'education_levels': [],
+        'specific_interests': []
+    })
+
+@api_router.post("/discover/undo")
+async def undo_last_pass(current_user: dict = Depends(get_current_user)):
+    """Undo the last passed profile"""
+    last_passed_id = current_user.get('last_passed_user_id')
+    last_passed_at = current_user.get('last_passed_at')
+    
+    if not last_passed_id or not last_passed_at:
+        raise HTTPException(status_code=400, detail='No recent pass to undo')
+    
+    # Check if it was within the last hour
+    if isinstance(last_passed_at, str):
+        last_passed_at = datetime.fromisoformat(last_passed_at)
+    if last_passed_at.tzinfo is None:
+        last_passed_at = last_passed_at.replace(tzinfo=timezone.utc)
+    
+    now = datetime.now(timezone.utc)
+    if (now - last_passed_at).total_seconds() > 3600:  # 1 hour
+        raise HTTPException(status_code=400, detail='Can only undo passes from the last hour')
+    
+    # Get the profile
+    profile = await db.users.find_one({'user_id': last_passed_id}, {'_id': 0, 'password': 0})
+    if not profile:
+        raise HTTPException(status_code=404, detail='Profile not found')
+    
+    # Clear the last passed
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {'last_passed_user_id': None, 'last_passed_at': None}}
+    )
+    
+    return {'message': 'Pass undone', 'profile': profile}
+
+@api_router.get("/discover/daily-picks")
+async def get_daily_picks(current_user: dict = Depends(get_current_user)):
+    """Get 10 AI-curated daily picks"""
+    # Check verification
+    if current_user.get('verification_status') != 'verified':
+        raise HTTPException(status_code=403, detail='Profile verification required')
+    
+    today = datetime.now(timezone.utc).date().isoformat()
+    
+    # Check if we have picks for today
+    existing_picks = await db.daily_picks.find_one({
+        'user_id': current_user['user_id'],
+        'date': today
+    }, {'_id': 0})
+    
+    if existing_picks:
+        # Return existing picks
+        profiles = []
+        for user_id in existing_picks['picked_user_ids']:
+            profile = await db.users.find_one({'user_id': user_id}, {'_id': 0, 'password': 0})
+            if profile:
+                profiles.append(profile)
+        return profiles
+    
+    # Generate new picks
+    # Get all eligible profiles
+    profiles = await discover_profiles(current_user)
+    
+    if len(profiles) <= 10:
+        picked_profiles = profiles
+    else:
+        # Use AI to select best 10
+        try:
+            user_data = {
+                'interests': current_user.get('interests', []),
+                'bio': current_user.get('bio', ''),
+                'age': current_user.get('age'),
+                'location': current_user.get('location', '')
+            }
+            
+            profiles_summary = [
+                {
+                    'index': i,
+                    'name': p.get('name'),
+                    'age': p.get('age'),
+                    'interests': p.get('interests', []),
+                    'bio': p.get('bio', ''),
+                    'prompts': p.get('prompts', []),
+                    'photo_count': len(p.get('photos', [])),
+                    'location': p.get('location', '')
+                }
+                for i, p in enumerate(profiles[:50])
+            ]
+            
+            completion = openai_client.chat.completions.create(
+                model='gpt-4o-mini',
+                messages=[
+                    {'role': 'system', 'content': 'You are a dating app matchmaker. Select the 10 best daily picks based on compatibility, profile quality, and interesting bios. Return ONLY a JSON array of 10 indices (0-based).'},
+                    {'role': 'user', 'content': f"User profile: {user_data}\n\nAvailable profiles:\n{profiles_summary}"}
+                ],
+                max_tokens=100
+            )
+            
+            indices = json.loads(completion.choices[0].message.content)
+            picked_profiles = [profiles[i] for i in indices if i < len(profiles)]
+            
+            if len(picked_profiles) < 10:
+                # Fill with remaining profiles
+                remaining = [p for p in profiles if p not in picked_profiles]
+                picked_profiles.extend(remaining[:10 - len(picked_profiles)])
+        
+        except Exception as e:
+            logger.error(f"AI daily picks error: {e}")
+            # Fallback to random selection
+            import random
+            picked_profiles = random.sample(profiles, min(10, len(profiles)))
+    
+    # Store picks
+    picked_user_ids = [p['user_id'] for p in picked_profiles]
+    await db.daily_picks.insert_one({
+        'user_id': current_user['user_id'],
+        'date': today,
+        'picked_user_ids': picked_user_ids,
+        'generated_at': datetime.now(timezone.utc).isoformat()
+    })
+    
+    return picked_profiles
+
 # ==================== WEBSOCKET ENDPOINT ====================
 
 @app.websocket("/ws/{token}")
