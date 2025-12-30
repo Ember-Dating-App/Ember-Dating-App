@@ -335,6 +335,9 @@ export default function Likes() {
                             {rose.sender?.verification_status === 'verified' && (
                               <VerifiedBadge className="w-5 h-5" />
                             )}
+                            {rose.sender?.is_ambassador && (
+                              <AmbassadorBadge size="sm" />
+                            )}
                           </div>
                           <p className="text-sm text-rose-600 mt-1">Sent you a rose</p>
                           {rose.comment && (
