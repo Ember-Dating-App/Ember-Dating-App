@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Sliders, ChevronDown, ChevronUp } from 'lucide-react';
+import { 
+  X, Sliders, ChevronDown, ChevronUp, User, Heart, Compass, 
+  GraduationCap, MapPin, Ruler, Users, Sparkles 
+} from 'lucide-react';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
