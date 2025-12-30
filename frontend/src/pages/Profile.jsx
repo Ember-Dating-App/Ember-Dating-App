@@ -1145,6 +1145,9 @@ export default function Profile() {
         </DialogContent>
       </Dialog>
 
+      {/* Ambassador Section */}
+      <AmbassadorSection user={user} />
+
       <Navigation />
     </div>
   );
