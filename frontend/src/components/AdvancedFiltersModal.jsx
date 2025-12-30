@@ -277,59 +277,34 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                     Age Range
                   </label>
                   <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-3">
                       <span className="text-2xl font-bold ember-text-gradient">{filters.age_min}</span>
                       <span className="text-gray-500">to</span>
                       <span className="text-2xl font-bold ember-text-gradient">{filters.age_max}</span>
                     </div>
-                    <div className="relative pt-1 px-2">
-                      {/* Track */}
-                      <div className="h-2 bg-gray-700 rounded-lg relative">
-                        {/* Active range highlight */}
-                        <div 
-                          className="absolute h-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg"
-                          style={{
-                            left: `${((filters.age_min - 18) / 82) * 100}%`,
-                            width: `${((filters.age_max - filters.age_min) / 82) * 100}%`
-                          }}
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="18"
+                          max="100"
+                          value={filters.age_min}
+                          onChange={(e) => setFilters({ ...filters, age_min: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
                         />
+                        <p className="text-xs text-gray-500 mt-2 text-center">Minimum</p>
                       </div>
-                      
-                      {/* Min slider */}
-                      <input
-                        type="range"
-                        min="18"
-                        max="100"
-                        value={filters.age_min}
-                        onChange={(e) => {
-                          const newMin = parseInt(e.target.value);
-                          if (newMin < filters.age_max) {
-                            setFilters({ ...filters, age_min: newMin });
-                          }
-                        }}
-                        className="absolute w-full h-2 top-1 left-0 appearance-none bg-transparent cursor-pointer pointer-events-auto"
-                        style={{
-                          zIndex: filters.age_min > filters.age_max - 10 ? 5 : 3
-                        }}
-                      />
-                      
-                      {/* Max slider */}
-                      <input
-                        type="range"
-                        min="18"
-                        max="100"
-                        value={filters.age_max}
-                        onChange={(e) => {
-                          const newMax = parseInt(e.target.value);
-                          if (newMax > filters.age_min) {
-                            setFilters({ ...filters, age_max: newMax });
-                          }
-                        }}
-                        className="absolute w-full h-2 top-1 left-0 appearance-none bg-transparent cursor-pointer pointer-events-auto"
-                        style={{
-                          zIndex: filters.age_min > filters.age_max - 10 ? 3 : 5
-                        }}
-                      />
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="18"
+                          max="100"
+                          value={filters.age_max}
+                          onChange={(e) => setFilters({ ...filters, age_max: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-2 text-center">Maximum</p>
+                      </div>
                     </div>
                   </div>
                 </div>
