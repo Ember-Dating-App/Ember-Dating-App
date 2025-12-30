@@ -306,31 +306,62 @@ export default function Likes() {
           <>
             {!user?.is_premium ? (
               <div className="max-w-md mx-auto mt-10">
-                <div className="bg-gradient-to-br from-rose-500/10 to-pink-500/10 border-2 border-rose-500/20 rounded-2xl p-8 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-rose-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl">
-                    🌹
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">See Who Sent Roses</h2>
-                  <p className="text-muted-foreground mb-4">
-                    {rosesData?.count || 0} {rosesData?.count === 1 ? 'person sent' : 'people sent'} you a rose!
-                  </p>
+                <div className="relative overflow-hidden rounded-3xl border border-rose-500/30 bg-gradient-to-br from-background via-background to-rose-500/5">
+                  {/* Decorative gradients */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-rose-400/20 to-transparent rounded-full blur-3xl" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-pink-500/20 to-transparent rounded-full blur-2xl" />
                   
-                  <div className="bg-background/50 rounded-xl p-4 mb-6">
-                    <div className="flex items-center justify-center gap-2 text-4xl font-bold text-rose-600 mb-2">
-                      {rosesData?.count || 0}
+                  <div className="relative p-8">
+                    {/* Rose Icon with glow */}
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                      <div className="absolute inset-0 bg-gradient-to-br from-rose-400 to-pink-500 rounded-3xl blur-xl opacity-50" />
+                      <div className="relative w-full h-full bg-gradient-to-br from-rose-500 via-rose-600 to-pink-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-rose-500/30 text-5xl">
+                        🌹
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {rosesData?.count === 1 ? 'rose received' : 'roses received'}
-                    </p>
-                  </div>
 
-                  <Button
-                    onClick={() => navigate('/premium')}
-                    className="w-full py-6 text-lg bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white rounded-full"
-                  >
-                    <Crown className="w-5 h-5 mr-2" />
-                    Get Premium
-                  </Button>
+                    {/* Title */}
+                    <h2 className="text-3xl font-bold text-center mb-3 bg-gradient-to-r from-rose-400 to-pink-500 bg-clip-text text-transparent">
+                      See Who Sent Roses
+                    </h2>
+                    <p className="text-center text-muted-foreground mb-6">
+                      Roses are the most special likes you can receive
+                    </p>
+                    
+                    {/* Count Display - Premium Style */}
+                    <div className="relative mb-6 p-6 rounded-2xl bg-gradient-to-br from-rose-500/10 to-pink-500/10 border border-rose-500/20 backdrop-blur-sm">
+                      <div className="absolute inset-0 bg-gradient-to-br from-rose-400/5 to-pink-500/5 rounded-2xl" />
+                      <div className="relative text-center">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <Flower2 className="w-8 h-8 text-rose-500" />
+                          <div className="text-5xl font-bold bg-gradient-to-r from-rose-500 to-pink-500 bg-clip-text text-transparent">
+                            {rosesData?.count || 0}
+                          </div>
+                          <Flower2 className="w-8 h-8 text-pink-500" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {rosesData?.count === 1 ? 'rose received' : 'roses received'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Info text */}
+                    <div className="mb-6 p-4 rounded-xl bg-gradient-to-r from-rose-500/5 to-transparent border border-rose-500/10">
+                      <p className="text-sm text-center text-muted-foreground">
+                        Roses are special. They show someone is really interested in you. 
+                        <span className="text-foreground font-medium"> Unlock Premium</span> to see who they are.
+                      </p>
+                    </div>
+
+                    {/* CTA Button - Premium */}
+                    <Button
+                      onClick={() => navigate('/premium')}
+                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-rose-500 via-rose-600 to-pink-600 hover:from-rose-600 hover:via-rose-700 hover:to-pink-700 text-white rounded-2xl shadow-2xl shadow-rose-500/30 hover:shadow-rose-500/50 transition-all"
+                    >
+                      <Crown className="w-6 h-6 mr-2" />
+                      Unlock Premium Now
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : rosesData?.roses?.length === 0 ? (
