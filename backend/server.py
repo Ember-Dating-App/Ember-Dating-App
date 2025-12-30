@@ -1184,6 +1184,42 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
     if filters.get('specific_interests') and len(filters['specific_interests']) > 0:
         query['interests'] = {'$in': filters['specific_interests']}
     
+    # Gender filter
+    if filters.get('genders') and len(filters['genders']) > 0:
+        query['gender'] = {'$in': filters['genders']}
+    
+    # Dating purpose filter
+    if filters.get('dating_purposes') and len(filters['dating_purposes']) > 0:
+        query['dating_purpose'] = {'$in': filters['dating_purposes']}
+    
+    # Religion filter
+    if filters.get('religions') and len(filters['religions']) > 0:
+        query['religion'] = {'$in': filters['religions']}
+    
+    # Language filter
+    if filters.get('languages') and len(filters['languages']) > 0:
+        query['languages'] = {'$in': filters['languages']}
+    
+    # Children preference filter
+    if filters.get('children_preference') and len(filters['children_preference']) > 0:
+        query['children'] = {'$in': filters['children_preference']}
+    
+    # Political view filter
+    if filters.get('political_views') and len(filters['political_views']) > 0:
+        query['political_view'] = {'$in': filters['political_views']}
+    
+    # Pets filter
+    if filters.get('pets') and len(filters['pets']) > 0:
+        query['has_pets'] = {'$in': filters['pets']}
+    
+    # Ethnicity filter (main categories)
+    if filters.get('ethnicities') and len(filters['ethnicities']) > 0:
+        query['ethnicity'] = {'$in': filters['ethnicities']}
+    
+    # Sub-ethnicity filter (more specific)
+    if filters.get('sub_ethnicities') and len(filters['sub_ethnicities']) > 0:
+        query['sub_ethnicity'] = {'$in': filters['sub_ethnicities']}
+    
     profiles = await db.users.find(query, {'_id': 0, 'password': 0}).to_list(100)
     
     # Distance filter (if location details available)
