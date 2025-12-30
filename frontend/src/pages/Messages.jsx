@@ -505,31 +505,51 @@ export default function Messages() {
 
       {/* Input */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-4">
-        <form onSubmit={sendMessage} className="max-w-lg mx-auto flex gap-2">
-          <button
-            type="button"
-            onClick={fetchStarters}
-            className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
-            data-testid="starters-btn"
-          >
-            <Sparkles className="w-5 h-5 text-primary" />
-          </button>
-          <Input
-            value={newMessage}
-            onChange={handleTyping}
-            placeholder="Type a message..."
-            className="flex-1 h-12 bg-muted/50 border-muted focus:border-primary rounded-full px-5"
-            data-testid="message-input"
-          />
-          <Button
-            type="submit"
-            disabled={!newMessage.trim() || sending}
-            className="w-12 h-12 ember-gradient rounded-full p-0"
-            data-testid="send-btn"
-          >
-            <Send className="w-5 h-5" />
-          </Button>
-        </form>
+        <div className="max-w-lg mx-auto">
+          {/* Edit mode indicator */}
+          {editingMessage && (
+            <div className="mb-2 p-2 bg-primary/10 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <Edit2 className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">Editing message</span>
+              </div>
+              <button
+                onClick={cancelEdit}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={editingMessage ? (e) => { e.preventDefault(); saveEditMessage(); } : sendMessage} className="flex gap-2">
+            {!editingMessage && (
+              <button
+                type="button"
+                onClick={fetchStarters}
+                className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                data-testid="starters-btn"
+              >
+                <Sparkles className="w-5 h-5 text-primary" />
+              </button>
+            )}
+            <Input
+              value={editingMessage ? editContent : newMessage}
+              onChange={(e) => editingMessage ? setEditContent(e.target.value) : handleTyping(e)}
+              placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
+              className="flex-1 h-12 bg-muted/50 border-muted focus:border-primary rounded-full px-5"
+              data-testid="message-input"
+            />
+            <Button
+              type="submit"
+              disabled={editingMessage ? !editContent.trim() : (!newMessage.trim() || sending)}
+              className="w-12 h-12 ember-gradient rounded-full p-0"
+              data-testid="send-btn"
+            >
+              <Send className="w-5 h-5" />
+            </Button>
+          </form>
+        </div>
       </div>
     </div>
   );
