@@ -61,7 +61,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted));
+  background: #18181B;
 }
 
 ::-webkit-scrollbar-thumb {
