@@ -440,8 +440,25 @@ async def register(user_data: UserCreate):
             'height_min': None,
             'height_max': None,
             'education_levels': [],
-            'specific_interests': []
+            'specific_interests': [],
+            'genders': [],
+            'dating_purposes': [],
+            'religions': [],
+            'languages': [],
+            'children_preference': [],
+            'political_views': [],
+            'pets': [],
+            'ethnicities': [],
+            'sub_ethnicities': []
         },
+        'dating_purpose': None,
+        'religion': None,
+        'languages': [],
+        'children': None,
+        'political_view': None,
+        'has_pets': None,
+        'ethnicity': None,
+        'sub_ethnicity': None,
         'created_at': now,
         'last_active': now
     }
