@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown, Flower2, RotateCcw, Sliders } from 'lucide-react';
+import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown, Flower2, RotateCcw, Sliders, BadgeCheck } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
