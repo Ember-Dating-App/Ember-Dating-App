@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown, Flower2, RotateCcw, Sliders, BadgeCheck, Volume2, VolumeX, Video } from 'lucide-react';
+import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown, Flower2, RotateCcw, Sliders, Volume2, VolumeX, Video } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import OutOfSwipesModal from '@/components/OutOfSwipesModal';
 import AdvancedFiltersModal from '@/components/AdvancedFiltersModal';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 export default function Discover() {
   const navigate = useNavigate();
