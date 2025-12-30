@@ -632,6 +632,17 @@ export default function Messages() {
           scrollToBottom();
         }}
       />
+
+      {/* Virtual Gifts Modal */}
+      <VirtualGiftsModal
+        open={showGiftsModal}
+        onClose={() => setShowGiftsModal(false)}
+        matchId={matchId}
+        onSendGift={(message) => {
+          setMessages(prev => [...prev, message]);
+          scrollToBottom();
+        }}
+      />
     </div>
   );
 }
