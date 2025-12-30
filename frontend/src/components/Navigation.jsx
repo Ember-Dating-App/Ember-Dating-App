@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Compass, Heart, MessageCircle, User } from 'lucide-react';
+import { Compass, Heart, Lightbulb, MessageCircle, User } from 'lucide-react';
 
 export default function Navigation() {
   const location = useLocation();
@@ -8,6 +8,7 @@ export default function Navigation() {
   const navItems = [
     { path: '/discover', icon: Compass, label: 'Discover' },
     { path: '/likes', icon: Heart, label: 'Likes' },
+    { path: '/tips', icon: Lightbulb, label: 'Tips' },
     { path: '/matches', icon: MessageCircle, label: 'Matches' },
     { path: '/profile', icon: User, label: 'Profile' },
   ];
