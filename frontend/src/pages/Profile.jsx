@@ -266,7 +266,12 @@ export default function Profile() {
                 </button>
               )}
             </div>
-            <h1 className="text-2xl font-bold">{profile.name || user?.name || 'Set your name'}, {profile.age || user?.age}</h1>
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-bold">{profile.name || user?.name || 'Set your name'}, {profile.age || user?.age}</h1>
+              {user?.verification_status === 'verified' && (
+                <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-500" />
+              )}
+            </div>
             
             {/* Location with edit button */}
             <button
