@@ -134,6 +134,20 @@ export default function Discover() {
       await fetchLimits();
       await refreshUser();
 
+      // Show remaining swipes notification for regular likes
+      if (likeType === 'regular' && !user?.is_premium) {
+        const newLimits = await axios.get(`${API}/limits/swipes`, { headers, withCredentials: true });
+        const remaining = newLimits.data.swipes.remaining;
+        
+        if (remaining === 3) {
+          toast.warning('3 swipes remaining today');
+        } else if (remaining === 1) {
+          toast.warning('Only 1 swipe remaining today!');
+        } else if (remaining === 0) {
+          toast.error('Out of swipes! Upgrade for unlimited swipes.');
+        }
+      }
+
       setShowLikeModal(false);
       setLikeComment('');
       setSelectedSection(null);
@@ -167,6 +181,21 @@ export default function Discover() {
       
       // Refresh limits
       await fetchLimits();
+      
+      // Show remaining swipes notification
+      if (!user?.is_premium) {
+        const newLimits = await axios.get(`${API}/limits/swipes`, { headers, withCredentials: true });
+        const remaining = newLimits.data.swipes.remaining;
+        
+        if (remaining === 3) {
+          toast.warning('3 swipes remaining today');
+        } else if (remaining === 1) {
+          toast.warning('Only 1 swipe remaining today!');
+        } else if (remaining === 0) {
+          toast.error('Out of swipes! Upgrade for unlimited swipes.');
+        }
+      }
+      
       nextProfile();
     } catch (error) {
       if (error.response?.status === 429) {
