@@ -6,6 +6,7 @@ import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
+import VerifiedBadge from '@/components/VerifiedBadge';
 
 export default function Standouts() {
   const navigate = useNavigate();
