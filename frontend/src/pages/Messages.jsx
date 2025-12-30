@@ -392,34 +392,67 @@ export default function Messages() {
           </div>
 
           {/* Messages list */}
-          {messages.map((msg) => (
-            <div
-              key={msg.message_id}
-              className={`flex ${msg.sender_id === user?.user_id ? 'justify-end' : 'justify-start'}`}
-            >
+          {messages.map((msg) => {
+            const isSent = msg.sender_id === user?.user_id;
+            const canEdit = isSent && !msg.is_deleted && !msg.edited;
+            const sentTime = new Date(msg.created_at || msg.sent_at);
+            const timeDiff = (new Date() - sentTime) / 1000 / 60; // minutes
+            const canEditTime = timeDiff < 15;
+
+            return (
               <div
-                className={`message-bubble ${msg.sender_id === user?.user_id ? 'message-sent' : 'message-received'}`}
-                data-testid={`message-${msg.message_id}`}
+                key={msg.message_id}
+                className={`flex ${isSent ? 'justify-end' : 'justify-start'} group`}
               >
-                <p>{msg.content}</p>
-                <div className="flex items-center gap-1 mt-1">
-                  <p className={`text-xs ${msg.sender_id === user?.user_id ? 'text-white/70' : 'text-muted-foreground'}`}>
-                    {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                  </p>
-                  {/* Read receipts for sent messages */}
-                  {msg.sender_id === user?.user_id && (
-                    <span className="ml-1">
-                      {msg.read ? (
-                        <CheckCheck className="w-3 h-3 text-blue-400" />
-                      ) : (
-                        <Check className="w-3 h-3 text-white/50" />
+                <div className="relative">
+                  {/* Edit/Delete buttons for own messages */}
+                  {isSent && !msg.is_deleted && (
+                    <div className="absolute -left-20 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                      {canEdit && canEditTime && (
+                        <button
+                          onClick={() => startEditMessage(msg)}
+                          className="p-1.5 rounded-lg bg-card hover:bg-muted border border-border transition-colors"
+                          title="Edit message (within 15 min)"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
                       )}
-                    </span>
+                      <button
+                        onClick={() => deleteMessage(msg.message_id)}
+                        className="p-1.5 rounded-lg bg-card hover:bg-destructive/10 border border-border hover:border-destructive transition-colors"
+                        title="Delete message"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </button>
+                    </div>
                   )}
+
+                  <div
+                    className={`message-bubble ${isSent ? 'message-sent' : 'message-received'} ${msg.is_deleted ? 'opacity-60 italic' : ''}`}
+                    data-testid={`message-${msg.message_id}`}
+                  >
+                    <p>{msg.content}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <p className={`text-xs ${isSent ? 'text-white/70' : 'text-muted-foreground'}`}>
+                        {formatDistanceToNow(sentTime, { addSuffix: true })}
+                        {msg.edited && <span className="ml-1">(edited)</span>}
+                      </p>
+                      {/* Read receipts for sent messages */}
+                      {isSent && !msg.is_deleted && (
+                        <span className="ml-1">
+                          {msg.read ? (
+                            <CheckCheck className="w-3 h-3 text-blue-400" />
+                          ) : (
+                            <Check className="w-3 h-3 text-white/50" />
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Typing indicator */}
           {isTyping && (
