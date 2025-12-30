@@ -264,225 +264,252 @@ export default function Profile() {
 
           {/* Basic Info */}
           {editing && (
-            <div className="bg-card rounded-2xl p-4 space-y-4 border border-border/50">
-              <h3 className="font-semibold">Basic Info</h3>
-              
-              <div className="space-y-2">
-                <Label>Name</Label>
-                <Input
-                  type="text"
-                  value={profile.name}
-                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                  className="bg-muted/50 border-muted rounded-xl"
-                  placeholder="Your name"
-                />
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Age</Label>
-                  <Input
-                    type="number"
-                    value={profile.age}
-                    onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || '' })}
-                    className="bg-muted/50 border-muted rounded-xl"
-                    data-testid="edit-age-input"
-                  />
+            <div className="space-y-6">
+              {/* Personal Information Section */}
+              <div className="bg-gradient-to-br from-card to-card/50 rounded-3xl p-6 border border-border/30 shadow-lg">
+                <h3 className="text-lg font-bold mb-6 text-primary">Personal Information</h3>
+                
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
+                    <Input
+                      type="text"
+                      value={profile.name}
+                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                      className="bg-background/50 border-border/50 rounded-xl h-12 text-base"
+                      placeholder="Enter your name"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Age</Label>
+                      <Input
+                        type="number"
+                        value={profile.age}
+                        onChange={(e) => setProfile({ ...profile, age: parseInt(e.target.value) || '' })}
+                        className="bg-background/50 border-border/50 rounded-xl h-12 text-base"
+                        data-testid="edit-age-input"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Height</Label>
+                      <Select value={profile.height?.toString() || ''} onValueChange={(v) => setProfile({ ...profile, height: parseInt(v) })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select height" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {Array.from({ length: 37 }, (_, i) => {
+                            const totalInches = 48 + i;
+                            const feet = Math.floor(totalInches / 12);
+                            const inches = totalInches % 12;
+                            return (
+                              <SelectItem key={totalInches} value={totalInches.toString()}>
+                                {feet}'{inches}"
+                              </SelectItem>
+                            );
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Location</Label>
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowLocationPicker(true)}
+                      className="w-full justify-start text-left font-normal bg-background/50 border-border/50 rounded-xl h-12"
+                    >
+                      <MapPin className="w-4 h-4 mr-2" />
+                      {profile.location || 'Set location'}
+                    </Button>
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Location</Label>
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowLocationPicker(true)}
-                    className="w-full justify-start text-left font-normal bg-muted/50 border-muted rounded-xl"
-                  >
-                    <MapPin className="w-4 h-4 mr-2" />
-                    {profile.location || 'Set location'}
-                  </Button>
+              </div>
+
+              {/* Dating Preferences Section */}
+              <div className="bg-gradient-to-br from-card to-card/50 rounded-3xl p-6 border border-border/30 shadow-lg">
+                <h3 className="text-lg font-bold mb-6 text-primary">Dating Preferences</h3>
+                
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Gender</Label>
+                      <Select value={profile.gender} onValueChange={(v) => setProfile({ ...profile, gender: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select gender" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="man">Man</SelectItem>
+                          <SelectItem value="woman">Woman</SelectItem>
+                          <SelectItem value="non-binary">Non-binary</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Interested in</Label>
+                      <Select value={profile.interested_in} onValueChange={(v) => setProfile({ ...profile, interested_in: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="men">Men</SelectItem>
+                          <SelectItem value="women">Women</SelectItem>
+                          <SelectItem value="everyone">Everyone</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">Looking For</Label>
+                    <Select value={profile.dating_purpose} onValueChange={(v) => setProfile({ ...profile, dating_purpose: v })}>
+                      <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                        <SelectValue placeholder="What are you looking for?" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Long-term Relationship">Long-term Relationship</SelectItem>
+                        <SelectItem value="Short-term Relationship">Short-term Relationship</SelectItem>
+                        <SelectItem value="Casual Dating">Casual Dating</SelectItem>
+                        <SelectItem value="Friendship">Friendship</SelectItem>
+                        <SelectItem value="Not Sure Yet">Not Sure Yet</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select value={profile.gender} onValueChange={(v) => setProfile({ ...profile, gender: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="man">Man</SelectItem>
-                    <SelectItem value="woman">Woman</SelectItem>
-                    <SelectItem value="non-binary">Non-binary</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Background & Lifestyle Section */}
+              <div className="bg-gradient-to-br from-card to-card/50 rounded-3xl p-6 border border-border/30 shadow-lg">
+                <h3 className="text-lg font-bold mb-6 text-primary">Background & Lifestyle</h3>
+                
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Education</Label>
+                      <Select value={profile.education} onValueChange={(v) => setProfile({ ...profile, education: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select education" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="High School">High School</SelectItem>
+                          <SelectItem value="Some College">Some College</SelectItem>
+                          <SelectItem value="Bachelors">Bachelor's Degree</SelectItem>
+                          <SelectItem value="Masters">Master's Degree</SelectItem>
+                          <SelectItem value="PhD">PhD</SelectItem>
+                          <SelectItem value="Trade School">Trade School</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <div className="space-y-2">
-                <Label>Interested in</Label>
-                <Select value={profile.interested_in} onValueChange={(v) => setProfile({ ...profile, interested_in: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="men">Men</SelectItem>
-                    <SelectItem value="women">Women</SelectItem>
-                    <SelectItem value="everyone">Everyone</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Religion</Label>
+                      <Select value={profile.religion} onValueChange={(v) => setProfile({ ...profile, religion: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select religion" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Christianity">Christianity</SelectItem>
+                          <SelectItem value="Islam">Islam</SelectItem>
+                          <SelectItem value="Hinduism">Hinduism</SelectItem>
+                          <SelectItem value="Buddhism">Buddhism</SelectItem>
+                          <SelectItem value="Judaism">Judaism</SelectItem>
+                          <SelectItem value="Sikhism">Sikhism</SelectItem>
+                          <SelectItem value="Agnostic">Agnostic</SelectItem>
+                          <SelectItem value="Atheist">Atheist</SelectItem>
+                          <SelectItem value="Spiritual">Spiritual</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Height</Label>
-                <Select value={profile.height?.toString() || ''} onValueChange={(v) => setProfile({ ...profile, height: parseInt(v) })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select height" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-60">
-                    {Array.from({ length: 37 }, (_, i) => {
-                      const totalInches = 48 + i;
-                      const feet = Math.floor(totalInches / 12);
-                      const inches = totalInches % 12;
-                      return (
-                        <SelectItem key={totalInches} value={totalInches.toString()}>
-                          {feet}'{inches}"
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Children</Label>
+                      <Select value={profile.children} onValueChange={(v) => setProfile({ ...profile, children: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select preference" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Have children">Have children</SelectItem>
+                          <SelectItem value="Don't have children">Don't have children</SelectItem>
+                          <SelectItem value="Want children someday">Want children someday</SelectItem>
+                          <SelectItem value="Don't want children">Don't want children</SelectItem>
+                          <SelectItem value="Open to children">Open to children</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <div className="space-y-2">
-                <Label>Education</Label>
-                <Select value={profile.education} onValueChange={(v) => setProfile({ ...profile, education: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select education" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="High School">High School</SelectItem>
-                    <SelectItem value="Some College">Some College</SelectItem>
-                    <SelectItem value="Bachelors">Bachelor's Degree</SelectItem>
-                    <SelectItem value="Masters">Master's Degree</SelectItem>
-                    <SelectItem value="PhD">PhD</SelectItem>
-                    <SelectItem value="Trade School">Trade School</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Political View</Label>
+                      <Select value={profile.political_view} onValueChange={(v) => setProfile({ ...profile, political_view: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select view" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Liberal">Liberal</SelectItem>
+                          <SelectItem value="Moderate">Moderate</SelectItem>
+                          <SelectItem value="Conservative">Conservative</SelectItem>
+                          <SelectItem value="Apolitical">Apolitical</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Dating Purpose</Label>
-                <Select value={profile.dating_purpose} onValueChange={(v) => setProfile({ ...profile, dating_purpose: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="What are you looking for?" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Long-term Relationship">Long-term Relationship</SelectItem>
-                    <SelectItem value="Short-term Relationship">Short-term Relationship</SelectItem>
-                    <SelectItem value="Casual Dating">Casual Dating</SelectItem>
-                    <SelectItem value="Friendship">Friendship</SelectItem>
-                    <SelectItem value="Not Sure Yet">Not Sure Yet</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Pets</Label>
+                      <Select value={profile.has_pets} onValueChange={(v) => setProfile({ ...profile, has_pets: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Have dogs">Have dogs</SelectItem>
+                          <SelectItem value="Have cats">Have cats</SelectItem>
+                          <SelectItem value="Have other pets">Have other pets</SelectItem>
+                          <SelectItem value="Love pets but don't have">Love pets but don't have</SelectItem>
+                          <SelectItem value="Not a pet person">Not a pet person</SelectItem>
+                          <SelectItem value="Allergic to pets">Allergic to pets</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              <div className="space-y-2">
-                <Label>Religion</Label>
-                <Select value={profile.religion} onValueChange={(v) => setProfile({ ...profile, religion: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select religion" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Christianity">Christianity</SelectItem>
-                    <SelectItem value="Islam">Islam</SelectItem>
-                    <SelectItem value="Hinduism">Hinduism</SelectItem>
-                    <SelectItem value="Buddhism">Buddhism</SelectItem>
-                    <SelectItem value="Judaism">Judaism</SelectItem>
-                    <SelectItem value="Sikhism">Sikhism</SelectItem>
-                    <SelectItem value="Agnostic">Agnostic</SelectItem>
-                    <SelectItem value="Atheist">Atheist</SelectItem>
-                    <SelectItem value="Spiritual">Spiritual</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Ethnicity</Label>
+                      <Select value={profile.ethnicity} onValueChange={(v) => setProfile({ ...profile, ethnicity: v })}>
+                        <SelectTrigger className="bg-background/50 border-border/50 rounded-xl h-12">
+                          <SelectValue placeholder="Select ethnicity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Asian">Asian</SelectItem>
+                          <SelectItem value="Black">Black</SelectItem>
+                          <SelectItem value="Hispanic/Latino">Hispanic/Latino</SelectItem>
+                          <SelectItem value="White/Caucasian">White/Caucasian</SelectItem>
+                          <SelectItem value="Arab/Middle Eastern">Arab/Middle Eastern</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label>Children</Label>
-                <Select value={profile.children} onValueChange={(v) => setProfile({ ...profile, children: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select preference" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Have children">Have children</SelectItem>
-                    <SelectItem value="Don't have children">Don't have children</SelectItem>
-                    <SelectItem value="Want children someday">Want children someday</SelectItem>
-                    <SelectItem value="Don't want children">Don't want children</SelectItem>
-                    <SelectItem value="Open to children">Open to children</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Political View</Label>
-                <Select value={profile.political_view} onValueChange={(v) => setProfile({ ...profile, political_view: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select view" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Liberal">Liberal</SelectItem>
-                    <SelectItem value="Moderate">Moderate</SelectItem>
-                    <SelectItem value="Conservative">Conservative</SelectItem>
-                    <SelectItem value="Apolitical">Apolitical</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Pets</Label>
-                <Select value={profile.has_pets} onValueChange={(v) => setProfile({ ...profile, has_pets: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Have dogs">Have dogs</SelectItem>
-                    <SelectItem value="Have cats">Have cats</SelectItem>
-                    <SelectItem value="Have other pets">Have other pets</SelectItem>
-                    <SelectItem value="Love pets but don't have">Love pets but don't have</SelectItem>
-                    <SelectItem value="Not a pet person">Not a pet person</SelectItem>
-                    <SelectItem value="Allergic to pets">Allergic to pets</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Ethnicity</Label>
-                <Select value={profile.ethnicity} onValueChange={(v) => setProfile({ ...profile, ethnicity: v })}>
-                  <SelectTrigger className="bg-muted/50 border-muted rounded-xl">
-                    <SelectValue placeholder="Select ethnicity" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Asian">Asian</SelectItem>
-                    <SelectItem value="Black">Black</SelectItem>
-                    <SelectItem value="Hispanic/Latino">Hispanic/Latino</SelectItem>
-                    <SelectItem value="White/Caucasian">White/Caucasian</SelectItem>
-                    <SelectItem value="Arab/Middle Eastern">Arab/Middle Eastern</SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {profile.ethnicity && (
-                <div className="space-y-2">
-                  <Label>Specific Background</Label>
-                  <Input
-                    type="text"
-                    value={profile.sub_ethnicity}
-                    onChange={(e) => setProfile({ ...profile, sub_ethnicity: e.target.value })}
-                    className="bg-muted/50 border-muted rounded-xl"
-                    placeholder="E.g., Chinese, Nigerian, Mexican, etc."
-                  />
+                  {profile.ethnicity && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-muted-foreground">Specific Background</Label>
+                      <Input
+                        type="text"
+                        value={profile.sub_ethnicity}
+                        onChange={(e) => setProfile({ ...profile, sub_ethnicity: e.target.value })}
+                        className="bg-background/50 border-border/50 rounded-xl h-12 text-base"
+                        placeholder="E.g., Chinese, Nigerian, Mexican, etc."
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           )}
 
