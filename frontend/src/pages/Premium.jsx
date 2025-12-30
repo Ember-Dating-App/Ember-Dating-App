@@ -81,9 +81,10 @@ export default function Premium() {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent" />
         <div className="container mx-auto px-6 pt-12 pb-16 relative">
           <button
-            onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+            onClick={() => navigate('/likes')}
+            className="absolute top-4 left-4 w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
             data-testid="back-btn"
+            aria-label="Go back to Likes"
           >
             <X className="w-5 h-5" />
           </button>
