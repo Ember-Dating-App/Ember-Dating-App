@@ -3720,6 +3720,115 @@ async def get_place_categories():
     }
 
 
+# ==================== AMBASSADOR ROLE PROGRAM ====================
+
+AMBASSADOR_LIMIT = 200  # Maximum number of ambassadors
+
+@api_router.get("/ambassador/info")
+async def get_ambassador_info():
+    """Get information about the Ambassador program"""
+    # Get current count of ambassadors
+    ambassador_count = await db.users.count_documents({'is_ambassador': True})
+    
+    return {
+        'total_limit': AMBASSADOR_LIMIT,
+        'current_count': ambassador_count,
+        'available_slots': max(0, AMBASSADOR_LIMIT - ambassador_count),
+        'is_full': ambassador_count >= AMBASSADOR_LIMIT,
+        'benefits': [
+            '2 months of Premium membership for free',
+            'Ambassador badge on your profile',
+            'Highlighted in Discover (shown first)',
+            'Chance to be featured on our social media',
+            'Represent Ember in the dating community'
+        ]
+    }
+
+@api_router.post("/ambassador/apply")
+async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
+    """Apply for the Ambassador role"""
+    # Check if user is verified
+    if current_user.get('verification_status') != 'verified':
+        raise HTTPException(status_code=403, detail='Profile verification required to apply for Ambassador role')
+    
+    # Check if user already has ambassador status
+    if current_user.get('is_ambassador'):
+        return {
+            'success': False,
+            'message': 'You are already an Ambassador!',
+            'is_ambassador': True
+        }
+    
+    # Check if user has already applied (pending)
+    if current_user.get('ambassador_status') == 'pending':
+        return {
+            'success': False,
+            'message': 'Your application is pending review',
+            'status': 'pending'
+        }
+    
+    # Check if program is full
+    ambassador_count = await db.users.count_documents({'is_ambassador': True})
+    if ambassador_count >= AMBASSADOR_LIMIT:
+        return {
+            'success': False,
+            'message': 'Sorry, the Ambassador program is currently full. We have reached our limit of 200 ambassadors.',
+            'is_full': True
+        }
+    
+    # Auto-approve since there's space available
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Calculate 2 months premium (60 days)
+    premium_end_date = datetime.now(timezone.utc) + timedelta(days=60)
+    
+    # Update user to ambassador status
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {
+            '$set': {
+                'is_ambassador': True,
+                'ambassador_status': 'approved',
+                'ambassador_applied_at': now,
+                'ambassador_approved_at': now,
+                'premium_until': premium_end_date.isoformat(),
+                'is_premium': True
+            }
+        }
+    )
+    
+    # Send notification
+    asyncio.create_task(send_push_notification(
+        current_user['user_id'],
+        "Welcome, Ambassador! 🎖️",
+        "Congratulations! You're now an Ember Ambassador with 2 months of free Premium!",
+        {'type': 'ambassador_approved'}
+    ))
+    
+    return {
+        'success': True,
+        'message': 'Congratulations! You are now an Ember Ambassador!',
+        'is_ambassador': True,
+        'premium_until': premium_end_date.isoformat(),
+        'benefits_activated': [
+            '2 months Premium membership',
+            'Ambassador badge',
+            'Priority in Discover',
+            'Social media feature eligibility'
+        ]
+    }
+
+@api_router.get("/ambassador/status")
+async def get_ambassador_status(current_user: dict = Depends(get_current_user)):
+    """Get current user's ambassador status"""
+    return {
+        'is_ambassador': current_user.get('is_ambassador', False),
+        'status': current_user.get('ambassador_status', 'none'),
+        'applied_at': current_user.get('ambassador_applied_at'),
+        'approved_at': current_user.get('ambassador_approved_at')
+    }
+
+
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Include router
