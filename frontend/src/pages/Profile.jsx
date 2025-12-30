@@ -90,6 +90,31 @@ export default function Profile() {
     navigate('/');
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deletePassword) {
+      toast.error('Please enter your password');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.delete(`${API}/account`, {
+        data: { password: deletePassword },
+        headers,
+        withCredentials: true
+      });
+      
+      toast.success('Account deleted successfully');
+      await logout();
+      navigate('/');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete account');
+    } finally {
+      setLoading(false);
+      setDeletePassword('');
+    }
+  };
+
   const addPhoto = (url) => {
     if (profile.photos.length < 6 && url) {
       setProfile({ ...profile, photos: [...profile.photos, url] });
