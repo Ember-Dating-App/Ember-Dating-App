@@ -84,6 +84,46 @@ export default function Profile() {
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    
+    if (active.id !== over.id) {
+      setProfile((prev) => {
+        const oldIndex = prev.photos.indexOf(active.id);
+        const newIndex = prev.photos.indexOf(over.id);
+        const newPhotos = arrayMove(prev.photos, oldIndex, newIndex);
+        setHasReorderedPhotos(true);
+        return { ...prev, photos: newPhotos };
+      });
+    }
+  };
+
+  const savePhotoOrder = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.put(
+        `${API}/profile/photos/reorder`,
+        { photos: profile.photos },
+        { headers, withCredentials: true }
+      );
+      setUser(response.data);
+      setHasReorderedPhotos(false);
+      toast.success('Photo order saved!');
+    } catch (error) {
+      toast.error('Failed to save photo order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSave = async () => {
     setLoading(true);
     try {
