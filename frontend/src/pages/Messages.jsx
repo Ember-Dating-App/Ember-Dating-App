@@ -578,6 +578,17 @@ export default function Messages() {
         otherUserName={otherUser?.name}
         lastMessage={lastMessage}
       />
+
+      {/* Date Suggestions Modal */}
+      <DateSuggestionsModal
+        open={showDateSuggestionsModal}
+        onClose={() => setShowDateSuggestionsModal(false)}
+        matchId={matchId}
+        onSendSuggestion={(message) => {
+          setMessages(prev => [...prev, message]);
+          scrollToBottom();
+        }}
+      />
     </div>
   );
 }
