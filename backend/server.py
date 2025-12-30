@@ -2535,6 +2535,14 @@ async def send_virtual_gift(request: Request, current_user: dict = Depends(get_c
     }
     await manager.send_personal_message(ws_message, other_id)
     
+    # Send push notification
+    asyncio.create_task(send_push_notification(
+        other_id,
+        f"Gift from {current_user['name']} 🎁",
+        f"{current_user['name']} sent you a {gift_data['name']} {gift_data['emoji']}",
+        {'type': 'virtual_gifts', 'match_id': match_id, 'gift_id': gift_id}
+    ))
+    
     return {
         'gift': {k: v for k, v in gift_record.items() if k != '_id'},
         'message': {k: v for k, v in message_doc.items() if k != '_id'}
