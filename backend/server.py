@@ -1279,6 +1279,40 @@ async def delete_account(request: Request, current_user: dict = Depends(get_curr
                 {'user2_id': user_id}
             ]
         })
+
+
+@api_router.put("/profile/photos/reorder")
+async def reorder_photos(request: Request, current_user: dict = Depends(get_current_user)):
+    """Reorder user's photos"""
+    body = await request.json()
+    photos = body.get('photos', [])
+    
+    if not isinstance(photos, list):
+        raise HTTPException(status_code=400, detail='Photos must be an array')
+    
+    if len(photos) > 6:
+        raise HTTPException(status_code=400, detail='Maximum 6 photos allowed')
+    
+    # Get current user photos
+    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    current_photos = user.get('photos', [])
+    
+    # Verify all photos in the new order belong to the user
+    if set(photos) != set(current_photos):
+        raise HTTPException(status_code=400, detail='Invalid photos - all photos must belong to you')
+    
+    # Update photo order
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {
+            'photos': photos,
+            'last_active': datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    return {k: v for k, v in updated.items() if k != 'password'}
+
         
         logger.info(f"Account deleted for user {user_id}")
         
