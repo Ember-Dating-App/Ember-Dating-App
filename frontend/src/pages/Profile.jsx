@@ -57,6 +57,7 @@ export default function Profile() {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
+  const [hasReorderedPhotos, setHasReorderedPhotos] = useState(false);
   const [profile, setProfile] = useState({
     name: user?.name || '',
     age: user?.age || '',
