@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Phone, Video, Sparkles, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Send, Phone, Video, Sparkles, MoreVertical, Check, CheckCheck } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAuth, API } from '@/App';
 import { useWebSocket } from '@/contexts/WebSocketContext';
