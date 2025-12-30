@@ -449,7 +449,41 @@ export default function Messages() {
                     className={`message-bubble ${isSent ? 'message-sent' : 'message-received'} ${msg.is_deleted ? 'opacity-60 italic' : ''}`}
                     data-testid={`message-${msg.message_id}`}
                   >
-                    <p>{msg.content}</p>
+                    {msg.type === 'date_suggestion' && msg.date_suggestion ? (
+                      <div className="space-y-2">
+                        <p className="font-medium">{msg.content}</p>
+                        <div className="bg-black/20 rounded-lg p-3 mt-2 space-y-2">
+                          <h4 className="font-semibold text-sm">{msg.date_suggestion.name}</h4>
+                          {msg.date_suggestion.address && (
+                            <p className="text-xs opacity-80">{msg.date_suggestion.address}</p>
+                          )}
+                          <div className="flex items-center gap-2 text-xs">
+                            {msg.date_suggestion.rating && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                <span>{msg.date_suggestion.rating.toFixed(1)}</span>
+                              </div>
+                            )}
+                            {msg.date_suggestion.price_level && msg.date_suggestion.price_level !== 'PRICE_LEVEL_UNSPECIFIED' && (
+                              <span className="opacity-80">{msg.date_suggestion.price_level.replace('PRICE_LEVEL_', '')}</span>
+                            )}
+                          </div>
+                          {msg.date_suggestion.maps_url && (
+                            <a
+                              href={msg.date_suggestion.maps_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs underline hover:no-underline mt-2"
+                            >
+                              <MapPin className="w-3 h-3" />
+                              View on Maps
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <p>{msg.content}</p>
+                    )}
                     <div className="flex items-center gap-1 mt-1">
                       <p className={`text-xs ${isSent ? 'text-white/70' : 'text-muted-foreground'}`}>
                         {formatDistanceToNow(sentTime, { addSuffix: true })}
