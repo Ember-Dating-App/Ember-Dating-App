@@ -1790,6 +1790,20 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
         await manager.send_personal_message(match_notification_1, current_user['user_id'])
         await manager.send_personal_message(match_notification_2, like.liked_user_id)
         
+        # Send push notifications
+        asyncio.create_task(send_push_notification(
+            current_user['user_id'],
+            "It's a Match! 💕",
+            f"You and {other_user['name']} liked each other!",
+            {'type': 'new_matches', 'match_id': match_doc['match_id']}
+        ))
+        asyncio.create_task(send_push_notification(
+            like.liked_user_id,
+            "It's a Match! 💕",
+            f"You and {current_user['name']} liked each other!",
+            {'type': 'new_matches', 'match_id': match_doc['match_id']}
+        ))
+        
         return {'like': like_doc, 'match': match_doc}
     
     return {'like': like_doc, 'match': None}
