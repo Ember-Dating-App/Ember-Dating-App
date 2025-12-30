@@ -1833,9 +1833,9 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
             {'type': 'new_matches', 'match_id': match_doc['match_id']}
         ))
         
-        return {'like': like_doc, 'match': match_doc}
+        return {'like': {k: v for k, v in like_doc.items() if k != '_id'}, 'match': {k: v for k, v in match_doc.items() if k != '_id'}}
     
-    return {'like': like_doc, 'match': None}
+    return {'like': {k: v for k, v in like_doc.items() if k != '_id'}, 'match': None}
 
 @api_router.get("/likes/received")
 async def get_received_likes(current_user: dict = Depends(get_current_user)):
