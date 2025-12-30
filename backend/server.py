@@ -78,13 +78,13 @@ logger = logging.getLogger(__name__)
 # ==================== PREMIUM PACKAGES (Server-side defined) ====================
 
 PREMIUM_PACKAGES = {
-    'weekly': {'price': 9.99, 'days': 7, 'name': 'Weekly Premium'},
-    'monthly': {'price': 29.99, 'days': 30, 'name': 'Monthly Premium'},
+    'weekly': {'price': 4.99, 'days': 7, 'name': 'Weekly Premium'},
+    'monthly': {'price': 19.99, 'days': 30, 'name': 'Monthly Premium'},
     'yearly': {'price': 149.99, 'days': 365, 'name': 'Yearly Premium'}
 }
 
 ADDON_PACKAGES = {
-    'roses_3': {'price': 3.99, 'quantity': 3, 'type': 'roses'},
+    'roses_3': {'price': 2.99, 'quantity': 3, 'type': 'roses'},
     'roses_12': {'price': 9.99, 'quantity': 12, 'type': 'roses'},
     'super_likes_5': {'price': 4.99, 'quantity': 5, 'type': 'super_likes'},
     'super_likes_15': {'price': 12.99, 'quantity': 15, 'type': 'super_likes'}
