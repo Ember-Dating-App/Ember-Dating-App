@@ -2239,7 +2239,16 @@ async def get_filter_preferences(current_user: dict = Depends(get_current_user))
         'height_min': None,
         'height_max': None,
         'education_levels': [],
-        'specific_interests': []
+        'specific_interests': [],
+        'genders': [],
+        'dating_purposes': [],
+        'religions': [],
+        'languages': [],
+        'children_preference': [],
+        'political_views': [],
+        'pets': [],
+        'ethnicities': [],
+        'sub_ethnicities': []
     })
 
 @api_router.post("/discover/undo")
