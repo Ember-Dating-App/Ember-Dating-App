@@ -52,6 +52,13 @@ export default function Messages() {
     if (lastMessage.type === 'new_message' && lastMessage.message?.match_id === matchId) {
       setMessages(prev => [...prev, lastMessage.message]);
       scrollToBottom();
+    } else if (lastMessage.type === 'message_read') {
+      // Update message read status
+      setMessages(prev => prev.map(msg => 
+        msg.message_id === lastMessage.message_id 
+          ? { ...msg, read: true, read_at: lastMessage.read_at }
+          : msg
+      ));
     } else if (lastMessage.type === 'typing' && lastMessage.match_id === matchId) {
       setIsTyping(true);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
