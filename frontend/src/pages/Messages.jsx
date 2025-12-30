@@ -332,9 +332,21 @@ export default function Messages() {
                 data-testid={`message-${msg.message_id}`}
               >
                 <p>{msg.content}</p>
-                <p className={`text-xs mt-1 ${msg.sender_id === user?.user_id ? 'text-white/70' : 'text-muted-foreground'}`}>
-                  {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
-                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <p className={`text-xs ${msg.sender_id === user?.user_id ? 'text-white/70' : 'text-muted-foreground'}`}>
+                    {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
+                  </p>
+                  {/* Read receipts for sent messages */}
+                  {msg.sender_id === user?.user_id && (
+                    <span className="ml-1">
+                      {msg.read ? (
+                        <CheckCheck className="w-3 h-3 text-blue-400" />
+                      ) : (
+                        <Check className="w-3 h-3 text-white/50" />
+                      )}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           ))}
