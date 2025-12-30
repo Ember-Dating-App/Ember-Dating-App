@@ -22,6 +22,9 @@ import PaymentSuccess from "@/pages/PaymentSuccess";
 import Verification from "@/pages/Verification";
 import DailyPicksTab from "@/components/DailyPicksTab";
 
+// Hooks
+import useNotifications from "@/hooks/useNotifications";
+
 // Contexts
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
