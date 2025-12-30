@@ -124,8 +124,8 @@ export default function Profile() {
         
         // Upload to server (which will use Cloudinary)
         const response = await axios.post(
-          `${API}/upload/photo`,
-          { photo_data: base64 },
+          `${API}/upload/photo/base64`,
+          { data: base64 },
           { headers, withCredentials: true }
         );
 
