@@ -267,6 +267,17 @@ export default function Profile() {
             <div className="bg-card rounded-2xl p-4 space-y-4 border border-border/50">
               <h3 className="font-semibold">Basic Info</h3>
               
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  type="text"
+                  value={profile.name}
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                  className="bg-muted/50 border-muted rounded-xl"
+                  placeholder="Your name"
+                />
+              </div>
+              
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Age</Label>
