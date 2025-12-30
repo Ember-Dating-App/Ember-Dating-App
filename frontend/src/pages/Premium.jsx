@@ -207,7 +207,12 @@ export default function Premium() {
       </div>
 
       {/* Confirm Dialog */}
-      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+      <Dialog open={showConfirm} onOpenChange={(open) => {
+        // Allow closing only if not currently processing payment
+        if (!purchasing) {
+          setShowConfirm(open);
+        }
+      }}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Confirm Purchase</DialogTitle>
@@ -224,7 +229,10 @@ export default function Premium() {
             <div className="flex gap-3">
               <Button
                 variant="outline"
-                onClick={() => setShowConfirm(false)}
+                onClick={() => {
+                  setShowConfirm(false);
+                  setPurchasing(false);
+                }}
                 className="flex-1 rounded-full"
                 disabled={purchasing}
               >
