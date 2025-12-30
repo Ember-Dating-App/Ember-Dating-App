@@ -612,6 +612,7 @@ class EmberAPITester:
         self.test_prompts_library()
         self.test_premium_plans()
         self.test_popular_locations()  # NEW: Test popular locations
+        self.test_ambassador_info()  # NEW: Test ambassador program info
         
         # Test authentication flow
         if self.test_registration():
@@ -621,14 +622,23 @@ class EmberAPITester:
             self.test_profile_update()
             self.test_location_update()  # NEW: Test location update
             
+            # Test ambassador features
+            self.test_ambassador_status()  # NEW: Test ambassador status
+            self.test_ambassador_apply()   # NEW: Test ambassador application
+            
             # Test discovery features
-            self.test_discover()
+            self.test_discover_ambassador_priority()  # NEW: Test ambassador priority in discover
             self.test_most_compatible()
             self.test_standouts()
             
             # Test social features
             self.test_matches()
             self.test_received_likes()
+            
+            # Test push notification features
+            self.test_likes_with_push_notifications()  # NEW: Test likes with push notifications
+            self.test_virtual_gifts()  # NEW: Test virtual gifts
+            self.test_date_suggestions()  # NEW: Test date suggestions
             
             # Test notifications
             self.test_notifications()
