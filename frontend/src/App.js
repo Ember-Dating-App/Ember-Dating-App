@@ -209,12 +209,14 @@ function App() {
   return (
     <div className="min-h-screen bg-background">
       <BrowserRouter>
-        <AuthProvider>
-          <WebSocketProvider>
-            <AppRouter />
-            <Toaster position="top-center" richColors />
-          </WebSocketProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <WebSocketProvider>
+              <AppRouter />
+              <Toaster position="top-center" richColors />
+            </WebSocketProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </div>
   );
