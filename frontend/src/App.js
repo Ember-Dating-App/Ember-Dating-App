@@ -11,6 +11,7 @@ import Register from "@/pages/Register";
 import ProfileSetup from "@/pages/ProfileSetup";
 import Discover from "@/pages/Discover";
 import Likes from "@/pages/Likes";
+import Tips from "@/pages/Tips";
 import Matches from "@/pages/Matches";
 import Messages from "@/pages/Messages";
 import Profile from "@/pages/Profile";
