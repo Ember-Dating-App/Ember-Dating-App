@@ -61,6 +61,20 @@ export default function Messages() {
           ? { ...msg, read: true, read_at: lastMessage.read_at }
           : msg
       ));
+    } else if (lastMessage.type === 'message_edited') {
+      // Update edited message
+      setMessages(prev => prev.map(msg =>
+        msg.message_id === lastMessage.message.message_id
+          ? lastMessage.message
+          : msg
+      ));
+    } else if (lastMessage.type === 'message_deleted') {
+      // Update deleted message
+      setMessages(prev => prev.map(msg =>
+        msg.message_id === lastMessage.message_id
+          ? { ...msg, is_deleted: true, content: 'Message deleted' }
+          : msg
+      ));
     } else if (lastMessage.type === 'typing' && lastMessage.match_id === matchId) {
       setIsTyping(true);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
