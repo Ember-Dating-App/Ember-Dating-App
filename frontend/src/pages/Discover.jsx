@@ -392,6 +392,9 @@ export default function Discover() {
                     {currentProfile.verification_status === 'verified' && (
                       <VerifiedBadge className="w-6 h-6" />
                     )}
+                    {currentProfile.is_ambassador && (
+                      <AmbassadorBadge size="md" />
+                    )}
                   </div>
                   {currentProfile.location && (
                     <p className="text-white/80 flex items-center gap-1 mt-1">
