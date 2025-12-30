@@ -336,6 +336,13 @@ export default function Messages() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowGiftsModal(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-purple-500"
+              title="Send a virtual gift"
+            >
+              <Gift className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setShowDateSuggestionsModal(true)}
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-rose-500"
               title="Suggest a date spot"
