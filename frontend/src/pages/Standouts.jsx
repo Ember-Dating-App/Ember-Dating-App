@@ -142,7 +142,12 @@ export default function Standouts() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                      <h3 className="font-semibold text-white">{profile.name}, {profile.age}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-white">{profile.name}, {profile.age}</h3>
+                        {profile.verification_status === 'verified' && (
+                          <VerifiedBadge className="w-4 h-4" />
+                        )}
+                      </div>
                       <p className="text-white/70 text-xs">{profile.location}</p>
                     </div>
                   </div>
