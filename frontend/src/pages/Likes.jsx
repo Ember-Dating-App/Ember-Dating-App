@@ -93,26 +93,92 @@ export default function Likes() {
           <div className="flex items-center gap-2">
             <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
-          <h1 className="text-lg font-semibold">Likes You</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setActiveTab('likes')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                activeTab === 'likes' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Heart className="w-4 h-4" />
+              <span className="font-medium">Likes</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('roses')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                activeTab === 'roses' ? 'bg-rose-500 text-white' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Flower2 className="w-4 h-4" />
+              <span className="font-medium">Roses</span>
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Content */}
       <main className="pt-20 px-4">
-        {likes.length === 0 ? (
-          <div className="max-w-md mx-auto text-center py-20">
-            <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">No likes yet</h2>
-            <p className="text-muted-foreground mb-6">Keep swiping to get more likes!</p>
-            <Button onClick={() => navigate('/discover')} className="ember-gradient rounded-full" data-testid="discover-btn">
-              Discover Profiles
-            </Button>
-          </div>
-        ) : (
-          <div className="max-w-md mx-auto space-y-4">
-            <p className="text-muted-foreground text-sm">
-              {likes.length} {likes.length === 1 ? 'person likes' : 'people like'} you
-            </p>
+        {activeTab === 'likes' && (
+          <>
+            {!user?.is_premium ? (
+              // Premium Gate
+              <div className="max-w-md mx-auto mt-10">
+                <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-2 border-orange-500/20 rounded-2xl p-8 text-center">
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Lock className="w-10 h-10 text-white" />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2">See Who Likes You</h2>
+                  <p className="text-muted-foreground mb-4">
+                    Upgrade to Premium to see all {likesData?.count || 0} people who liked you!
+                  </p>
+                  
+                  <div className="bg-background/50 rounded-xl p-4 mb-6">
+                    <div className="flex items-center justify-center gap-2 text-4xl font-bold text-orange-600 mb-2">
+                      {likesData?.count || 0}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {likesData?.count === 1 ? 'person likes you' : 'people like you'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 mb-6 text-left">
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-green-500" />
+                      <span className="text-sm">See everyone who liked you</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-green-500" />
+                      <span className="text-sm">Match instantly</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Check className="w-5 h-5 text-green-500" />
+                      <span className="text-sm">Unlimited swipes</span>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => navigate('/premium')}
+                    className="w-full py-6 text-lg ember-gradient rounded-full"
+                  >
+                    <Crown className="w-5 h-5 mr-2" />
+                    Get Premium
+                  </Button>
+                </div>
+              </div>
+            ) : likesData?.likes?.length === 0 ? (
+              <div className="max-w-md mx-auto text-center py-20">
+                <Heart className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h2 className="text-2xl font-bold mb-2">No likes yet</h2>
+                <p className="text-muted-foreground mb-6">Keep swiping to get more likes!</p>
+                <Button onClick={() => navigate('/discover')} className="ember-gradient rounded-full" data-testid="discover-btn">
+                  Discover Profiles
+                </Button>
+              </div>
+            ) : (
+              <div className="max-w-md mx-auto space-y-4">
+                <p className="text-muted-foreground text-sm">
+                  {likesData?.count || 0} {likesData?.count === 1 ? 'person likes' : 'people like'} you
+                </p>
 
             {likes.map((like) => (
               <div
