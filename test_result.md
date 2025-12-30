@@ -143,15 +143,18 @@ backend:
 
   - task: "Push Notifications for Likes"
     implemented: true
-    working: false
+    working: true
     file: "backend/server.py"
-    stuck_count: 1
+    stuck_count: 0
     priority: "high"
     needs_retesting: false
     status_history:
         - working: false
           agent: "testing"
-          comment: "POST /api/likes endpoint has ObjectId serialization issue causing 520 error. Push notification code is implemented but fails due to JSON serialization of MongoDB ObjectId."
+          comment: "POST /api/likes endpoint had ObjectId serialization issue causing 520 error. Push notification code is implemented but failed due to JSON serialization of MongoDB ObjectId."
+        - working: true
+          agent: "testing"
+          comment: "FIXED: Applied ObjectId serialization fix by filtering out '_id' field from response. All like types (regular, super_like, rose) now working correctly with push notifications."
 
   - task: "Push Notifications for Virtual Gifts"
     implemented: true
