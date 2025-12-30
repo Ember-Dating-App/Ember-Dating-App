@@ -871,6 +871,67 @@ export default function Profile() {
             )}
           </div>
 
+
+          {/* Video Profile */}
+          <div className="bg-card rounded-2xl p-4 border border-border/50">
+            <h3 className="font-semibold mb-3">Video Profile</h3>
+            {profile.video_url ? (
+              <div className="relative aspect-[9/16] max-w-xs mx-auto rounded-xl overflow-hidden group">
+                <video
+                  src={profile.video_url}
+                  className="w-full h-full object-cover"
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                />
+                {editing && (
+                  <button
+                    onClick={removeVideo}
+                    className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    disabled={loading}
+                  >
+                    <X className="w-4 h-4 text-white" />
+                  </button>
+                )}
+                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/50 rounded text-xs font-medium text-white flex items-center gap-1">
+                  <Video className="w-3 h-3" />
+                  Video Profile
+                </div>
+              </div>
+            ) : editing ? (
+              <label className="aspect-[9/16] max-w-xs mx-auto bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
+                <input
+                  type="file"
+                  accept="video/*"
+                  onChange={handleVideoUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+                {loading ? (
+                  <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                    <p className="text-sm text-muted-foreground">Uploading video...</p>
+                  </div>
+                ) : (
+                  <>
+                    <Video className="w-10 h-10 text-muted-foreground mb-2" />
+                    <span className="text-sm font-medium text-muted-foreground">Upload Video</span>
+                    <span className="text-xs text-muted-foreground mt-1">Max 30 seconds, 50MB</span>
+                  </>
+                )}
+              </label>
+            ) : (
+              <p className="text-muted-foreground text-center py-8">No video profile yet</p>
+            )}
+            {editing && (
+              <p className="text-xs text-muted-foreground mt-2 text-center">
+                💡 Add a short video to showcase your personality (30 sec max)
+              </p>
+            )}
+          </div>
+
+
           {/* Prompts */}
           <div className="bg-card rounded-2xl p-4 border border-border/50">
             <h3 className="font-semibold mb-3">Prompts</h3>
