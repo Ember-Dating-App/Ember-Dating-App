@@ -39,117 +39,112 @@ export default function Tips() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-red-50 pb-24">
+    <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-['Orbitron'] text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
-              EMBER
-            </span>
-          </div>
-          <h1 className="text-lg font-semibold text-gray-800">Dating Tips</h1>
-          <div className="w-8"></div>
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-center">
+          <span className="font-['Orbitron'] text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+            EMBER
+          </span>
         </div>
       </header>
 
       {/* Hero Section */}
-      <div className="pt-20 px-4 pb-8">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="pt-20 px-4 pb-6">
+        <div className="max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mb-4">
             <Sparkles className="w-8 h-8 text-white" />
           </div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-3">
+          <h2 className="text-3xl font-bold text-foreground mb-3">
             Make the Most of Ember
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Follow these expert tips to increase your matches, start great conversations, and find meaningful connections.
           </p>
         </div>
       </div>
 
-      {/* Tips Grid */}
-      <div className="max-w-6xl mx-auto px-4 pb-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {tips.map((tip, index) => (
-            <div
-              key={tip.id}
-              className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 animate-fade-in"
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Image */}
-              <div className="relative h-64 overflow-hidden">
-                <img
-                  src={tip.image}
-                  alt={tip.title}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                />
-                <div className={`absolute top-4 right-4 w-12 h-12 bg-gradient-to-r ${tip.color} rounded-full flex items-center justify-center shadow-lg`}>
-                  <tip.icon className="w-6 h-6 text-white" />
-                </div>
-              </div>
-
-              {/* Content */}
-              <div className="p-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  {tip.title}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {tip.description}
-                </p>
+      {/* Tips Single Column */}
+      <div className="max-w-2xl mx-auto px-4 pb-6 space-y-6">
+        {tips.map((tip, index) => (
+          <div
+            key={tip.id}
+            className="bg-card rounded-3xl shadow-2xl overflow-hidden border border-border/50 hover:border-border transition-all duration-300 animate-fade-in"
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            {/* Image */}
+            <div className="relative h-72 overflow-hidden">
+              <img
+                src={tip.image}
+                alt={tip.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+              <div className={`absolute top-6 right-6 w-14 h-14 bg-gradient-to-r ${tip.color} rounded-full flex items-center justify-center shadow-2xl`}>
+                <tip.icon className="w-7 h-7 text-white" />
               </div>
             </div>
-          ))}
-        </div>
+
+            {/* Content */}
+            <div className="p-8">
+              <h3 className="text-2xl font-bold text-foreground mb-4">
+                {tip.title}
+              </h3>
+              <p className="text-muted-foreground leading-relaxed text-base">
+                {tip.description}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* Additional Tips Section */}
-      <div className="max-w-4xl mx-auto px-4 pb-8">
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+      {/* Quick Tips Section */}
+      <div className="max-w-2xl mx-auto px-4 pb-6">
+        <div className="bg-card rounded-3xl shadow-2xl p-8 border border-border/50">
+          <h3 className="text-2xl font-bold text-foreground mb-6 text-center">
             Quick Tips for Success
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Update Regularly</p>
-                <p className="text-sm text-gray-600">Keep your profile fresh with new photos and prompts</p>
+                <p className="font-semibold text-foreground">Update Regularly</p>
+                <p className="text-sm text-muted-foreground">Keep your profile fresh with new photos and prompts</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Be Respectful</p>
-                <p className="text-sm text-gray-600">Treat everyone with kindness and respect</p>
+                <p className="font-semibold text-foreground">Be Respectful</p>
+                <p className="text-sm text-muted-foreground">Treat everyone with kindness and respect</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Stay Safe</p>
-                <p className="text-sm text-gray-600">Meet in public places and trust your instincts</p>
+                <p className="font-semibold text-foreground">Stay Safe</p>
+                <p className="text-sm text-muted-foreground">Meet in public places and trust your instincts</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Be Patient</p>
-                <p className="text-sm text-gray-600">Finding the right person takes time - stay positive!</p>
+                <p className="font-semibold text-foreground">Be Patient</p>
+                <p className="text-sm text-muted-foreground">Finding the right person takes time - stay positive!</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Ask Questions</p>
-                <p className="text-sm text-gray-600">Show genuine interest in getting to know them</p>
+                <p className="font-semibold text-foreground">Ask Questions</p>
+                <p className="text-sm text-muted-foreground">Show genuine interest in getting to know them</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+              <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-full mt-2 flex-shrink-0"></div>
               <div>
-                <p className="font-semibold text-gray-800">Have Fun</p>
-                <p className="text-sm text-gray-600">Enjoy the journey and don't take it too seriously</p>
+                <p className="font-semibold text-foreground">Have Fun</p>
+                <p className="text-sm text-muted-foreground">Enjoy the journey and don't take it too seriously</p>
               </div>
             </div>
           </div>
@@ -157,15 +152,15 @@ export default function Tips() {
       </div>
 
       {/* CTA Section */}
-      <div className="max-w-2xl mx-auto px-4 pb-8">
-        <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl shadow-xl p-8 text-center text-white">
+      <div className="max-w-2xl mx-auto px-4 pb-6">
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-3xl shadow-2xl p-8 text-center text-white">
           <h3 className="text-2xl font-bold mb-3">Ready to Find Your Match?</h3>
           <p className="mb-6 opacity-90">
             Put these tips into action and start making meaningful connections today!
           </p>
           <button
             onClick={() => window.location.href = '/discover'}
-            className="bg-white text-orange-600 px-8 py-3 rounded-full font-semibold hover:shadow-lg transition-all"
+            className="bg-white text-orange-600 px-8 py-3 rounded-full font-semibold hover:shadow-lg transition-all hover:scale-105"
           >
             Start Swiping
           </button>
