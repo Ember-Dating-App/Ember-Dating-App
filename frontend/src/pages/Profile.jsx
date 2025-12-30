@@ -788,7 +788,83 @@ export default function Profile() {
               <LogOut className="w-4 h-4 mr-2" />
               Log Out
             </Button>
+
+            <div className="pt-4 border-t border-border">
+              <Button
+                variant="ghost"
+                className="w-full rounded-xl text-destructive hover:text-destructive hover:bg-destructive/10"
+                onClick={() => {
+                  setShowSettings(false);
+                  setShowDeleteConfirm(true);
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Account
+              </Button>
+            </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3 text-destructive mb-2">
+              <AlertTriangle className="w-6 h-6" />
+              <DialogTitle className="text-xl">Delete Account</DialogTitle>
+            </div>
+            <DialogDescription className="text-muted-foreground">
+              This action cannot be undone. This will permanently delete your account and remove all your data.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4">
+              <p className="text-sm font-medium text-destructive mb-2">What will be deleted:</p>
+              <ul className="text-sm text-muted-foreground space-y-1">
+                <li>• Your profile and photos</li>
+                <li>• All matches and conversations</li>
+                <li>• Sent and received likes</li>
+                <li>• Premium subscription (if active)</li>
+              </ul>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="delete-password">Enter your password to confirm</Label>
+              <Input
+                id="delete-password"
+                type="password"
+                placeholder="Enter password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                className="bg-muted/50 border-border"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteConfirm(false);
+                setDeletePassword('');
+              }}
+              disabled={loading}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={loading || !deletePassword}
+              className="flex-1"
+            >
+              {loading ? 'Deleting...' : 'Delete Account'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
