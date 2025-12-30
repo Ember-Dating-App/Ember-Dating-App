@@ -394,7 +394,6 @@ export default function Profile() {
               </>
             ) : (
               <>
-                <ThemeToggle className="mr-1" />
                 <Button
                   variant="ghost"
                   size="icon"
