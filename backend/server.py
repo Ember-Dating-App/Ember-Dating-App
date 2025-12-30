@@ -1956,6 +1956,15 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
     }
     await manager.send_personal_message(ws_message, other_id)
     
+    # Send push notification
+    other_user = await db.users.find_one({'user_id': other_id}, {'_id': 0})
+    asyncio.create_task(send_push_notification(
+        other_id,
+        f"New message from {current_user['name']}",
+        content[:100] + ('...' if len(content) > 100 else ''),
+        {'type': 'new_messages', 'match_id': match_id, 'message_id': message_doc['message_id']}
+    ))
+    
     return message_doc
 
 @api_router.put("/messages/{message_id}/read")
