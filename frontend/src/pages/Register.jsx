@@ -76,8 +76,11 @@ export default function Register() {
             Back
           </button>
 
-          <div className="flex items-center gap-2 mb-8">
-            <span className="font-heading text-2xl font-bold tracking-wider ember-text-gradient">EMBER</span>
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="font-heading text-3xl font-bold tracking-wider ember-text-gradient">EMBER</span>
+            </div>
+            <p className="text-sm text-muted-foreground">Dating App</p>
           </div>
 
           <h1 className="text-3xl font-bold mb-2">Create your account</h1>
