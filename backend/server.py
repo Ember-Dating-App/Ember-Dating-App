@@ -498,6 +498,8 @@ async def google_session(request: Request, response: Response):
             'location': None,
             'location_details': None,
             'bio': None,
+            'height': None,
+            'education': None,
             'photos': [],
             'video_url': None,
             'prompts': [],
@@ -525,6 +527,16 @@ async def google_session(request: Request, response: Response):
             'rose_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 1},
             'last_passed_user_id': None,
             'last_passed_at': None,
+            # Phase 2: Filter preferences
+            'filter_preferences': {
+                'age_min': 18,
+                'age_max': 100,
+                'max_distance': 50,
+                'height_min': None,
+                'height_max': None,
+                'education_levels': [],
+                'specific_interests': []
+            },
             'created_at': now.isoformat(),
             'last_active': now.isoformat()
         }
