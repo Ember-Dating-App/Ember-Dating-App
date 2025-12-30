@@ -489,6 +489,19 @@ export default function Discover() {
         </DialogContent>
       </Dialog>
 
+      {/* Swipe Limit Indicator */}
+      {limits && (
+        <div className="fixed bottom-24 right-4 z-40">
+          <SwipeLimitIndicator />
+        </div>
+      )}
+
+      {/* Out of Swipes Modal */}
+      <OutOfSwipesModal 
+        isOpen={showOutOfSwipesModal} 
+        onClose={() => setShowOutOfSwipesModal(false)} 
+      />
+
       <Navigation />
     </div>
   );
