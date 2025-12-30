@@ -217,6 +217,15 @@ class FilterPreferences(BaseModel):
     height_max: Optional[int] = None
     education_levels: Optional[List[str]] = None
     specific_interests: Optional[List[str]] = None
+    genders: Optional[List[str]] = None
+    dating_purposes: Optional[List[str]] = None
+    religions: Optional[List[str]] = None
+    languages: Optional[List[str]] = None
+    children_preference: Optional[List[str]] = None
+    political_views: Optional[List[str]] = None
+    pets: Optional[List[str]] = None
+    ethnicities: Optional[List[str]] = None
+    sub_ethnicities: Optional[List[str]] = None
 
 # ==================== AUTH HELPERS ====================
 
