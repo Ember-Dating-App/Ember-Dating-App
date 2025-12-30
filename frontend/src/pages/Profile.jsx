@@ -6,12 +6,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Settings, LogOut, Camera, Plus, X, Edit2, MapPin, Crown, Star, BadgeCheck, Upload, Trash2, AlertTriangle, GripVertical, Video, Play, Volume2, VolumeX } from 'lucide-react';
+import { Settings, LogOut, Camera, Plus, X, Edit2, MapPin, Crown, Star, Upload, Trash2, AlertTriangle, GripVertical, Video, Play, Volume2, VolumeX } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import LocationPicker from '@/components/LocationPicker';
+import VerifiedBadge from '@/components/VerifiedBadge';
 import {
   DndContext,
   closestCenter,
