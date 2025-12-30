@@ -1831,6 +1831,100 @@ async def mark_message_read(message_id: str, current_user: dict = Depends(get_cu
     
     return {'message': 'Message marked as read', 'read_at': now}
 
+
+@api_router.put("/messages/{message_id}")
+async def edit_message(message_id: str, request: Request, current_user: dict = Depends(get_current_user)):
+    """Edit a message (within 15 minutes of sending)"""
+    body = await request.json()
+    new_content = body.get('content', '').strip()
+    
+    if not new_content:
+        raise HTTPException(status_code=400, detail='Message content cannot be empty')
+    
+    if len(new_content) > 1000:
+        raise HTTPException(status_code=400, detail='Message too long (max 1000 characters)')
+    
+    # Get the message
+    message = await db.messages.find_one({'message_id': message_id}, {'_id': 0})
+    
+    if not message:
+        raise HTTPException(status_code=404, detail='Message not found')
+    
+    # Verify ownership
+    if message['sender_id'] != current_user['user_id']:
+        raise HTTPException(status_code=403, detail='You can only edit your own messages')
+    
+    # Check if message was sent within last 15 minutes
+    sent_at = datetime.fromisoformat(message['sent_at'])
+    now = datetime.now(timezone.utc)
+    time_diff = (now - sent_at).total_seconds() / 60  # minutes
+    
+    if time_diff > 15:
+        raise HTTPException(status_code=400, detail='Can only edit messages within 15 minutes of sending')
+    
+    # Update message
+    edited_at = now.isoformat()
+    await db.messages.update_one(
+        {'message_id': message_id},
+        {'$set': {
+            'content': new_content,
+            'edited': True,
+            'edited_at': edited_at
+        }}
+    )
+    
+    # Get updated message
+    updated_message = await db.messages.find_one({'message_id': message_id}, {'_id': 0})
+    
+    # Send update via WebSocket to other user
+    match = await db.matches.find_one({'match_id': message['match_id']}, {'_id': 0})
+    if match:
+        other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+        ws_message = {
+            'type': 'message_edited',
+            'message': updated_message
+        }
+        await manager.send_personal_message(ws_message, other_id)
+    
+    return updated_message
+
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a message (soft delete - marks as deleted)"""
+    # Get the message
+    message = await db.messages.find_one({'message_id': message_id}, {'_id': 0})
+    
+    if not message:
+        raise HTTPException(status_code=404, detail='Message not found')
+    
+    # Verify ownership
+    if message['sender_id'] != current_user['user_id']:
+        raise HTTPException(status_code=403, detail='You can only delete your own messages')
+    
+    # Soft delete - mark as deleted
+    deleted_at = datetime.now(timezone.utc).isoformat()
+    await db.messages.update_one(
+        {'message_id': message_id},
+        {'$set': {
+            'is_deleted': True,
+            'deleted_at': deleted_at,
+            'content': 'Message deleted'
+        }}
+    )
+    
+    # Send update via WebSocket to other user
+    match = await db.matches.find_one({'match_id': message['match_id']}, {'_id': 0})
+    if match:
+        other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+        ws_message = {
+            'type': 'message_deleted',
+            'message_id': message_id
+        }
+        await manager.send_personal_message(ws_message, other_id)
+    
+    return {'message': 'Message deleted successfully', 'deleted_at': deleted_at}
+
+
 # ==================== AI ROUTES ====================
 
 @api_router.post("/ai/conversation-starters")
