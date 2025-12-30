@@ -1140,6 +1140,100 @@ async def get_cloudinary_config():
         'upload_preset': 'ember_unsigned'  # Create this preset in Cloudinary dashboard
     }
 
+
+@api_router.post("/upload/video")
+async def upload_video(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
+    """Upload video to Cloudinary cloud storage (max 30 seconds, 50MB)"""
+    if not file.content_type.startswith('video/'):
+        raise HTTPException(status_code=400, detail='File must be a video')
+    
+    # Read file content
+    content = await file.read()
+    
+    # Check file size (max 50MB)
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail='Video size must be less than 50MB')
+    
+    try:
+        # Upload to Cloudinary with video transformations
+        result = cloudinary.uploader.upload(
+            content,
+            resource_type='video',
+            folder=f"ember/users/{current_user['user_id']}/videos",
+            public_id=f"video_{uuid.uuid4().hex[:8]}",
+            overwrite=True,
+            transformation=[
+                {'width': 1080, 'height': 1920, 'crop': 'limit'},  # Max size for mobile
+                {'quality': 'auto:good'},  # Auto quality optimization
+                {'duration': '30'},  # Max 30 seconds
+                {'fetch_format': 'auto'}  # Auto format
+            ],
+            eager=[
+                {'format': 'jpg', 'transformation': [{'width': 300, 'crop': 'fill'}]}  # Generate thumbnail
+            ]
+        )
+        
+        # Get thumbnail URL
+        thumbnail_url = result.get('eager', [{}])[0].get('secure_url') if result.get('eager') else None
+        
+        # Return the secure URL and metadata
+        return {
+            'url': result['secure_url'],
+            'thumbnail_url': thumbnail_url,
+            'public_id': result['public_id'],
+            'duration': result.get('duration'),
+            'width': result.get('width'),
+            'height': result.get('height'),
+            'format': result.get('format')
+        }
+    except Exception as e:
+        logger.error(f"Cloudinary video upload error: {e}")
+        raise HTTPException(status_code=500, detail=f'Video upload failed: {str(e)}')
+
+@api_router.post("/upload/video/base64")
+async def upload_video_base64(request: Request, current_user: dict = Depends(get_current_user)):
+    """Upload base64 encoded video to Cloudinary"""
+    body = await request.json()
+    data = body.get('data')
+    
+    if not data:
+        raise HTTPException(status_code=400, detail='No video data provided')
+    
+    try:
+        # Upload base64 video to Cloudinary
+        result = cloudinary.uploader.upload(
+            data,
+            resource_type='video',
+            folder=f"ember/users/{current_user['user_id']}/videos",
+            public_id=f"video_{uuid.uuid4().hex[:8]}",
+            overwrite=True,
+            transformation=[
+                {'width': 1080, 'height': 1920, 'crop': 'limit'},
+                {'quality': 'auto:good'},
+                {'duration': '30'},
+                {'fetch_format': 'auto'}
+            ],
+            eager=[
+                {'format': 'jpg', 'transformation': [{'width': 300, 'crop': 'fill'}]}
+            ]
+        )
+        
+        thumbnail_url = result.get('eager', [{}])[0].get('secure_url') if result.get('eager') else None
+        
+        return {
+            'url': result['secure_url'],
+            'thumbnail_url': thumbnail_url,
+            'public_id': result['public_id'],
+            'duration': result.get('duration'),
+            'width': result.get('width'),
+            'height': result.get('height'),
+            'format': result.get('format')
+        }
+    except Exception as e:
+        logger.error(f"Cloudinary video base64 upload error: {e}")
+        raise HTTPException(status_code=500, detail=f'Video upload failed: {str(e)}')
+
+
 # ==================== PROFILE ROUTES ====================
 
 @api_router.put("/profile")
