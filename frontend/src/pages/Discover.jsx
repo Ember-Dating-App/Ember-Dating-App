@@ -353,9 +353,14 @@ export default function Discover() {
                   className="w-full"
                 />
                 <div className="profile-card-overlay">
-                  <h2 className="text-2xl font-bold text-white">
-                    {currentProfile.name}, {currentProfile.age}
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-2xl font-bold text-white">
+                      {currentProfile.name}, {currentProfile.age}
+                    </h2>
+                    {currentProfile.verification_status === 'verified' && (
+                      <BadgeCheck className="w-6 h-6 text-blue-400 fill-blue-400" />
+                    )}
+                  </div>
                   {currentProfile.location && (
                     <p className="text-white/80 flex items-center gap-1 mt-1">
                       <MapPin className="w-4 h-4" />
