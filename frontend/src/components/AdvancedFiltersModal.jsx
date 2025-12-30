@@ -222,363 +222,496 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-2xl w-full p-6 relative my-8 max-h-[90vh] overflow-y-auto">
-        <button
-          onClick={onClose}
-          className="sticky top-0 float-right text-gray-400 hover:text-gray-600 bg-white p-2 rounded-full"
-        >
-          <X className="w-6 h-6" />
-        </button>
-
-        <div className="flex items-center gap-3 mb-6 clear-both">
-          <Sliders className="w-6 h-6 text-orange-600" />
-          <h2 className="text-2xl font-bold text-gray-800">Advanced Filters</h2>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl max-w-4xl w-full relative my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10">
+        {/* Header */}
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 backdrop-blur-xl border-b border-white/10 p-6 rounded-t-3xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 shadow-lg">
+                <Sliders className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Advanced Filters</h2>
+                <p className="text-sm text-gray-400 mt-0.5">Customize your match preferences</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Age Range */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Age Range: {filters.age_min} - {filters.age_max}
-            </label>
-            <div className="flex gap-4">
-              <div className="flex-1">
-                <input
-                  type="range"
-                  min="18"
-                  max="100"
-                  value={filters.age_min}
-                  onChange={(e) => setFilters({ ...filters, age_min: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-500 mt-1">Min: {filters.age_min}</p>
+        {/* Content */}
+        <div className="p-6 space-y-4">
+          {/* Personal Section */}
+          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <button
+              onClick={() => toggleSection('personal')}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 group-hover:shadow-lg transition-all">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-white">Personal</h3>
+                  <p className="text-xs text-gray-400">Age, Distance, Height, Gender</p>
+                </div>
               </div>
-              <div className="flex-1">
-                <input
-                  type="range"
-                  min="18"
-                  max="100"
-                  value={filters.age_max}
-                  onChange={(e) => setFilters({ ...filters, age_max: parseInt(e.target.value) })}
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-500 mt-1">Max: {filters.age_max}</p>
-              </div>
-            </div>
-          </div>
+              {expandedSections.personal ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
 
-          {/* Distance */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Maximum Distance: {filters.max_distance} miles
-            </label>
-            <input
-              type="range"
-              min="1"
-              max="100"
-              value={filters.max_distance}
-              onChange={(e) => setFilters({ ...filters, max_distance: parseInt(e.target.value) })}
-              className="w-full"
-            />
-          </div>
-
-          {/* Height Range - Dropdown */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Height Range
-            </label>
-            <div className="flex gap-4">
-              <select
-                value={filters.height_min || ''}
-                onChange={(e) => setFilters({ ...filters, height_min: e.target.value ? parseInt(e.target.value) : null })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="">Min Height</option>
-                {heightOptions.map(h => (
-                  <option key={h.value} value={h.value}>{h.label}</option>
-                ))}
-              </select>
-              <select
-                value={filters.height_max || ''}
-                onChange={(e) => setFilters({ ...filters, height_max: e.target.value ? parseInt(e.target.value) : null })}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-              >
-                <option value="">Max Height</option>
-                {heightOptions.map(h => (
-                  <option key={h.value} value={h.value}>{h.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Gender */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Gender
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {genderOptions.map((gender) => (
-                <button
-                  key={gender}
-                  onClick={() => toggleArrayItem('genders', gender)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.genders || []).includes(gender)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {gender}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Dating Purpose */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dating Purpose
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {datingPurposeOptions.map((purpose) => (
-                <button
-                  key={purpose}
-                  onClick={() => toggleArrayItem('dating_purposes', purpose)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.dating_purposes || []).includes(purpose)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {purpose}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Religion */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Religion
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {religionOptions.map((religion) => (
-                <button
-                  key={religion}
-                  onClick={() => toggleArrayItem('religions', religion)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.religions || []).includes(religion)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {religion}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Language */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Languages
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {languageOptions.map((language) => (
-                <button
-                  key={language}
-                  onClick={() => toggleArrayItem('languages', language)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.languages || []).includes(language)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {language}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Children */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Children
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {childrenOptions.map((child) => (
-                <button
-                  key={child}
-                  onClick={() => toggleArrayItem('children_preference', child)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.children_preference || []).includes(child)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {child}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Political View */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Political View
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {politicalOptions.map((political) => (
-                <button
-                  key={political}
-                  onClick={() => toggleArrayItem('political_views', political)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.political_views || []).includes(political)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {political}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Pets */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Pets
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {petOptions.map((pet) => (
-                <button
-                  key={pet}
-                  onClick={() => toggleArrayItem('pets', pet)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.pets || []).includes(pet)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {pet}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ethnicity - Hierarchical */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ethnicity
-            </label>
-            <div className="space-y-2">
-              {Object.keys(ethnicityData).map((ethnicity) => (
-                <div key={ethnicity} className="border border-gray-200 rounded-lg overflow-hidden">
-                  {/* Main ethnicity button */}
-                  <button
-                    onClick={() => {
-                      toggleEthnicity(ethnicity);
-                      setExpandedEthnicity(expandedEthnicity === ethnicity ? null : ethnicity);
-                    }}
-                    className={`w-full px-4 py-2 flex items-center justify-between transition-colors ${
-                      (filters.ethnicities || []).includes(ethnicity)
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <span className="font-medium">{ethnicity}</span>
-                    {expandedEthnicity === ethnicity ? (
-                      <ChevronUp className="w-4 h-4" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4" />
-                    )}
-                  </button>
-
-                  {/* Sub-ethnicities */}
-                  {expandedEthnicity === ethnicity && (
-                    <div className="p-3 bg-white border-t border-gray-200">
-                      <div className="flex flex-wrap gap-2">
-                        {ethnicityData[ethnicity].map((subEthnicity) => (
-                          <button
-                            key={subEthnicity}
-                            onClick={() => toggleArrayItem('sub_ethnicities', subEthnicity)}
-                            className={`px-2 py-1 rounded-full text-xs transition-colors ${
-                              (filters.sub_ethnicities || []).includes(subEthnicity)
-                                ? 'bg-orange-400 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                          >
-                            {subEthnicity}
-                          </button>
-                        ))}
+            {expandedSections.personal && (
+              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+                {/* Age Range */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Age Range
+                  </label>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-2xl font-bold ember-text-gradient">{filters.age_min}</span>
+                      <span className="text-gray-500">to</span>
+                      <span className="text-2xl font-bold ember-text-gradient">{filters.age_max}</span>
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="18"
+                          max="100"
+                          value={filters.age_min}
+                          onChange={(e) => setFilters({ ...filters, age_min: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-2 text-center">Minimum</p>
+                      </div>
+                      <div className="flex-1">
+                        <input
+                          type="range"
+                          min="18"
+                          max="100"
+                          value={filters.age_max}
+                          onChange={(e) => setFilters({ ...filters, age_max: parseInt(e.target.value) })}
+                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                        />
+                        <p className="text-xs text-gray-500 mt-2 text-center">Maximum</p>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Distance */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Maximum Distance
+                  </label>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                    <div className="flex items-center justify-center mb-3">
+                      <span className="text-3xl font-bold ember-text-gradient">{filters.max_distance}</span>
+                      <span className="text-gray-400 ml-2">miles</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="1"
+                      max="100"
+                      value={filters.max_distance}
+                      onChange={(e) => setFilters({ ...filters, max_distance: parseInt(e.target.value) })}
+                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Height Range */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Height Range
+                  </label>
+                  <div className="flex gap-3">
+                    <select
+                      value={filters.height_min || ''}
+                      onChange={(e) => setFilters({ ...filters, height_min: e.target.value ? parseInt(e.target.value) : null })}
+                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="">Min Height</option>
+                      {heightOptions.map(h => (
+                        <option key={h.value} value={h.value}>{h.label}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={filters.height_max || ''}
+                      onChange={(e) => setFilters({ ...filters, height_max: e.target.value ? parseInt(e.target.value) : null })}
+                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    >
+                      <option value="">Max Height</option>
+                      {heightOptions.map(h => (
+                        <option key={h.value} value={h.value}>{h.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Gender Preference
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {genderOptions.map((gender) => (
+                      <button
+                        key={gender}
+                        onClick={() => toggleArrayItem('genders', gender)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.genders || []).includes(gender)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {gender}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Education */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Education Level
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {educationOptions.map((edu) => (
-                <button
-                  key={edu}
-                  onClick={() => toggleArrayItem('education_levels', edu)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.education_levels || []).includes(edu)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {edu}
-                </button>
-              ))}
-            </div>
+          {/* Dating Preferences Section */}
+          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <button
+              onClick={() => toggleSection('dating')}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-red-600 group-hover:shadow-lg transition-all">
+                  <Heart className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-white">Dating Preferences</h3>
+                  <p className="text-xs text-gray-400">Purpose, Religion, Languages</p>
+                </div>
+              </div>
+              {expandedSections.dating ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {expandedSections.dating && (
+              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+                {/* Dating Purpose */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Dating Purpose
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {datingPurposeOptions.map((purpose) => (
+                      <button
+                        key={purpose}
+                        onClick={() => toggleArrayItem('dating_purposes', purpose)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.dating_purposes || []).includes(purpose)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {purpose}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Religion */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Religion
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {religionOptions.map((religion) => (
+                      <button
+                        key={religion}
+                        onClick={() => toggleArrayItem('religions', religion)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.religions || []).includes(religion)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {religion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Languages */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Languages
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {languageOptions.map((language) => (
+                      <button
+                        key={language}
+                        onClick={() => toggleArrayItem('languages', language)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.languages || []).includes(language)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {language}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Interests */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Specific Interests
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {interestOptions.map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => toggleArrayItem('specific_interests', interest)}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    (filters.specific_interests || []).includes(interest)
-                      ? 'bg-orange-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
+          {/* Lifestyle Section */}
+          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <button
+              onClick={() => toggleSection('lifestyle')}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-600 group-hover:shadow-lg transition-all">
+                  <Compass className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-white">Lifestyle</h3>
+                  <p className="text-xs text-gray-400">Children, Politics, Pets, Interests</p>
+                </div>
+              </div>
+              {expandedSections.lifestyle ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {expandedSections.lifestyle && (
+              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+                {/* Children */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Children
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {childrenOptions.map((child) => (
+                      <button
+                        key={child}
+                        onClick={() => toggleArrayItem('children_preference', child)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.children_preference || []).includes(child)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {child}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Political View */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Political View
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {politicalOptions.map((political) => (
+                      <button
+                        key={political}
+                        onClick={() => toggleArrayItem('political_views', political)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.political_views || []).includes(political)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {political}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pets */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Pets
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {petOptions.map((pet) => (
+                      <button
+                        key={pet}
+                        onClick={() => toggleArrayItem('pets', pet)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.pets || []).includes(pet)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {pet}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interests */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Interests
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {interestOptions.map((interest) => (
+                      <button
+                        key={interest}
+                        onClick={() => toggleArrayItem('specific_interests', interest)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.specific_interests || []).includes(interest)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {interest}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Background Section */}
+          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+            <button
+              onClick={() => toggleSection('background')}
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 group-hover:shadow-lg transition-all">
+                  <GraduationCap className="w-5 h-5 text-white" />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-lg font-semibold text-white">Background</h3>
+                  <p className="text-xs text-gray-400">Education, Ethnicity</p>
+                </div>
+              </div>
+              {expandedSections.background ? (
+                <ChevronUp className="w-5 h-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-gray-400" />
+              )}
+            </button>
+
+            {expandedSections.background && (
+              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+                {/* Education */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Education Level
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {educationOptions.map((edu) => (
+                      <button
+                        key={edu}
+                        onClick={() => toggleArrayItem('education_levels', edu)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                          (filters.education_levels || []).includes(edu)
+                            ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                        }`}
+                      >
+                        {edu}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Ethnicity */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    Ethnicity
+                  </label>
+                  <div className="space-y-2">
+                    {Object.keys(ethnicityData).map((ethnicity) => (
+                      <div key={ethnicity} className="bg-gray-800/30 rounded-xl overflow-hidden border border-white/10">
+                        {/* Main ethnicity button */}
+                        <button
+                          onClick={() => {
+                            toggleEthnicity(ethnicity);
+                            setExpandedEthnicity(expandedEthnicity === ethnicity ? null : ethnicity);
+                          }}
+                          className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
+                            (filters.ethnicities || []).includes(ethnicity)
+                              ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white'
+                              : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                          }`}
+                        >
+                          <span className="font-medium">{ethnicity}</span>
+                          {expandedEthnicity === ethnicity ? (
+                            <ChevronUp className="w-4 h-4" />
+                          ) : (
+                            <ChevronDown className="w-4 h-4" />
+                          )}
+                        </button>
+
+                        {/* Sub-ethnicities */}
+                        {expandedEthnicity === ethnicity && (
+                          <div className="p-4 bg-gray-900/50 border-t border-white/5">
+                            <div className="flex flex-wrap gap-2">
+                              {ethnicityData[ethnicity].map((subEthnicity) => (
+                                <button
+                                  key={subEthnicity}
+                                  onClick={() => toggleArrayItem('sub_ethnicities', subEthnicity)}
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                    (filters.sub_ethnicities || []).includes(subEthnicity)
+                                      ? 'bg-orange-500 text-white shadow-lg'
+                                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border border-white/10'
+                                  }`}
+                                >
+                                  {subEthnicity}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 mt-8 sticky bottom-0 bg-white pt-4">
-          <button
-            onClick={handleReset}
-            className="flex-1 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Reset All
-          </button>
-          <button
-            onClick={handleApply}
-            disabled={loading}
-            className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-lg font-medium hover:shadow-lg disabled:opacity-50"
-          >
-            {loading ? 'Applying...' : 'Apply Filters'}
-          </button>
+        {/* Footer Actions */}
+        <div className="sticky bottom-0 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent p-6 pt-8">
+          <div className="flex gap-3">
+            <button
+              onClick={handleReset}
+              className="flex-1 py-3.5 bg-gray-800/50 border border-white/10 rounded-xl font-semibold text-white hover:bg-gray-700/50 transition-all"
+            >
+              Reset All
+            </button>
+            <button
+              onClick={handleApply}
+              disabled={loading}
+              className="flex-1 py-3.5 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loading ? 'Applying...' : 'Apply Filters'}
+            </button>
+          </div>
         </div>
       </div>
     </div>
