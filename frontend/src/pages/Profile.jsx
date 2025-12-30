@@ -40,6 +40,7 @@ export default function Profile() {
   const [showSettings, setShowSettings] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [profile, setProfile] = useState({
+    name: user?.name || '',
     age: user?.age || '',
     gender: user?.gender || '',
     interested_in: user?.interested_in || '',
@@ -48,7 +49,17 @@ export default function Profile() {
     photos: user?.photos || [],
     video_url: user?.video_url || '',
     prompts: user?.prompts || [],
-    interests: user?.interests || []
+    interests: user?.interests || [],
+    height: user?.height || null,
+    education: user?.education || '',
+    dating_purpose: user?.dating_purpose || '',
+    religion: user?.religion || '',
+    languages: user?.languages || [],
+    children: user?.children || '',
+    political_view: user?.political_view || '',
+    has_pets: user?.has_pets || '',
+    ethnicity: user?.ethnicity || '',
+    sub_ethnicity: user?.sub_ethnicity || ''
   });
 
   const token = localStorage.getItem('ember_token');
