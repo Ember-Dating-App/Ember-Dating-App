@@ -1593,6 +1593,11 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
                             filtered_profiles.append(profile)
             profiles = filtered_profiles
     
+    # Prioritize ambassadors - show them first
+    ambassador_profiles = [p for p in profiles if p.get('is_ambassador', False)]
+    non_ambassador_profiles = [p for p in profiles if not p.get('is_ambassador', False)]
+    profiles = ambassador_profiles + non_ambassador_profiles
+    
     return profiles
 
 @api_router.get("/discover/most-compatible")
