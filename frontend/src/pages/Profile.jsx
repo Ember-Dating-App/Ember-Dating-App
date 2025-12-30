@@ -223,7 +223,7 @@ export default function Profile() {
                 </button>
               )}
             </div>
-            <h1 className="text-2xl font-bold">{user?.name}, {profile.age || user?.age}</h1>
+            <h1 className="text-2xl font-bold">{profile.name || user?.name || 'Set your name'}, {profile.age || user?.age}</h1>
             
             {/* Location with edit button */}
             <button
