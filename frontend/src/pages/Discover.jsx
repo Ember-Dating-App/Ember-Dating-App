@@ -31,6 +31,7 @@ export default function Discover() {
 
   useEffect(() => {
     fetchProfiles();
+    fetchLimits();
   }, [showCompatible]);
 
   const fetchProfiles = async () => {
@@ -41,9 +42,23 @@ export default function Discover() {
       setProfiles(response.data);
       setCurrentIndex(0);
     } catch (error) {
-      toast.error('Failed to load profiles');
+      if (error.response?.status === 403) {
+        toast.error('Profile verification required');
+        navigate('/verification');
+      } else {
+        toast.error('Failed to load profiles');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLimits = async () => {
+    try {
+      const response = await axios.get(`${API}/limits/swipes`, { headers, withCredentials: true });
+      setLimits(response.data);
+    } catch (error) {
+      console.error('Failed to fetch limits:', error);
     }
   };
 
