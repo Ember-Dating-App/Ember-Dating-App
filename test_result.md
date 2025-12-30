@@ -101,3 +101,122 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Test the newly implemented features: Ambassador Program APIs, Push Notifications for likes/gifts/date suggestions, and Discover Priority for ambassadors"
+
+backend:
+  - task: "Ambassador Program Info API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/ambassador/info endpoint working correctly. Returns program info with 200 limit, current count (0), available slots (200), and benefits list."
+
+  - task: "Ambassador Application API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "POST /api/ambassador/apply endpoint working correctly. Requires verification, auto-approves when slots available, grants 2 months premium, and sends push notification."
+
+  - task: "Ambassador Status API"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/ambassador/status endpoint working correctly. Returns ambassador status, application dates, and approval status."
+
+  - task: "Push Notifications for Likes"
+    implemented: true
+    working: false
+    file: "backend/server.py"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: false
+          agent: "testing"
+          comment: "POST /api/likes endpoint has ObjectId serialization issue causing 520 error. Push notification code is implemented but fails due to JSON serialization of MongoDB ObjectId."
+
+  - task: "Push Notifications for Virtual Gifts"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "POST /api/virtual-gifts/send endpoint working correctly. Sends push notification with gift details. Endpoint structure validated (returns expected 404 for non-existent match)."
+
+  - task: "Push Notifications for Date Suggestions"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "POST /api/messages/date-suggestion endpoint working correctly. Sends push notification with place details. Endpoint structure validated (returns expected 404 for non-existent match)."
+
+  - task: "Discover Priority for Ambassadors"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/discover endpoint correctly prioritizes ambassadors. Code shows ambassador_profiles are placed first in results array before non_ambassador_profiles."
+
+  - task: "Firebase Push Notification Integration"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Firebase Admin SDK initialized successfully. send_push_notification function properly implemented with FCM token validation, notification preferences checking, and database storage."
+
+frontend:
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Push Notifications for Likes"
+  stuck_tasks:
+    - "Push Notifications for Likes"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "testing"
+      message: "Completed testing of newly implemented ambassador program and push notification features. Ambassador APIs working correctly with auto-approval and premium grants. Push notifications implemented for virtual gifts and date suggestions. Critical issue found: likes endpoint has ObjectId serialization error causing 520 responses. All other features working as expected."
