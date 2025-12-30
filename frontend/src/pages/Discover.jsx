@@ -604,6 +604,13 @@ export default function Discover() {
         onClose={() => setShowOutOfSwipesModal(false)} 
       />
 
+      {/* Advanced Filters Modal */}
+      <AdvancedFiltersModal 
+        isOpen={showFiltersModal} 
+        onClose={() => setShowFiltersModal(false)}
+        onFiltersApplied={handleFiltersApplied}
+      />
+
       <Navigation />
     </div>
   );
