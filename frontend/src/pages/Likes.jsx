@@ -123,48 +123,84 @@ export default function Likes() {
         {activeTab === 'likes' && (
           <>
             {!user?.is_premium ? (
-              // Premium Gate
+              // Premium Gate - Premium Design
               <div className="max-w-md mx-auto mt-10">
-                <div className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-2 border-orange-500/20 rounded-2xl p-8 text-center">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Lock className="w-10 h-10 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-2">See Who Likes You</h2>
-                  <p className="text-muted-foreground mb-4">
-                    Upgrade to Premium to see all {likesData?.count || 0} people who liked you!
-                  </p>
+                <div className="relative overflow-hidden rounded-3xl border border-orange-500/30 bg-gradient-to-br from-background via-background to-orange-500/5">
+                  {/* Decorative gradients */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-orange-400/20 to-transparent rounded-full blur-3xl" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-red-500/20 to-transparent rounded-full blur-2xl" />
                   
-                  <div className="bg-background/50 rounded-xl p-4 mb-6">
-                    <div className="flex items-center justify-center gap-2 text-4xl font-bold text-orange-600 mb-2">
-                      {likesData?.count || 0}
+                  <div className="relative p-8">
+                    {/* Icon with glow */}
+                    <div className="relative w-24 h-24 mx-auto mb-6">
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-red-500 rounded-3xl blur-xl opacity-50" />
+                      <div className="relative w-full h-full bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-orange-500/30">
+                        <Lock className="w-12 h-12 text-white" strokeWidth={2} />
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {likesData?.count === 1 ? 'person likes you' : 'people like you'}
+
+                    {/* Title */}
+                    <h2 className="text-3xl font-bold text-center mb-3 bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                      See Who Likes You
+                    </h2>
+                    <p className="text-center text-muted-foreground mb-6">
+                      Unlock Premium to reveal all your admirers
                     </p>
-                  </div>
+                    
+                    {/* Count Display - Premium Style */}
+                    <div className="relative mb-6 p-6 rounded-2xl bg-gradient-to-br from-orange-500/10 to-red-500/10 border border-orange-500/20 backdrop-blur-sm">
+                      <div className="absolute inset-0 bg-gradient-to-br from-orange-400/5 to-red-500/5 rounded-2xl" />
+                      <div className="relative text-center">
+                        <div className="flex items-center justify-center gap-3 mb-2">
+                          <Heart className="w-8 h-8 text-orange-500" fill="currentColor" />
+                          <div className="text-5xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+                            {likesData?.count || 0}
+                          </div>
+                          <Heart className="w-8 h-8 text-red-500" fill="currentColor" />
+                        </div>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {likesData?.count === 1 ? 'person likes you' : 'people like you'}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="space-y-3 mb-6 text-left">
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-sm">See everyone who liked you</span>
+                    {/* Features List - Premium Design */}
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-orange-500/5 to-transparent border border-orange-500/10">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">See everyone who liked you</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-orange-500/5 to-transparent border border-orange-500/10">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">Match instantly with anyone</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-orange-500/5 to-transparent border border-orange-500/10">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">Unlimited daily swipes</span>
+                      </div>
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-orange-500/5 to-transparent border border-orange-500/10">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        </div>
+                        <span className="text-sm font-medium text-foreground">Advanced filters access</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-sm">Match instantly</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500" />
-                      <span className="text-sm">Unlimited swipes</span>
-                    </div>
-                  </div>
 
-                  <Button
-                    onClick={() => navigate('/premium')}
-                    className="w-full py-6 text-lg ember-gradient rounded-full"
-                  >
-                    <Crown className="w-5 h-5 mr-2" />
-                    Get Premium
-                  </Button>
+                    {/* CTA Button - Premium */}
+                    <Button
+                      onClick={() => navigate('/premium')}
+                      className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 text-white rounded-2xl shadow-2xl shadow-orange-500/30 hover:shadow-orange-500/50 transition-all"
+                    >
+                      <Crown className="w-6 h-6 mr-2" />
+                      Unlock Premium Now
+                    </Button>
+                  </div>
                 </div>
               </div>
             ) : likesData?.likes?.length === 0 ? (
