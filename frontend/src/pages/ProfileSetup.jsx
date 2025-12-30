@@ -45,7 +45,6 @@ export default function ProfileSetup() {
     location: user?.location || '',
     bio: user?.bio || '',
     photos: user?.photos || [],
-    video_url: user?.video_url || '',
     prompts: user?.prompts || [],
     interests: user?.interests || []
   });
