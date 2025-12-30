@@ -389,7 +389,7 @@ export default function Discover() {
                       {currentProfile.name}, {currentProfile.age}
                     </h2>
                     {currentProfile.verification_status === 'verified' && (
-                      <BadgeCheck className="w-6 h-6 text-blue-400 fill-blue-400" />
+                      <VerifiedBadge className="w-6 h-6" />
                     )}
                   </div>
                   {currentProfile.location && (
