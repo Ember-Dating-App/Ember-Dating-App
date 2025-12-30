@@ -1208,6 +1208,90 @@ async def update_location(location: LocationUpdate, current_user: dict = Depends
     updated = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
     return {k: v for k, v in updated.items() if k != 'password'}
 
+@api_router.delete("/account")
+async def delete_account(request: Request, current_user: dict = Depends(get_current_user)):
+    """Permanently delete user account and all associated data"""
+    body = await request.json()
+    password = body.get('password')
+    
+    if not password:
+        raise HTTPException(status_code=400, detail='Password required to delete account')
+    
+    # Verify password
+    user = await db.users.find_one({'user_id': current_user['user_id']})
+    if not user or not bcrypt.checkpw(password.encode('utf-8'), user['password'].encode('utf-8')):
+        raise HTTPException(status_code=401, detail='Incorrect password')
+    
+    user_id = current_user['user_id']
+    now = datetime.now(timezone.utc).isoformat()
+    
+    try:
+        # Mark account as deleted (soft delete)
+        await db.users.update_one(
+            {'user_id': user_id},
+            {'$set': {
+                'deleted_at': now,
+                'email': f'deleted_{user_id}@ember.deleted',  # Anonymize email
+                'is_active': False
+            }}
+        )
+        
+        # Remove from all matches
+        await db.matches.delete_many({
+            '$or': [
+                {'user1_id': user_id},
+                {'user2_id': user_id}
+            ]
+        })
+        
+        # Remove all likes sent and received
+        await db.likes.delete_many({
+            '$or': [
+                {'from_user_id': user_id},
+                {'to_user_id': user_id}
+            ]
+        })
+        
+        # Anonymize messages (keep for other user but mark as deleted)
+        await db.messages.update_many(
+            {'sender_id': user_id},
+            {'$set': {
+                'sender_id': 'deleted_user',
+                'is_deleted': True
+            }}
+        )
+        
+        # Remove from blocked users
+        await db.blocks.delete_many({
+            '$or': [
+                {'blocker_id': user_id},
+                {'blocked_id': user_id}
+            ]
+        })
+        
+        # Delete notifications
+        await db.notifications.delete_many({'user_id': user_id})
+        
+        # Remove from disconnected matches
+        await db.disconnected_matches.delete_many({
+            '$or': [
+                {'user1_id': user_id},
+                {'user2_id': user_id}
+            ]
+        })
+        
+        logger.info(f"Account deleted for user {user_id}")
+        
+        return {
+            'message': 'Account successfully deleted',
+            'deleted_at': now
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting account: {e}")
+        raise HTTPException(status_code=500, detail='Failed to delete account')
+
+
 @api_router.get("/locations/popular")
 async def get_popular_locations():
     """Get list of popular cities for quick selection"""
