@@ -560,6 +560,15 @@ export default function Messages() {
           </form>
         </div>
       </div>
+
+      {/* Icebreaker Game Modal */}
+      <IcebreakerGameModal
+        open={showGameModal}
+        onClose={() => setShowGameModal(false)}
+        matchId={matchId}
+        otherUserName={otherUser?.name}
+        lastMessage={lastMessage}
+      />
     </div>
   );
 }
