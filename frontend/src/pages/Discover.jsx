@@ -76,24 +76,37 @@ export default function Discover() {
   const handleLike = async () => {
     if (!currentProfile) return;
 
-    // Check if user has resources for special likes
-    if (likeType === 'super_like' && !user?.is_premium && (user?.super_likes || 0) <= 0) {
-      toast.error('No Super Likes available', {
-        action: {
-          label: 'Get More',
-          onClick: () => navigate('/premium')
-        }
-      });
-      return;
+    // Check limits for special likes
+    if (likeType === 'super_like') {
+      if (limits && limits.super_likes.remaining <= 0) {
+        toast.error('No Super Likes available', {
+          action: {
+            label: 'Get More',
+            onClick: () => navigate('/premium')
+          }
+        });
+        return;
+      }
     }
-    if (likeType === 'rose' && (user?.roses || 0) <= 0) {
-      toast.error('No Roses available', {
-        action: {
-          label: 'Get More',
-          onClick: () => navigate('/premium')
-        }
-      });
-      return;
+    
+    if (likeType === 'rose') {
+      if (limits && limits.roses.remaining <= 0) {
+        toast.error('No Roses available', {
+          action: {
+            label: 'Get More',
+            onClick: () => navigate('/premium')
+          }
+        });
+        return;
+      }
+    }
+
+    // Check regular swipe limit
+    if (likeType === 'regular') {
+      if (limits && !limits.swipes.unlimited && limits.swipes.remaining <= 0) {
+        setShowOutOfSwipesModal(true);
+        return;
+      }
     }
 
     setSendingLike(true);
@@ -117,7 +130,8 @@ export default function Discover() {
         toast.success(`${typeText} sent!`);
       }
 
-      // Refresh user data to update super likes/roses count
+      // Refresh limits and user data
+      await fetchLimits();
       await refreshUser();
 
       setShowLikeModal(false);
@@ -126,14 +140,42 @@ export default function Discover() {
       setLikeType('regular');
       nextProfile();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to send like');
+      if (error.response?.status === 429) {
+        setShowOutOfSwipesModal(true);
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to send like');
+      }
     } finally {
       setSendingLike(false);
     }
   };
 
-  const handlePass = () => {
-    nextProfile();
+  const handlePass = async () => {
+    if (!currentProfile) return;
+
+    // Check if user has swipes remaining
+    if (limits && !limits.swipes.unlimited && limits.swipes.remaining <= 0) {
+      setShowOutOfSwipesModal(true);
+      return;
+    }
+
+    try {
+      await axios.post(`${API}/discover/pass?liked_user_id=${currentProfile.user_id}`, {}, { 
+        headers, 
+        withCredentials: true 
+      });
+      
+      // Refresh limits
+      await fetchLimits();
+      nextProfile();
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setShowOutOfSwipesModal(true);
+      } else {
+        console.error('Pass error:', error);
+        nextProfile(); // Still move to next profile
+      }
+    }
   };
 
   const nextProfile = () => {
