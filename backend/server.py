@@ -1745,6 +1745,30 @@ async def create_like(like: LikeCreate, current_user: dict = Depends(get_current
         'created_at': now
     })
     
+    # Send push notification based on like type
+    if like.like_type == 'super_like':
+        asyncio.create_task(send_push_notification(
+            like.liked_user_id,
+            "Someone Super Liked You! ⭐",
+            f"{current_user['name']} sent you a Super Like!",
+            {'type': 'super_likes', 'from_user_id': current_user['user_id']}
+        ))
+    elif like.like_type == 'rose':
+        asyncio.create_task(send_push_notification(
+            like.liked_user_id,
+            "You Received a Rose! 🌹",
+            f"{current_user['name']} sent you a rose!",
+            {'type': 'roses', 'from_user_id': current_user['user_id']}
+        ))
+    else:
+        # Regular like
+        asyncio.create_task(send_push_notification(
+            like.liked_user_id,
+            "Someone Likes You! ❤️",
+            f"{current_user['name']} liked your profile!",
+            {'type': 'likes', 'from_user_id': current_user['user_id']}
+        ))
+    
     mutual = await db.likes.find_one({
         'liker_id': like.liked_user_id,
         'liked_user_id': current_user['user_id']
