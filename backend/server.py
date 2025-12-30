@@ -2734,7 +2734,22 @@ async def get_premium_plans():
 
 @api_router.post("/payments/checkout")
 async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
-    """Create a Stripe checkout session for premium subscription"""
+    """Create Stripe checkout session - amount defined server-side only"""
+    package_id = checkout.package_id
+    origin_url = checkout.origin_url
+    
+    # Get package from server-defined packages
+    package = PREMIUM_PACKAGES.get(package_id) or ADDON_PACKAGES.get(package_id)
+    if not package:
+        raise HTTPException(status_code=400, detail='Invalid package')
+    
+    price = package['price']
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Build URLs dynamically from frontend origin
+    success_url = f"{origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
+    cancel_url = f"{origin_url}/premium"
+    
     try:
         # Create Stripe checkout session
         session = stripe.checkout.Session.create(
@@ -2743,27 +2758,39 @@ async def create_checkout_session(checkout: CheckoutRequest, current_user: dict 
                 'price_data': {
                     'currency': 'usd',
                     'product_data': {
-                        'name': f'Ember Premium - {checkout.plan_id.title()}',
+                        'name': package.get('name', package_id),
                     },
-                    'unit_amount': int(checkout.amount * 100),  # Convert to cents
+                    'unit_amount': int(price * 100),  # Stripe uses cents
                 },
                 'quantity': 1,
             }],
             mode='payment',
-            success_url=checkout.success_url,
-            cancel_url=checkout.cancel_url,
-            client_reference_id=current_user['user_id'],
+            success_url=success_url,
+            cancel_url=cancel_url,
             metadata={
                 'user_id': current_user['user_id'],
-                'plan_id': checkout.plan_id,
-                'type': checkout.type
+                'package_id': package_id,
+                'package_type': 'premium' if package_id in PREMIUM_PACKAGES else 'addon'
             }
         )
         
+        # Create pending transaction record
+        await db.payment_transactions.insert_one({
+            'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
+            'session_id': session.id,
+            'user_id': current_user['user_id'],
+            'package_id': package_id,
+            'amount': price,
+            'currency': 'usd',
+            'status': 'pending',
+            'payment_status': 'initiated',
+            'created_at': now
+        })
+        
         return {'url': session.url, 'session_id': session.id}
-    except Exception as e:
-        logger.error(f"Stripe checkout error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 # ==================== VIDEO CALL ENHANCEMENTS ====================
