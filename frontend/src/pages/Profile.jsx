@@ -29,6 +29,58 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
+// Sortable Photo Item Component
+function SortablePhoto({ photo, index, onRemove, loading }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: photo });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="aspect-square relative"
+    >
+      <div className="relative w-full h-full rounded-xl overflow-hidden group">
+        <img src={photo} alt="" className="w-full h-full object-cover" />
+        {/* Drag handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 w-8 h-8 bg-black/70 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-move"
+        >
+          <GripVertical className="w-4 h-4 text-white" />
+        </div>
+        {/* Remove button */}
+        <button
+          onClick={onRemove}
+          className="absolute top-2 right-2 w-8 h-8 bg-black/70 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          disabled={loading}
+        >
+          <X className="w-4 h-4 text-white" />
+        </button>
+        {/* First photo indicator */}
+        {index === 0 && (
+          <div className="absolute bottom-2 left-2 px-2 py-1 bg-primary/90 rounded text-xs font-medium text-white">
+            Main Photo
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const INTERESTS = [
   'Travel', 'Music', 'Movies', 'Fitness', 'Cooking', 'Art', 'Photography', 'Reading',
   'Gaming', 'Sports', 'Hiking', 'Yoga', 'Dancing', 'Wine', 'Coffee', 'Dogs', 'Cats',
