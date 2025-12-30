@@ -102,6 +102,13 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     }
   };
 
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
   const toggleEthnicity = (ethnicity) => {
     toggleArrayItem('ethnicities', ethnicity);
     // If deselecting main ethnicity, remove all sub-ethnicities
