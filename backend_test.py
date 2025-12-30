@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class EmberAPITester:
-    def __init__(self, base_url="https://sparkember.preview.emergentagent.com"):
+    def __init__(self, base_url="https://datingspark.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
@@ -341,7 +341,7 @@ class EmberAPITester:
         """Test Stripe checkout session creation"""
         checkout_data = {
             "package_id": "monthly",
-            "origin_url": "https://sparkember.preview.emergentagent.com"
+            "origin_url": "https://datingspark.preview.emergentagent.com"
         }
         
         success, response = self.run_test(
