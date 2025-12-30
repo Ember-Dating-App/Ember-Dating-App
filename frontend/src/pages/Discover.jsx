@@ -348,11 +348,40 @@ export default function Discover() {
             {/* Main Photo */}
             <div className="profile-card mb-4" data-testid="profile-card">
               <div className="profile-card-image">
-                <img 
-                  src={currentProfile.photos[0] || 'https://via.placeholder.com/400x500'} 
-                  alt={currentProfile.name}
-                  className="w-full"
-                />
+                {currentProfile.video_url ? (
+                  <div className="relative w-full h-full">
+                    <video
+                      src={currentProfile.video_url}
+                      className="w-full h-full object-cover"
+                      loop
+                      muted={isMuted}
+                      autoPlay
+                      playsInline
+                    />
+                    {/* Mute/Unmute button */}
+                    <button
+                      onClick={() => setIsMuted(!isMuted)}
+                      className="absolute top-4 right-4 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-black/70 transition-all z-10"
+                    >
+                      {isMuted ? (
+                        <VolumeX className="w-5 h-5 text-white" />
+                      ) : (
+                        <Volume2 className="w-5 h-5 text-white" />
+                      )}
+                    </button>
+                    {/* Video indicator */}
+                    <div className="absolute top-4 left-4 px-2 py-1 bg-black/50 backdrop-blur-sm rounded-lg flex items-center gap-1">
+                      <Video className="w-3 h-3 text-white" />
+                      <span className="text-xs text-white font-medium">Video</span>
+                    </div>
+                  </div>
+                ) : (
+                  <img 
+                    src={currentProfile.photos[0] || 'https://via.placeholder.com/400x500'} 
+                    alt={currentProfile.name}
+                    className="w-full"
+                  />
+                )}
                 <div className="profile-card-overlay">
                   <div className="flex items-center gap-2">
                     <h2 className="text-2xl font-bold text-white">
@@ -370,7 +399,7 @@ export default function Discover() {
                   )}
                 </div>
                 <button
-                  onClick={() => openLikeModal('photo')}
+                  onClick={() => openLikeModal(currentProfile.video_url ? 'video' : 'photo')}
                   className="absolute bottom-4 right-4 w-12 h-12 ember-gradient rounded-full flex items-center justify-center shadow-lg ember-glow hover:ember-glow-hover transition-all like-button"
                   data-testid="like-photo-btn"
                 >
