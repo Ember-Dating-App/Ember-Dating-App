@@ -3684,6 +3684,14 @@ async def send_date_suggestion(
     }
     await manager.send_personal_message(ws_message, other_id)
     
+    # Send push notification for date suggestion
+    asyncio.create_task(send_push_notification(
+        other_id,
+        f"Date Idea from {current_user['name']} 📍",
+        f"{current_user['name']} suggested: {place_data.get('name', 'a place')}",
+        {'type': 'date_suggestions', 'match_id': match_id, 'message_id': message_id}
+    ))
+    
     return {k: v for k, v in message_doc.items() if k != '_id'}
 
 @api_router.get("/places/categories")
