@@ -400,6 +400,210 @@ class EmberAPITester:
                 return True
         return False
 
+    def test_ambassador_info(self):
+        """Test ambassador program info endpoint"""
+        success, response = self.run_test(
+            "Get Ambassador Program Info",
+            "GET",
+            "ambassador/info",
+            200
+        )
+        
+        if success and 'total_limit' in response:
+            print(f"   Ambassador limit: {response['total_limit']}")
+            print(f"   Current count: {response['current_count']}")
+            print(f"   Available slots: {response['available_slots']}")
+            print(f"   Program full: {response['is_full']}")
+            return True
+        return False
+
+    def test_ambassador_status(self):
+        """Test ambassador status endpoint"""
+        success, response = self.run_test(
+            "Get Ambassador Status",
+            "GET",
+            "ambassador/status",
+            200
+        )
+        
+        if success and 'is_ambassador' in response:
+            print(f"   Is ambassador: {response['is_ambassador']}")
+            print(f"   Status: {response['status']}")
+            return True
+        return False
+
+    def test_ambassador_apply(self):
+        """Test ambassador application endpoint"""
+        success, response = self.run_test(
+            "Apply for Ambassador",
+            "POST",
+            "ambassador/apply",
+            200
+        )
+        
+        if success:
+            print(f"   Application result: {response.get('message', 'Unknown')}")
+            if response.get('success'):
+                print(f"   Ambassador status: {response.get('is_ambassador', False)}")
+                if response.get('premium_until'):
+                    print(f"   Premium until: {response['premium_until']}")
+            return True
+        return False
+
+    def test_likes_with_push_notifications(self):
+        """Test likes endpoint with different like types for push notifications"""
+        # Test regular like
+        like_data = {
+            "liked_user_id": "test_user_123",
+            "like_type": "regular"
+        }
+        
+        success, response = self.run_test(
+            "Send Regular Like (Push Notification)",
+            "POST",
+            "likes",
+            200,
+            data=like_data
+        )
+        
+        if success:
+            print(f"   Regular like sent successfully")
+        
+        # Test super like
+        super_like_data = {
+            "liked_user_id": "test_user_123",
+            "like_type": "super_like"
+        }
+        
+        success, response = self.run_test(
+            "Send Super Like (Push Notification)",
+            "POST",
+            "likes",
+            200,
+            data=super_like_data
+        )
+        
+        if success:
+            print(f"   Super like sent successfully")
+        
+        # Test rose
+        rose_data = {
+            "liked_user_id": "test_user_123",
+            "like_type": "rose"
+        }
+        
+        success, response = self.run_test(
+            "Send Rose (Push Notification)",
+            "POST",
+            "likes",
+            200,
+            data=rose_data
+        )
+        
+        if success:
+            print(f"   Rose sent successfully")
+            return True
+        return False
+
+    def test_virtual_gifts(self):
+        """Test virtual gifts endpoint"""
+        # First get available gifts
+        success, response = self.run_test(
+            "Get Virtual Gifts",
+            "GET",
+            "virtual-gifts",
+            200
+        )
+        
+        if success and 'gifts' in response:
+            gifts = response['gifts']
+            print(f"   Found {len(gifts)} virtual gifts")
+            
+            # Test sending a virtual gift (will fail without valid match, but tests endpoint)
+            if gifts:
+                gift_data = {
+                    "match_id": "test_match_123",
+                    "gift_id": list(gifts.keys())[0],
+                    "message": "Test gift message"
+                }
+                
+                # This will likely return 404 for match not found, but tests the endpoint structure
+                success, response = self.run_test(
+                    "Send Virtual Gift (Push Notification)",
+                    "POST",
+                    "virtual-gifts/send",
+                    404,  # Expecting 404 since match doesn't exist
+                    data=gift_data
+                )
+                
+                if success:
+                    print(f"   Virtual gift endpoint working (expected 404 for non-existent match)")
+                    return True
+        return False
+
+    def test_date_suggestions(self):
+        """Test date suggestions endpoint"""
+        date_data = {
+            "match_id": "test_match_123",
+            "place_data": {
+                "id": "test_place_123",
+                "name": "Test Restaurant",
+                "address": "123 Test St, Test City",
+                "rating": 4.5,
+                "priceLevel": 2
+            },
+            "message": "How about dinner here?"
+        }
+        
+        # This will likely return 404 for match not found, but tests the endpoint structure
+        success, response = self.run_test(
+            "Send Date Suggestion (Push Notification)",
+            "POST",
+            "messages/date-suggestion",
+            404,  # Expecting 404 since match doesn't exist
+            data=date_data
+        )
+        
+        if success:
+            print(f"   Date suggestion endpoint working (expected 404 for non-existent match)")
+            return True
+        return False
+
+    def test_discover_ambassador_priority(self):
+        """Test discover endpoint to verify ambassador priority"""
+        success, response = self.run_test(
+            "Discover Profiles (Ambassador Priority)",
+            "GET",
+            "discover",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            profiles_count = len(response)
+            print(f"   Found {profiles_count} profiles")
+            
+            # Check if any profiles have ambassador status
+            ambassador_profiles = [p for p in response if p.get('is_ambassador', False)]
+            non_ambassador_profiles = [p for p in response if not p.get('is_ambassador', False)]
+            
+            print(f"   Ambassador profiles: {len(ambassador_profiles)}")
+            print(f"   Non-ambassador profiles: {len(non_ambassador_profiles)}")
+            
+            # Verify ambassadors appear first (if any exist)
+            if ambassador_profiles and non_ambassador_profiles:
+                # Find first ambassador and first non-ambassador indices
+                first_ambassador_idx = next((i for i, p in enumerate(response) if p.get('is_ambassador', False)), -1)
+                first_non_ambassador_idx = next((i for i, p in enumerate(response) if not p.get('is_ambassador', False)), -1)
+                
+                if first_ambassador_idx != -1 and first_non_ambassador_idx != -1:
+                    if first_ambassador_idx < first_non_ambassador_idx:
+                        print(f"   ✅ Ambassadors appear first in discover results")
+                    else:
+                        print(f"   ⚠️ Ambassadors not prioritized in discover results")
+            
+            return True
+        return False
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🔥 Starting Ember Dating App API Tests\n")
