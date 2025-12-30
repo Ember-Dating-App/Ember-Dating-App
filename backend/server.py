@@ -2353,6 +2353,144 @@ async def submit_icebreaker_answer(session_id: str, request: Request, current_us
     
     return {'message': 'Answer submitted', 'both_answered': both_answered, 'status': session['status']}
 
+
+
+# ==================== VIRTUAL GIFTS ROUTES ====================
+
+# Available virtual gifts
+VIRTUAL_GIFTS = {
+    'heart': {'name': 'Heart', 'emoji': '❤️', 'description': 'Show some love', 'points': 10},
+    'rose': {'name': 'Rose', 'emoji': '🌹', 'description': 'Classic romance', 'points': 20},
+    'kiss': {'name': 'Kiss', 'emoji': '💋', 'description': 'Virtual kiss', 'points': 15},
+    'hug': {'name': 'Hug', 'emoji': '🤗', 'description': 'Warm hug', 'points': 10},
+    'fire': {'name': 'Fire', 'emoji': '🔥', 'description': 'You\'re hot!', 'points': 15},
+    'sparkle': {'name': 'Sparkle', 'emoji': '✨', 'description': 'You shine!', 'points': 10},
+    'crown': {'name': 'Crown', 'emoji': '👑', 'description': 'You\'re royalty', 'points': 25},
+    'trophy': {'name': 'Trophy', 'emoji': '🏆', 'description': 'You\'re a winner', 'points': 20},
+    'star': {'name': 'Star', 'emoji': '⭐', 'description': 'You\'re a star', 'points': 15},
+    'diamond': {'name': 'Diamond', 'emoji': '💎', 'description': 'You\'re precious', 'points': 30},
+    'cake': {'name': 'Cake', 'emoji': '🎂', 'description': 'Sweet treat', 'points': 15},
+    'coffee': {'name': 'Coffee', 'emoji': '☕', 'description': 'Coffee date?', 'points': 10},
+    'champagne': {'name': 'Champagne', 'emoji': '🍾', 'description': 'Celebrate!', 'points': 25},
+    'gift': {'name': 'Gift Box', 'emoji': '🎁', 'description': 'Special surprise', 'points': 20},
+    'balloon': {'name': 'Balloon', 'emoji': '🎈', 'description': 'Party time', 'points': 10}
+}
+
+@api_router.get("/virtual-gifts")
+async def get_virtual_gifts():
+    """Get list of available virtual gifts"""
+    return {
+        'gifts': [
+            {
+                'id': gift_id,
+                'name': gift_data['name'],
+                'emoji': gift_data['emoji'],
+                'description': gift_data['description'],
+                'points': gift_data['points']
+            }
+            for gift_id, gift_data in VIRTUAL_GIFTS.items()
+        ]
+    }
+
+@api_router.post("/virtual-gifts/send")
+async def send_virtual_gift(request: Request, current_user: dict = Depends(get_current_user)):
+    """Send a virtual gift to a match"""
+    body = await request.json()
+    match_id = body.get('match_id')
+    gift_id = body.get('gift_id')
+    message = body.get('message', '')
+    
+    if not match_id or not gift_id:
+        raise HTTPException(status_code=400, detail='match_id and gift_id required')
+    
+    if gift_id not in VIRTUAL_GIFTS:
+        raise HTTPException(status_code=400, detail='Invalid gift_id')
+    
+    # Verify match exists
+    match = await db.matches.find_one({'match_id': match_id}, {'_id': 0})
+    if not match:
+        raise HTTPException(status_code=404, detail='Match not found')
+    
+    # Verify user is part of the match
+    if current_user['user_id'] not in [match['user1_id'], match['user2_id']]:
+        raise HTTPException(status_code=403, detail='Not part of this match')
+    
+    # Get gift data
+    gift_data = VIRTUAL_GIFTS[gift_id]
+    
+    # Create gift record
+    gift_record_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    gift_record = {
+        'gift_id': gift_record_id,
+        'match_id': match_id,
+        'sender_id': current_user['user_id'],
+        'receiver_id': match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id'],
+        'gift_type': gift_id,
+        'gift_name': gift_data['name'],
+        'gift_emoji': gift_data['emoji'],
+        'message': message,
+        'points': gift_data['points'],
+        'sent_at': now,
+        'created_at': now
+    }
+    
+    await db.virtual_gifts.insert_one(gift_record)
+    
+    # Create message with gift
+    message_id = str(uuid.uuid4())
+    message_doc = {
+        'message_id': message_id,
+        'match_id': match_id,
+        'sender_id': current_user['user_id'],
+        'content': message or f"Sent you a {gift_data['name']} {gift_data['emoji']}",
+        'type': 'virtual_gift',
+        'gift_data': {
+            'gift_id': gift_id,
+            'name': gift_data['name'],
+            'emoji': gift_data['emoji'],
+            'description': gift_data['description'],
+            'points': gift_data['points']
+        },
+        'sent_at': now,
+        'created_at': now,
+        'read': False,
+        'is_deleted': False
+    }
+    
+    await db.messages.insert_one(message_doc)
+    
+    # Update match last message time
+    await db.matches.update_one(
+        {'match_id': match_id},
+        {'$set': {'last_message_at': now}}
+    )
+    
+    # Send via WebSocket to other user
+    other_id = gift_record['receiver_id']
+    ws_message = {
+        'type': 'virtual_gift',
+        'gift': {k: v for k, v in gift_record.items() if k != '_id'},
+        'message': {k: v for k, v in message_doc.items() if k != '_id'}
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
+    return {
+        'gift': {k: v for k, v in gift_record.items() if k != '_id'},
+        'message': {k: v for k, v in message_doc.items() if k != '_id'}
+    }
+
+@api_router.get("/virtual-gifts/received")
+async def get_received_gifts(current_user: dict = Depends(get_current_user)):
+    """Get virtual gifts received by the user"""
+    gifts = await db.virtual_gifts.find(
+        {'receiver_id': current_user['user_id']},
+        {'_id': 0}
+    ).sort('sent_at', -1).limit(50).to_list(50)
+    
+    return {'gifts': gifts, 'total': len(gifts)}
+
 # ==================== STRIPE PAYMENT ROUTES ====================
 
 @api_router.get("/premium/plans")
