@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import LocationPicker from '@/components/LocationPicker';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import AmbassadorSection from '@/components/AmbassadorSection';
 import {
   DndContext,
   closestCenter,
