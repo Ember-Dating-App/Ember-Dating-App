@@ -436,13 +436,8 @@ async def register(user_data: UserCreate):
         'created_at': now,
         'last_active': now
     }
-        'phone_verification': {'status': 'pending', 'phone': None, 'verified_at': None, 'code': None, 'expires_at': None},
-        'id_verification': {'status': 'pending', 'id_photo_url': None, 'verified_at': None},
-        # Swipe limits
-        'swipe_limit': {'count': 0, 'last_reset': now, 'daily_max': 10},
-        'super_like_limit': {'count': 0, 'last_reset': now, 'daily_max': 3},
-        'rose_limit': {'count': 0, 'last_reset': now, 'daily_max': 1},
-        'last_passed_user_id': None,
+    
+    await db.users.insert_one(user_doc)
         'last_passed_at': None,
         'created_at': now,
         'last_active': now
