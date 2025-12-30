@@ -122,7 +122,11 @@ const ProtectedRoute = ({ children }) => {
 
 // App Router
 function AppRouter() {
+  const { user } = useAuth();
   const location = useLocation();
+  
+  // Setup push notifications
+  useNotifications(user);
   
   // REMINDER: DO NOT HARDCODE THE URL, OR ADD ANY FALLBACKS OR REDIRECT URLS, THIS BREAKS THE AUTH
   // Check URL fragment for session_id synchronously during render
