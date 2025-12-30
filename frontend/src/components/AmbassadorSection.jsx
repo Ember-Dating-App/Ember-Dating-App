@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Award, Users, Star, TrendingUp, Check } from 'lucide-react';
+import { Award, Users, Star, TrendingUp, Check, Sparkles, Crown, Zap } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { API } from '@/App';
