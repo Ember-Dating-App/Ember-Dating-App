@@ -127,6 +127,60 @@ export default function Messages() {
     }
   };
 
+
+  const startEditMessage = (message) => {
+    setEditingMessage(message);
+    setEditContent(message.content);
+  };
+
+  const cancelEdit = () => {
+    setEditingMessage(null);
+    setEditContent('');
+  };
+
+  const saveEditMessage = async () => {
+    if (!editContent.trim() || !editingMessage) return;
+
+    try {
+      const response = await axios.put(
+        `${API}/messages/${editingMessage.message_id}`,
+        { content: editContent.trim() },
+        { headers, withCredentials: true }
+      );
+
+      // Update message in state
+      setMessages(messages.map(m =>
+        m.message_id === editingMessage.message_id ? response.data : m
+      ));
+      
+      toast.success('Message edited');
+      cancelEdit();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to edit message');
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    if (!confirm('Delete this message?')) return;
+
+    try {
+      await axios.delete(`${API}/messages/${messageId}`, {
+        headers,
+        withCredentials: true
+      });
+
+      // Update message in state
+      setMessages(messages.map(m =>
+        m.message_id === messageId ? { ...m, is_deleted: true, content: 'Message deleted' } : m
+      ));
+      
+      toast.success('Message deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete message');
+    }
+  };
+
+
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
     // Send typing indicator via WebSocket
