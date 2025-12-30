@@ -148,6 +148,9 @@ export default function Standouts() {
                         {profile.verification_status === 'verified' && (
                           <VerifiedBadge className="w-4 h-4" />
                         )}
+                        {profile.is_ambassador && (
+                          <AmbassadorBadge size="xs" />
+                        )}
                       </div>
                       <p className="text-white/70 text-xs">{profile.location}</p>
                     </div>
