@@ -608,6 +608,116 @@ async def google_session(request: Request, response: Response):
     
     return {'user': {k: v for k, v in user.items() if k != 'password'}}
 
+@api_router.post("/auth/apple/session")
+async def apple_session(request: Request, response: Response):
+    """Handle Apple Sign-In session creation"""
+    body = await request.json()
+    apple_data = body.get('apple_data')
+    
+    if not apple_data or not apple_data.get('email'):
+        raise HTTPException(status_code=400, detail='Invalid Apple data')
+    
+    now = datetime.now(timezone.utc)
+    user = await db.users.find_one({'email': apple_data['email']}, {'_id': 0})
+    
+    if not user:
+        user_id = f"user_{uuid.uuid4().hex[:12]}"
+        user = {
+            'user_id': user_id,
+            'email': apple_data['email'],
+            'name': apple_data.get('name', 'Apple User'),
+            'picture': None,
+            'password': None,
+            'age': None,
+            'gender': None,
+            'interested_in': None,
+            'location': None,
+            'location_details': None,
+            'bio': None,
+            'height': None,
+            'education': None,
+            'photos': [],
+            'video_url': None,
+            'prompts': [],
+            'interests': [],
+            'is_profile_complete': False,
+            'is_premium': False,
+            'premium_expires': None,
+            'roses': 1,
+            'super_likes': 1,
+            'notification_settings': {
+                'new_matches': True,
+                'new_messages': True,
+                'new_likes': True,
+                'standouts': True
+            },
+            # Verification fields
+            'verification_status': 'unverified',
+            'verification_methods': [],
+            'photo_verification': {'status': 'pending', 'selfie_url': None, 'verified_at': None},
+            'phone_verification': {'status': 'pending', 'phone': None, 'verified_at': None, 'code': None, 'expires_at': None},
+            'id_verification': {'status': 'pending', 'id_photo_url': None, 'verified_at': None},
+            # Swipe limits
+            'swipe_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 10},
+            'super_like_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 3},
+            'rose_limit': {'count': 0, 'last_reset': now.isoformat(), 'daily_max': 1},
+            'last_passed_user_id': None,
+            'last_passed_at': None,
+            # Phase 2: Filter preferences
+            'filter_preferences': {
+                'age_min': 18,
+                'age_max': 100,
+                'max_distance': 50,
+                'height_min': None,
+                'height_max': None,
+                'education_levels': [],
+                'specific_interests': [],
+                'genders': [],
+                'dating_purposes': [],
+                'religions': [],
+                'languages': [],
+                'children_preference': [],
+                'political_views': [],
+                'pets': [],
+                'ethnicities': [],
+                'sub_ethnicities': []
+            },
+            'dating_purpose': None,
+            'religion': None,
+            'languages': [],
+            'children': None,
+            'political_view': None,
+            'has_pets': None,
+            'ethnicity': None,
+            'sub_ethnicity': None,
+            'created_at': now.isoformat(),
+            'last_active': now.isoformat()
+        }
+        await db.users.insert_one(user)
+    else:
+        await db.users.update_one({'email': apple_data['email']}, {'$set': {'last_active': now.isoformat()}})
+        user = await db.users.find_one({'email': apple_data['email']}, {'_id': 0})
+    
+    session_token = apple_data['session_token']
+    await db.user_sessions.insert_one({
+        'user_id': user['user_id'],
+        'session_token': session_token,
+        'expires_at': (now + timedelta(days=7)).isoformat(),
+        'created_at': now.isoformat()
+    })
+    
+    response.set_cookie(
+        key='session_token',
+        value=session_token,
+        httponly=True,
+        secure=True,
+        samesite='none',
+        path='/',
+        max_age=7*24*60*60
+    )
+    
+    return {'user': {k: v for k, v in user.items() if k != 'password'}}
+
 @api_router.get("/auth/me")
 async def get_me(current_user: dict = Depends(get_current_user)):
     return {k: v for k, v in current_user.items() if k != 'password'}
