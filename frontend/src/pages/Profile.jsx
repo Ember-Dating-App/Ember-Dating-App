@@ -278,6 +278,53 @@ export default function Profile() {
     }
   };
 
+  const handleVideoUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('Video size must be less than 50MB');
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('video/')) {
+      toast.error('Please upload a video file');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Convert to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result;
+        
+        // Upload to server (which will use Cloudinary)
+        const response = await axios.post(
+          `${API}/upload/video/base64`,
+          { data: base64 },
+          { headers, withCredentials: true }
+        );
+
+        setProfile({ ...profile, video_url: response.data.url });
+        toast.success('Video uploaded successfully!');
+        setLoading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Video upload error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to upload video');
+      setLoading(false);
+    }
+  };
+
+  const removeVideo = () => {
+    setProfile({ ...profile, video_url: '' });
+    toast.success('Video removed');
+  };
+
   const toggleInterest = (interest) => {
     if (profile.interests.includes(interest)) {
       setProfile({ ...profile, interests: profile.interests.filter(i => i !== interest) });
