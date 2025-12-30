@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Flame, Heart, X, MessageCircle, Check } from 'lucide-react';
+import { Flame, Heart, X, MessageCircle, Check, Crown, Lock, Flower2 } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -10,24 +10,36 @@ import Navigation from '@/components/Navigation';
 export default function Likes() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [likes, setLikes] = useState([]);
+  const [likesData, setLikesData] = useState(null);
+  const [rosesData, setRosesData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('likes');
 
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
   useEffect(() => {
     fetchLikes();
+    fetchRoses();
   }, []);
 
   const fetchLikes = async () => {
     try {
       const response = await axios.get(`${API}/likes/received`, { headers, withCredentials: true });
-      setLikes(response.data);
+      setLikesData(response.data);
     } catch (error) {
       toast.error('Failed to load likes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRoses = async () => {
+    try {
+      const response = await axios.get(`${API}/likes/roses-received`, { headers, withCredentials: true });
+      setRosesData(response.data);
+    } catch (error) {
+      console.error('Failed to load roses:', error);
     }
   };
 
