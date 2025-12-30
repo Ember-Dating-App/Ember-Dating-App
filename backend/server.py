@@ -207,6 +207,17 @@ class ReportUser(BaseModel):
 class MarkMessageRead(BaseModel):
     message_id: str
 
+# ==================== PHASE 2 MODELS ====================
+
+class FilterPreferences(BaseModel):
+    age_min: Optional[int] = 18
+    age_max: Optional[int] = 100
+    max_distance: Optional[int] = 50
+    height_min: Optional[int] = None
+    height_max: Optional[int] = None
+    education_levels: Optional[List[str]] = None
+    specific_interests: Optional[List[str]] = None
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
