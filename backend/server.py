@@ -1373,7 +1373,17 @@ async def delete_account(request: Request, current_user: dict = Depends(get_curr
                 {'user2_id': user_id}
             ]
         })
-
+        
+        logger.info(f"Account deleted for user {user_id}")
+        
+        return {
+            'message': 'Account successfully deleted',
+            'deleted_at': now
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting account: {e}")
+        raise HTTPException(status_code=500, detail='Failed to delete account')
 
 @api_router.put("/profile/photos/reorder")
 async def reorder_photos(request: Request, current_user: dict = Depends(get_current_user)):
