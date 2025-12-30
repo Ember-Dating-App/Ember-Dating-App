@@ -7,6 +7,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import AmbassadorBadge from '@/components/AmbassadorBadge';
 
 export default function Standouts() {
   const navigate = useNavigate();
