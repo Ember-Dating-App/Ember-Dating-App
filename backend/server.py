@@ -2148,6 +2148,48 @@ ICEBREAKER_GAMES = {
         'name': 'Emoji Story',
         'description': 'Tell a story using only emojis - can your match guess it?',
         'icon': '😄'
+    },
+    'never_have_i_ever': {
+        'name': 'Never Have I Ever',
+        'description': 'Take turns revealing things you\'ve never done!',
+        'icon': '🙈',
+        'questions': [
+            'Never have I ever gone skydiving',
+            'Never have I ever sung karaoke in public',
+            'Never have I ever traveled to another continent',
+            'Never have I ever cooked a five-course meal',
+            'Never have I ever met a celebrity',
+            'Never have I ever been on TV',
+            'Never have I ever gone camping',
+            'Never have I ever broken a bone'
+        ]
+    },
+    'trivia_challenge': {
+        'name': 'Trivia Challenge',
+        'description': 'Test your knowledge with fun trivia questions!',
+        'icon': '🧠',
+        'questions': [
+            {'q': 'What is the largest planet in our solar system?', 'a': 'Jupiter', 'b': 'Saturn', 'c': 'Neptune', 'd': 'Mars', 'correct': 'a'},
+            {'q': 'Who painted the Mona Lisa?', 'a': 'Van Gogh', 'b': 'Da Vinci', 'c': 'Picasso', 'd': 'Monet', 'correct': 'b'},
+            {'q': 'What is the capital of Australia?', 'a': 'Sydney', 'b': 'Melbourne', 'c': 'Canberra', 'd': 'Perth', 'correct': 'c'},
+            {'q': 'How many strings does a standard guitar have?', 'a': '4', 'b': '5', 'c': '6', 'd': '7', 'correct': 'c'},
+            {'q': 'What year did World War II end?', 'a': '1943', 'b': '1944', 'c': '1945', 'd': '1946', 'correct': 'c'}
+        ]
+    },
+    'this_or_that': {
+        'name': 'This or That',
+        'description': 'Quick choices to discover your match\'s preferences!',
+        'icon': '⚖️',
+        'questions': [
+            {'q': 'Morning person or Night owl?', 'a': 'Morning', 'b': 'Night'},
+            {'q': 'Beach or Mountains?', 'a': 'Beach', 'b': 'Mountains'},
+            {'q': 'Coffee or Tea?', 'a': 'Coffee', 'b': 'Tea'},
+            {'q': 'Cats or Dogs?', 'a': 'Cats', 'b': 'Dogs'},
+            {'q': 'Sweet or Savory?', 'a': 'Sweet', 'b': 'Savory'},
+            {'q': 'Books or Movies?', 'a': 'Books', 'b': 'Movies'},
+            {'q': 'Summer or Winter?', 'a': 'Summer', 'b': 'Winter'},
+            {'q': 'Texting or Calling?', 'a': 'Texting', 'b': 'Calling'}
+        ]
     }
 }
 
