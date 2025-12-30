@@ -176,6 +176,11 @@ function AppRouter() {
           <Standouts />
         </ProtectedRoute>
       } />
+      <Route path="/daily-picks" element={
+        <ProtectedRoute>
+          <DailyPicksTab />
+        </ProtectedRoute>
+      } />
       <Route path="/payment/success" element={
         <ProtectedRoute>
           <PaymentSuccess />
