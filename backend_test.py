@@ -642,6 +642,9 @@ class EmberAPITester:
             self.test_profile_update()
             self.test_location_update()  # NEW: Test location update
             
+            # Test verification (required for other features)
+            self.test_verification_photo()  # NEW: Test photo verification
+            
             # Test ambassador features
             self.test_ambassador_status()  # NEW: Test ambassador status
             self.test_ambassador_apply()   # NEW: Test ambassador application
