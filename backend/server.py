@@ -1417,18 +1417,6 @@ async def reorder_photos(request: Request, current_user: dict = Depends(get_curr
     updated = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
     return {k: v for k, v in updated.items() if k != 'password'}
 
-        
-        logger.info(f"Account deleted for user {user_id}")
-        
-        return {
-            'message': 'Account successfully deleted',
-            'deleted_at': now
-        }
-        
-    except Exception as e:
-        logger.error(f"Error deleting account: {e}")
-        raise HTTPException(status_code=500, detail='Failed to delete account')
-
 
 @api_router.get("/locations/popular")
 async def get_popular_locations():
