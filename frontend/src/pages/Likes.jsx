@@ -204,6 +204,9 @@ export default function Likes() {
                             <h3 className="font-semibold text-lg">
                               {like.liker?.name}, {like.liker?.age}
                             </h3>
+                            {like.liker?.verification_status === 'verified' && (
+                              <VerifiedBadge className="w-5 h-5" />
+                            )}
                             {like.like_type === 'super_like' && (
                               <div className="bg-blue-500 px-2 py-1 rounded-full text-xs text-white font-medium">
                                 ⭐ Super Like
