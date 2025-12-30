@@ -2105,6 +2105,214 @@ async def get_personalized_starters(other_user_id: str, current_user: dict = Dep
             "What's the story behind your profile? I'd love to know more!"
         ]}
 
+
+
+# ==================== ICEBREAKER GAMES ROUTES ====================
+
+# Game questions database
+ICEBREAKER_GAMES = {
+    'two_truths_lie': {
+        'name': 'Two Truths and a Lie',
+        'description': 'Share two truths and one lie - can your match guess the lie?',
+        'icon': '🎭'
+    },
+    'would_you_rather': {
+        'name': 'Would You Rather',
+        'description': 'Choose between two options and see if you agree!',
+        'icon': '🤔',
+        'questions': [
+            {'q': 'Would you rather travel to the past or the future?', 'a': 'Past', 'b': 'Future'},
+            {'q': 'Would you rather have unlimited money or unlimited time?', 'a': 'Money', 'b': 'Time'},
+            {'q': 'Would you rather be able to fly or be invisible?', 'a': 'Fly', 'b': 'Invisible'},
+            {'q': 'Would you rather live in the city or countryside?', 'a': 'City', 'b': 'Countryside'},
+            {'q': 'Would you rather be a famous actor or a famous musician?', 'a': 'Actor', 'b': 'Musician'},
+            {'q': 'Would you rather always be 10 minutes late or 20 minutes early?', 'a': 'Late', 'b': 'Early'},
+            {'q': 'Would you rather give up social media or coffee?', 'a': 'Social media', 'b': 'Coffee'},
+            {'q': 'Would you rather explore space or the deep ocean?', 'a': 'Space', 'b': 'Ocean'}
+        ]
+    },
+    'quick_questions': {
+        'name': 'Quick Questions',
+        'description': 'Rapid-fire questions to get to know each other fast!',
+        'icon': '⚡',
+        'questions': [
+            'What\'s your go-to karaoke song?',
+            'If you could have dinner with anyone, who would it be?',
+            'What\'s the best advice you\'ve ever received?',
+            'What\'s your hidden talent?',
+            'What\'s on your bucket list?',
+            'What\'s your favorite way to spend a Sunday?',
+            'What\'s something you\'re really passionate about?',
+            'What\'s the most spontaneous thing you\'ve ever done?'
+        ]
+    },
+    'emoji_story': {
+        'name': 'Emoji Story',
+        'description': 'Tell a story using only emojis - can your match guess it?',
+        'icon': '😄'
+    }
+}
+
+@api_router.get("/icebreakers/games")
+async def get_available_games():
+    """Get list of available icebreaker games"""
+    return {
+        'games': [
+            {
+                'id': game_id,
+                'name': game_data['name'],
+                'description': game_data['description'],
+                'icon': game_data['icon']
+            }
+            for game_id, game_data in ICEBREAKER_GAMES.items()
+        ]
+    }
+
+@api_router.post("/icebreakers/start")
+async def start_icebreaker(request: Request, current_user: dict = Depends(get_current_user)):
+    """Start an icebreaker game with a match"""
+    body = await request.json()
+    match_id = body.get('match_id')
+    game_type = body.get('game_type')
+    
+    if not match_id or not game_type:
+        raise HTTPException(status_code=400, detail='match_id and game_type required')
+    
+    if game_type not in ICEBREAKER_GAMES:
+        raise HTTPException(status_code=400, detail='Invalid game type')
+    
+    # Verify match exists
+    match = await db.matches.find_one({'match_id': match_id}, {'_id': 0})
+    if not match:
+        raise HTTPException(status_code=404, detail='Match not found')
+    
+    # Verify user is part of the match
+    if current_user['user_id'] not in [match['user1_id'], match['user2_id']]:
+        raise HTTPException(status_code=403, detail='You are not part of this match')
+    
+    # Create game session
+    session_id = str(uuid.uuid4())
+    game_data = ICEBREAKER_GAMES[game_type]
+    
+    # Prepare questions based on game type
+    questions = []
+    if game_type == 'would_you_rather':
+        # Select random questions
+        import random
+        questions = random.sample(game_data['questions'], min(5, len(game_data['questions'])))
+    elif game_type == 'quick_questions':
+        import random
+        questions = random.sample(game_data['questions'], min(5, len(game_data['questions'])))
+    
+    session_doc = {
+        'session_id': session_id,
+        'match_id': match_id,
+        'game_type': game_type,
+        'started_by': current_user['user_id'],
+        'status': 'active',
+        'questions': questions,
+        'answers': {},
+        'score': {match['user1_id']: 0, match['user2_id']: 0},
+        'current_question': 0,
+        'created_at': datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.icebreaker_sessions.insert_one(session_doc)
+    
+    # Notify other user via WebSocket
+    other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+    ws_message = {
+        'type': 'icebreaker_started',
+        'session_id': session_id,
+        'game_type': game_type,
+        'game_name': game_data['name'],
+        'started_by': current_user['name']
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
+    return {k: v for k, v in session_doc.items() if k != '_id'}
+
+@api_router.get("/icebreakers/{session_id}")
+async def get_icebreaker_session(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Get icebreaker game session details"""
+    session = await db.icebreaker_sessions.find_one({'session_id': session_id}, {'_id': 0})
+    
+    if not session:
+        raise HTTPException(status_code=404, detail='Game session not found')
+    
+    # Verify user is part of the match
+    match = await db.matches.find_one({'match_id': session['match_id']}, {'_id': 0})
+    if current_user['user_id'] not in [match['user1_id'], match['user2_id']]:
+        raise HTTPException(status_code=403, detail='You are not part of this game')
+    
+    return session
+
+@api_router.post("/icebreakers/{session_id}/answer")
+async def submit_icebreaker_answer(session_id: str, request: Request, current_user: dict = Depends(get_current_user)):
+    """Submit an answer to an icebreaker question"""
+    body = await request.json()
+    answer = body.get('answer')
+    
+    if not answer:
+        raise HTTPException(status_code=400, detail='Answer required')
+    
+    session = await db.icebreaker_sessions.find_one({'session_id': session_id}, {'_id': 0})
+    
+    if not session:
+        raise HTTPException(status_code=404, detail='Game session not found')
+    
+    if session['status'] != 'active':
+        raise HTTPException(status_code=400, detail='Game is not active')
+    
+    # Update answers
+    user_id = current_user['user_id']
+    question_index = session.get('current_question', 0)
+    
+    if 'answers' not in session:
+        session['answers'] = {}
+    
+    if str(question_index) not in session['answers']:
+        session['answers'][str(question_index)] = {}
+    
+    session['answers'][str(question_index)][user_id] = answer
+    
+    # Check if both users have answered
+    match = await db.matches.find_one({'match_id': session['match_id']}, {'_id': 0})
+    both_answered = all(
+        uid in session['answers'][str(question_index)]
+        for uid in [match['user1_id'], match['user2_id']]
+    )
+    
+    # Move to next question if both answered
+    if both_answered and question_index < len(session.get('questions', [])) - 1:
+        session['current_question'] = question_index + 1
+    elif both_answered:
+        session['status'] = 'completed'
+        session['completed_at'] = datetime.now(timezone.utc).isoformat()
+    
+    # Update session
+    await db.icebreaker_sessions.update_one(
+        {'session_id': session_id},
+        {'$set': {
+            'answers': session['answers'],
+            'current_question': session.get('current_question', 0),
+            'status': session['status']
+        }}
+    )
+    
+    # Notify other user via WebSocket
+    other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+    ws_message = {
+        'type': 'icebreaker_answer',
+        'session_id': session_id,
+        'user_id': user_id,
+        'answer': answer,
+        'both_answered': both_answered
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
+    return {'message': 'Answer submitted', 'both_answered': both_answered, 'status': session['status']}
+
 # ==================== STRIPE PAYMENT ROUTES ====================
 
 @api_router.get("/premium/plans")
