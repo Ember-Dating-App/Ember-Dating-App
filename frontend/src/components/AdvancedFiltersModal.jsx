@@ -28,6 +28,12 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
   });
   const [loading, setLoading] = useState(false);
   const [expandedEthnicity, setExpandedEthnicity] = useState(null);
+  const [expandedSections, setExpandedSections] = useState({
+    personal: true,
+    dating: true,
+    lifestyle: true,
+    background: true
+  });
 
   useEffect(() => {
     if (isOpen) {
