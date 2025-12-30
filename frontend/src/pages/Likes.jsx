@@ -324,9 +324,14 @@ export default function Likes() {
                       {/* Info */}
                       <div className="flex-1 p-4 flex flex-col justify-between">
                         <div>
-                          <h3 className="font-semibold text-lg">
-                            {rose.sender?.name}, {rose.sender?.age}
-                          </h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg">
+                              {rose.sender?.name}, {rose.sender?.age}
+                            </h3>
+                            {rose.sender?.verification_status === 'verified' && (
+                              <VerifiedBadge className="w-5 h-5" />
+                            )}
+                          </div>
                           <p className="text-sm text-rose-600 mt-1">Sent you a rose</p>
                           {rose.comment && (
                             <p className="text-sm mt-2 bg-rose-500/10 rounded-lg p-2 border border-rose-500/20">
