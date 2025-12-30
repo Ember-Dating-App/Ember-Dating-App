@@ -208,6 +208,9 @@ export default function Likes() {
                             {like.liker?.verification_status === 'verified' && (
                               <VerifiedBadge className="w-5 h-5" />
                             )}
+                            {like.liker?.is_ambassador && (
+                              <AmbassadorBadge size="sm" />
+                            )}
                             {like.like_type === 'super_like' && (
                               <div className="bg-blue-500 px-2 py-1 rounded-full text-xs text-white font-medium">
                                 ⭐ Super Like
