@@ -2705,14 +2705,14 @@ async def get_premium_plans():
             {
                 'id': 'weekly',
                 'name': 'Weekly',
-                'price': 9.99,
+                'price': 4.99,
                 'duration': '1 week',
                 'features': ['Unlimited likes', '5 Super Likes/day', '3 Roses/week', 'See who likes you', 'Standouts access']
             },
             {
                 'id': 'monthly',
                 'name': 'Monthly',
-                'price': 29.99,
+                'price': 19.99,
                 'duration': '1 month',
                 'features': ['Unlimited likes', '5 Super Likes/day', '5 Roses/week', 'See who likes you', 'Standouts access', 'Priority likes']
             },
@@ -2725,7 +2725,7 @@ async def get_premium_plans():
             }
         ],
         'addons': [
-            {'id': 'roses_3', 'name': '3 Roses', 'price': 3.99, 'quantity': 3},
+            {'id': 'roses_3', 'name': '3 Roses', 'price': 2.99, 'quantity': 3},
             {'id': 'roses_12', 'name': '12 Roses', 'price': 9.99, 'quantity': 12},
             {'id': 'super_likes_5', 'name': '5 Super Likes', 'price': 4.99, 'quantity': 5},
             {'id': 'super_likes_15', 'name': '15 Super Likes', 'price': 12.99, 'quantity': 15}
