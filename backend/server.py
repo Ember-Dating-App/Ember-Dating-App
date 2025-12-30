@@ -2529,6 +2529,58 @@ async def get_premium_plans():
 
 @api_router.post("/payments/checkout")
 async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
+
+
+# ==================== VIDEO CALL ENHANCEMENTS ====================
+
+@api_router.post("/calls/{call_id}/reaction")
+async def send_call_reaction(call_id: str, request: Request, current_user: dict = Depends(get_current_user)):
+    """Send a reaction during a video call (emoji, hearts, etc.)"""
+    body = await request.json()
+    reaction = body.get('reaction')
+    
+    if not reaction:
+        raise HTTPException(status_code=400, detail='Reaction required')
+    
+    # Get call details
+    call = await db.calls.find_one({'call_id': call_id}, {'_id': 0})
+    if not call:
+        raise HTTPException(status_code=404, detail='Call not found')
+    
+    # Verify user is part of the call
+    if current_user['user_id'] not in [call['caller_id'], call['callee_id']]:
+        raise HTTPException(status_code=403, detail='Not part of this call')
+    
+    # Send reaction to other user via WebSocket
+    other_id = call['callee_id'] if call['caller_id'] == current_user['user_id'] else call['caller_id']
+    ws_message = {
+        'type': 'call_reaction',
+        'call_id': call_id,
+        'reaction': reaction,
+        'from_user_id': current_user['user_id']
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
+    return {'message': 'Reaction sent', 'reaction': reaction}
+
+@api_router.get("/calls/reactions")
+async def get_available_reactions():
+    """Get available reactions for video calls"""
+    return {
+        'reactions': [
+            {'id': 'heart', 'emoji': '❤️', 'name': 'Love'},
+            {'id': 'laugh', 'emoji': '😂', 'name': 'Laugh'},
+            {'id': 'fire', 'emoji': '🔥', 'name': 'Fire'},
+            {'id': 'star', 'emoji': '⭐', 'name': 'Star'},
+            {'id': 'clap', 'emoji': '👏', 'name': 'Applause'},
+            {'id': 'wave', 'emoji': '👋', 'name': 'Wave'},
+            {'id': 'thumbs_up', 'emoji': '👍', 'name': 'Thumbs Up'},
+            {'id': 'kiss', 'emoji': '😘', 'name': 'Kiss'},
+            {'id': 'sparkle', 'emoji': '✨', 'name': 'Sparkle'},
+            {'id': 'celebrate', 'emoji': '🎉', 'name': 'Celebrate'}
+        ]
+    }
+
     """Create Stripe checkout session - amount defined server-side only"""
     package_id = checkout.package_id
     origin_url = checkout.origin_url
