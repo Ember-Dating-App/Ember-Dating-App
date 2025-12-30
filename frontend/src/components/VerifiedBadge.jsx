@@ -1,23 +1,38 @@
-import { Check } from 'lucide-react';
+import { Check, BadgeCheck } from 'lucide-react';
 
-export default function VerifiedBadge({ className = "w-6 h-6" }) {
+export default function VerifiedBadge({ className = 'w-5 h-5', size = 'md' }) {
+  const sizeClasses = {
+    xs: 'w-4 h-4',
+    sm: 'w-5 h-5',
+    md: 'w-6 h-6',
+    lg: 'w-7 h-7',
+    xl: 'w-8 h-8'
+  };
+
+  const iconSizes = {
+    xs: 'w-2 h-2',
+    sm: 'w-2.5 h-2.5',
+    md: 'w-3 h-3',
+    lg: 'w-3.5 h-3.5',
+    xl: 'w-4 h-4'
+  };
+
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`}>
-      {/* Blue circle background */}
-      <svg 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        className="w-full h-full"
-      >
-        {/* Outer badge shape */}
-        <path
-          d="M12 2L14.5 4.5L17.5 4L19 6.5L21.5 7L22 10L24 12L22 14L21.5 17L19 17.5L17.5 20L14.5 19.5L12 22L9.5 19.5L6.5 20L5 17.5L2.5 17L2 14L0 12L2 10L2.5 7L5 6.5L6.5 4L9.5 4.5L12 2Z"
-          fill="#3B82F6"
-          className="drop-shadow-md"
+    <div 
+      className={`${className || sizeClasses[size]} relative flex items-center justify-center flex-shrink-0`}
+      title="Verified Profile"
+    >
+      {/* Outer glow effect */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 blur-sm opacity-40" />
+      
+      {/* Main badge */}
+      <div className="relative w-full h-full rounded-full bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 flex items-center justify-center shadow-lg shadow-blue-500/30 ring-2 ring-white/20">
+        <Check 
+          className={iconSizes[size] || 'w-3 h-3'} 
+          strokeWidth={3.5} 
+          className="text-white drop-shadow-sm"
         />
-      </svg>
-      {/* White checkmark */}
-      <Check className="absolute w-3/5 h-3/5 text-white stroke-[3]" strokeLinecap="round" strokeLinejoin="round" />
+      </div>
     </div>
   );
 }
