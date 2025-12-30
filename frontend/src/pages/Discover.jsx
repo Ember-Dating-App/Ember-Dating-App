@@ -292,11 +292,30 @@ export default function Discover() {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="rounded-full gap-1"
+              className="rounded-full gap-2"
+              onClick={() => setShowFiltersModal(true)}
+            >
+              <Sliders className="w-4 h-4" />
+              Filters
+            </Button>
+            {canUndo && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full gap-2"
+                onClick={handleUndo}
+              >
+                <RotateCcw className="w-4 h-4" />
+                Undo
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
               onClick={() => navigate('/standouts')}
-              data-testid="standouts-btn"
             >
               <Sparkles className="w-4 h-4 text-yellow-400" />
               Standouts
@@ -310,6 +329,15 @@ export default function Discover() {
             >
               <Sparkles className="w-4 h-4" />
               Compatible
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
+              onClick={() => navigate('/daily-picks')}
+            >
+              <Crown className="w-4 h-4 text-orange-500" />
+              Daily Picks
             </Button>
           </div>
         </div>
