@@ -594,22 +594,35 @@ export default function Profile() {
                       )}
                     </div>
                   ) : editing ? (
-                    <button
-                      onClick={() => {
-                        const url = prompt('Enter image URL:');
-                        if (url) addPhoto(url);
-                      }}
-                      className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex items-center justify-center hover:border-primary/50 transition-colors"
-                      data-testid={`add-photo-${i}`}
-                    >
-                      <Plus className="w-6 h-6 text-muted-foreground" />
-                    </button>
+                    <label className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        disabled={loading}
+                        data-testid={`add-photo-${i}`}
+                      />
+                      {loading ? (
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      ) : (
+                        <>
+                          <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                          <span className="text-xs text-muted-foreground">Upload</span>
+                        </>
+                      )}
+                    </label>
                   ) : (
                     <div className="w-full h-full bg-muted rounded-xl" />
                   )}
                 </div>
               ))}
             </div>
+            {editing && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Click to upload photos from your device (Max 10MB each)
+              </p>
+            )}
           </div>
 
           {/* Prompts */}
