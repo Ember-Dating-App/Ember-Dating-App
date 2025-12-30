@@ -717,51 +717,109 @@ export default function Profile() {
 
           {/* Photos */}
           <div className="bg-card rounded-2xl p-4 border border-border/50">
-            <h3 className="font-semibold mb-3">Photos</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="aspect-square relative">
-                  {profile.photos[i] ? (
-                    <div className="relative w-full h-full rounded-xl overflow-hidden group">
-                      <img src={profile.photos[i]} alt="" className="w-full h-full object-cover" />
-                      {editing && (
-                        <button
-                          onClick={() => removePhoto(i)}
-                          className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          data-testid={`remove-photo-${i}`}
-                        >
-                          <X className="w-4 h-4 text-white" />
-                        </button>
-                      )}
-                    </div>
-                  ) : editing ? (
-                    <label className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        className="hidden"
-                        disabled={loading}
-                        data-testid={`add-photo-${i}`}
-                      />
-                      {loading ? (
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                      ) : (
-                        <>
-                          <Upload className="w-6 h-6 text-muted-foreground mb-1" />
-                          <span className="text-xs text-muted-foreground">Upload</span>
-                        </>
-                      )}
-                    </label>
-                  ) : (
-                    <div className="w-full h-full bg-muted rounded-xl" />
-                  )}
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Photos</h3>
+              {editing && hasReorderedPhotos && (
+                <Button
+                  onClick={savePhotoOrder}
+                  disabled={loading}
+                  size="sm"
+                  className="ember-gradient"
+                >
+                  Save Order
+                </Button>
+              )}
             </div>
-            {editing && (
+            
+            {editing && profile.photos.length > 0 ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={profile.photos} strategy={rectSortingStrategy}>
+                  <div className="grid grid-cols-3 gap-2">
+                    {profile.photos.map((photo, index) => (
+                      <SortablePhoto
+                        key={photo}
+                        photo={photo}
+                        index={index}
+                        onRemove={() => removePhoto(index)}
+                        loading={loading}
+                      />
+                    ))}
+                    {/* Empty slots for adding photos */}
+                    {[...Array(Math.max(0, 6 - profile.photos.length))].map((_, i) => (
+                      <div key={`empty-${i}`} className="aspect-square relative">
+                        <label className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                            disabled={loading}
+                            data-testid={`add-photo-${profile.photos.length + i}`}
+                          />
+                          {loading ? (
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                          ) : (
+                            <>
+                              <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                              <span className="text-xs text-muted-foreground">Upload</span>
+                            </>
+                          )}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            ) : (
+              <div className="grid grid-cols-3 gap-2">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="aspect-square relative">
+                    {profile.photos[i] ? (
+                      <div className="relative w-full h-full rounded-xl overflow-hidden group">
+                        <img src={profile.photos[i]} alt="" className="w-full h-full object-cover" />
+                        {editing && (
+                          <button
+                            onClick={() => removePhoto(i)}
+                            className="absolute top-1 right-1 w-6 h-6 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            data-testid={`remove-photo-${i}`}
+                          >
+                            <X className="w-4 h-4 text-white" />
+                          </button>
+                        )}
+                      </div>
+                    ) : editing ? (
+                      <label className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center hover:border-primary/50 transition-colors cursor-pointer">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handlePhotoUpload}
+                          className="hidden"
+                          disabled={loading}
+                          data-testid={`add-photo-${i}`}
+                        />
+                        {loading ? (
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                        ) : (
+                          <>
+                            <Upload className="w-6 h-6 text-muted-foreground mb-1" />
+                            <span className="text-xs text-muted-foreground">Upload</span>
+                          </>
+                        )}
+                      </label>
+                    ) : (
+                      <div className="w-full h-full bg-muted rounded-xl" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {editing && profile.photos.length > 0 && (
               <p className="text-xs text-muted-foreground mt-2">
-                Click to upload photos from your device (Max 10MB each)
+                💡 Drag photos to reorder. First photo is your main profile photo.
               </p>
             )}
           </div>
