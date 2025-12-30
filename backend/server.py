@@ -3038,6 +3038,218 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
 
 # ==================== STATIC FILES ====================
 
+
+# ==================== DATE SUGGESTIONS (GOOGLE PLACES) ====================
+
+GOOGLE_PLACES_API_KEY = os.environ.get('GOOGLE_PLACES_API_KEY', '')
+GOOGLE_PLACES_BASE_URL = "https://places.googleapis.com/v1/places"
+
+@api_router.get("/places/search")
+async def search_places(
+    query: str,
+    location: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    radius: int = 5000,  # 5km radius
+    place_type: str = "restaurant",  # restaurant, cafe, bar, museum, park, etc.
+    min_rating: Optional[float] = None,
+    price_level: Optional[str] = None,  # PRICE_LEVEL_FREE, INEXPENSIVE, MODERATE, EXPENSIVE, VERY_EXPENSIVE
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Search for places using Google Places API (New)
+    """
+    try:
+        # Build the request to Google Places API
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.rating,places.priceLevel,places.photos,places.types,places.websiteUri,places.googleMapsUri,places.location,places.userRatingCount,places.businessStatus"
+        }
+        
+        # Build search request
+        search_data = {
+            "textQuery": query,
+            "maxResultCount": 20
+        }
+        
+        # Add location bias if provided
+        if latitude and longitude:
+            search_data["locationBias"] = {
+                "circle": {
+                    "center": {
+                        "latitude": latitude,
+                        "longitude": longitude
+                    },
+                    "radius": radius
+                }
+            }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{GOOGLE_PLACES_BASE_URL}:searchText",
+                headers=headers,
+                json=search_data,
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                logger.error(f"Google Places API error: {response.status_code} - {response.text}")
+                raise HTTPException(status_code=500, detail="Failed to search places")
+            
+            data = response.json()
+            places = data.get('places', [])
+            
+            # Filter by rating if specified
+            if min_rating:
+                places = [p for p in places if p.get('rating', 0) >= min_rating]
+            
+            # Filter by price level if specified
+            if price_level:
+                places = [p for p in places if p.get('priceLevel') == price_level]
+            
+            # Filter by type
+            if place_type != "all":
+                places = [p for p in places if place_type in p.get('types', [])]
+            
+            return {
+                'places': places,
+                'total': len(places)
+            }
+            
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="Request timeout")
+    except Exception as e:
+        logger.error(f"Error searching places: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/places/{place_id}")
+async def get_place_details(
+    place_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get detailed information about a specific place
+    """
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": GOOGLE_PLACES_API_KEY,
+            "X-Goog-FieldMask": "id,displayName,formattedAddress,rating,priceLevel,photos,types,websiteUri,googleMapsUri,location,userRatingCount,businessStatus,currentOpeningHours,internationalPhoneNumber,reviews"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{GOOGLE_PLACES_BASE_URL}/{place_id}",
+                headers=headers,
+                timeout=10.0
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=404, detail="Place not found")
+            
+            return response.json()
+            
+    except Exception as e:
+        logger.error(f"Error fetching place details: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/messages/date-suggestion")
+async def send_date_suggestion(
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Send a date suggestion in a match conversation
+    """
+    body = await request.json()
+    match_id = body.get('match_id')
+    place_data = body.get('place_data')
+    message = body.get('message', '')
+    
+    if not match_id or not place_data:
+        raise HTTPException(status_code=400, detail='match_id and place_data required')
+    
+    # Verify match exists
+    match = await db.matches.find_one({'match_id': match_id}, {'_id': 0})
+    if not match:
+        raise HTTPException(status_code=404, detail='Match not found')
+    
+    # Verify user is part of the match
+    if current_user['user_id'] not in [match['user1_id'], match['user2_id']]:
+        raise HTTPException(status_code=403, detail='Not part of this match')
+    
+    # Create message with date suggestion
+    message_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    message_doc = {
+        'message_id': message_id,
+        'match_id': match_id,
+        'sender_id': current_user['user_id'],
+        'content': message or f"How about we check out {place_data.get('name', 'this place')}?",
+        'type': 'date_suggestion',
+        'date_suggestion': {
+            'place_id': place_data.get('id'),
+            'name': place_data.get('name'),
+            'address': place_data.get('address'),
+            'rating': place_data.get('rating'),
+            'price_level': place_data.get('priceLevel'),
+            'photo_url': place_data.get('photo_url'),
+            'maps_url': place_data.get('maps_url'),
+            'website_url': place_data.get('website_url'),
+            'types': place_data.get('types', [])
+        },
+        'sent_at': now,
+        'created_at': now,
+        'read': False,
+        'is_deleted': False
+    }
+    
+    await db.messages.insert_one(message_doc)
+    
+    # Update match last message time
+    await db.matches.update_one(
+        {'match_id': match_id},
+        {'$set': {'last_message_at': now}}
+    )
+    
+    # Send via WebSocket to other user
+    other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+    ws_message = {
+        'type': 'new_message',
+        'message': {k: v for k, v in message_doc.items() if k != '_id'}
+    }
+    await manager.send_personal_message(ws_message, other_id)
+    
+    return {k: v for k, v in message_doc.items() if k != '_id'}
+
+@api_router.get("/places/categories")
+async def get_place_categories():
+    """
+    Get available place categories for filtering
+    """
+    return {
+        'categories': [
+            {'value': 'restaurant', 'label': 'Restaurants', 'icon': '🍽️'},
+            {'value': 'cafe', 'label': 'Cafes', 'icon': '☕'},
+            {'value': 'bar', 'label': 'Bars', 'icon': '🍺'},
+            {'value': 'museum', 'label': 'Museums', 'icon': '🏛️'},
+            {'value': 'park', 'label': 'Parks', 'icon': '🌳'},
+            {'value': 'movie_theater', 'label': 'Movie Theaters', 'icon': '🎬'},
+            {'value': 'bowling_alley', 'label': 'Bowling', 'icon': '🎳'},
+            {'value': 'art_gallery', 'label': 'Art Galleries', 'icon': '🎨'},
+            {'value': 'amusement_park', 'label': 'Amusement Parks', 'icon': '🎢'},
+            {'value': 'zoo', 'label': 'Zoos', 'icon': '🦁'},
+            {'value': 'aquarium', 'label': 'Aquariums', 'icon': '🐠'},
+            {'value': 'night_club', 'label': 'Night Clubs', 'icon': '💃'},
+            {'value': 'shopping_mall', 'label': 'Shopping', 'icon': '🛍️'},
+            {'value': 'spa', 'label': 'Spas', 'icon': '💆'},
+            {'value': 'all', 'label': 'All Places', 'icon': '📍'}
+        ]
+    }
+
+
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
 
 # Include router
