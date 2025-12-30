@@ -523,7 +523,7 @@ class EmberAPITester:
             if gifts:
                 gift_data = {
                     "match_id": "test_match_123",
-                    "gift_id": list(gifts.keys())[0],
+                    "gift_id": gifts[0]['id'],  # Use first gift's ID
                     "message": "Test gift message"
                 }
                 
@@ -539,6 +539,26 @@ class EmberAPITester:
                 if success:
                     print(f"   Virtual gift endpoint working (expected 404 for non-existent match)")
                     return True
+        return False
+
+    def test_verification_photo(self):
+        """Test photo verification to enable other features"""
+        # Simple base64 encoded 1x1 pixel image for verification
+        verification_data = {
+            "selfie_data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77zgAAAABJRU5ErkJggg=="
+        }
+        
+        success, response = self.run_test(
+            "Photo Verification",
+            "POST",
+            "verification/photo",
+            200,
+            data=verification_data
+        )
+        
+        if success and response.get('status') == 'verified':
+            print(f"   Photo verification successful")
+            return True
         return False
 
     def test_date_suggestions(self):
