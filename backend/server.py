@@ -2503,6 +2503,139 @@ async def get_received_gifts(current_user: dict = Depends(get_current_user)):
     
     return {'gifts': gifts, 'total': len(gifts)}
 
+
+
+# ==================== PUSH NOTIFICATIONS (FIREBASE) ====================
+
+@api_router.post("/notifications/register-token")
+async def register_fcm_token(request: Request, current_user: dict = Depends(get_current_user)):
+    """Register user's FCM token for push notifications"""
+    body = await request.json()
+    fcm_token = body.get('token')
+    
+    if not fcm_token:
+        raise HTTPException(status_code=400, detail='FCM token required')
+    
+    # Save token to user's record
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {'fcm_token': fcm_token, 'last_token_update': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {'message': 'Token registered successfully'}
+
+@api_router.post("/notifications/preferences")
+async def update_notification_preferences(request: Request, current_user: dict = Depends(get_current_user)):
+    """Update user's notification preferences"""
+    body = await request.json()
+    
+    preferences = {
+        'new_matches': body.get('new_matches', True),
+        'new_messages': body.get('new_messages', True),
+        'new_likes': body.get('new_likes', True),
+        'super_likes': body.get('super_likes', True),
+        'roses': body.get('roses', True),
+        'date_suggestions': body.get('date_suggestions', True),
+        'virtual_gifts': body.get('virtual_gifts', True)
+    }
+    
+    await db.users.update_one(
+        {'user_id': current_user['user_id']},
+        {'$set': {'notification_preferences': preferences}}
+    )
+    
+    return {'message': 'Preferences updated', 'preferences': preferences}
+
+@api_router.get("/notifications/preferences")
+async def get_notification_preferences(current_user: dict = Depends(get_current_user)):
+    """Get user's notification preferences"""
+    user = await db.users.find_one({'user_id': current_user['user_id']}, {'_id': 0})
+    preferences = user.get('notification_preferences', {
+        'new_matches': True,
+        'new_messages': True,
+        'new_likes': True,
+        'super_likes': True,
+        'roses': True,
+        'date_suggestions': True,
+        'virtual_gifts': True
+    })
+    
+    return {'preferences': preferences}
+
+async def send_push_notification(user_id: str, title: str, body: str, data: dict = None):
+    """Helper function to send push notification via Firebase"""
+    try:
+        # Get user's FCM token
+        user = await db.users.find_one({'user_id': user_id}, {'_id': 0})
+        
+        if not user or not user.get('fcm_token'):
+            logger.info(f"No FCM token for user {user_id}")
+            return False
+        
+        # Check notification preferences
+        preferences = user.get('notification_preferences', {})
+        notification_type = data.get('type') if data else 'general'
+        
+        # Check if user has this notification type enabled
+        if notification_type in preferences and not preferences.get(notification_type):
+            logger.info(f"Notification type {notification_type} disabled for user {user_id}")
+            return False
+        
+        # Prepare message
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            data=data or {},
+            token=user['fcm_token']
+        )
+        
+        # Send message
+        response = messaging.send(message)
+        logger.info(f"Push notification sent to {user_id}: {response}")
+        
+        # Store notification in database
+        notification_doc = {
+            'notification_id': str(uuid.uuid4()),
+            'user_id': user_id,
+            'title': title,
+            'body': body,
+            'data': data or {},
+            'sent_at': datetime.now(timezone.utc).isoformat(),
+            'read': False
+        }
+        await db.notifications.insert_one(notification_doc)
+        
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send push notification: {e}")
+        return False
+
+@api_router.get("/notifications/history")
+async def get_notification_history(current_user: dict = Depends(get_current_user)):
+    """Get user's notification history"""
+    notifications = await db.notifications.find(
+        {'user_id': current_user['user_id']},
+        {'_id': 0}
+    ).sort('sent_at', -1).limit(50).to_list(50)
+    
+    return {'notifications': notifications, 'total': len(notifications)}
+
+@api_router.put("/notifications/{notification_id}/read")
+async def mark_notification_read(notification_id: str, current_user: dict = Depends(get_current_user)):
+    """Mark a notification as read"""
+    result = await db.notifications.update_one(
+        {'notification_id': notification_id, 'user_id': current_user['user_id']},
+        {'$set': {'read': True, 'read_at': datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail='Notification not found')
+    
+    return {'message': 'Notification marked as read'}
+
 # ==================== STRIPE PAYMENT ROUTES ====================
 
 @api_router.get("/premium/plans")
