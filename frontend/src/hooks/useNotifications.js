@@ -22,7 +22,7 @@ export function useNotifications(user) {
           
           // Get FCM token
           const token = await getToken(messaging, {
-            vapidKey: 'BKVQv_6XJ3bCZXr8Y7vFjH8pE4PZK0ZzC7yX5w9lQ5rT3xY8wA6KjN9sP2rV4mD7', // You'll need to generate this in Firebase Console
+            vapidKey: 'ojInXOVYwOJlEjP0LyNC10OJzPsJYEEVWBy2QR6a36Q',
             serviceWorkerRegistration: registration
           });
           
