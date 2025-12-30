@@ -184,6 +184,56 @@ export default function Discover() {
       // Refresh limits
       await fetchLimits();
       
+      // Enable undo button
+      setCanUndo(true);
+      
+      // Show remaining swipes notification
+      if (!user?.is_premium) {
+        const newLimits = await axios.get(`${API}/limits/swipes`, { headers, withCredentials: true });
+        const remaining = newLimits.data.swipes.remaining;
+        
+        if (remaining === 3) {
+          toast.warning('3 swipes remaining today');
+        } else if (remaining === 1) {
+          toast.warning('Only 1 swipe remaining today!');
+        } else if (remaining === 0) {
+          toast.error('Out of swipes! Upgrade for unlimited swipes.');
+        }
+      }
+      
+      nextProfile();
+    } catch (error) {
+      if (error.response?.status === 429) {
+        setShowOutOfSwipesModal(true);
+      } else {
+        console.error('Pass error:', error);
+        nextProfile(); // Still move to next profile
+      }
+    }
+  };
+
+  const handleUndo = async () => {
+    try {
+      const response = await axios.post(`${API}/discover/undo`, {}, { headers, withCredentials: true });
+      
+      // Add the undone profile back to the front of the list
+      const undoneProfile = response.data.profile;
+      setProfiles([undoneProfile, ...profiles.slice(currentIndex)]);
+      setCurrentIndex(0);
+      setCanUndo(false);
+      
+      toast.success('Last pass undone!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Cannot undo');
+      setCanUndo(false);
+    }
+  };
+
+  const handleFiltersApplied = async () => {
+    toast.success('Filters applied! Refreshing profiles...');
+    await fetchProfiles();
+  };
+      
       // Show remaining swipes notification
       if (!user?.is_premium) {
         const newLimits = await axios.get(`${API}/limits/swipes`, { headers, withCredentials: true });
