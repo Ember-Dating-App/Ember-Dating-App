@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown } from 'lucide-react';
+import { Heart, X, MapPin, Sparkles, ChevronDown, Star, Crown, Flower2 } from 'lucide-react';
 import { useAuth, API } from '@/App';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Navigation from '@/components/Navigation';
+import SwipeLimitIndicator from '@/components/SwipeLimitIndicator';
+import OutOfSwipesModal from '@/components/OutOfSwipesModal';
 
 export default function Discover() {
   const navigate = useNavigate();
@@ -21,6 +23,8 @@ export default function Discover() {
   const [likeType, setLikeType] = useState('regular');
   const [showCompatible, setShowCompatible] = useState(false);
   const [sendingLike, setSendingLike] = useState(false);
+  const [showOutOfSwipesModal, setShowOutOfSwipesModal] = useState(false);
+  const [limits, setLimits] = useState(null);
 
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
