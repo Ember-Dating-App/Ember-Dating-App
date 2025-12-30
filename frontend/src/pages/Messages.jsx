@@ -458,7 +458,16 @@ export default function Messages() {
                     className={`message-bubble ${isSent ? 'message-sent' : 'message-received'} ${msg.is_deleted ? 'opacity-60 italic' : ''}`}
                     data-testid={`message-${msg.message_id}`}
                   >
-                    {msg.type === 'date_suggestion' && msg.date_suggestion ? (
+                    {msg.type === 'virtual_gift' && msg.gift_data ? (
+                      <div className="text-center space-y-2">
+                        <div className="text-6xl">{msg.gift_data.emoji}</div>
+                        <p className="font-medium">{msg.gift_data.name}</p>
+                        <p className="text-xs opacity-80">{msg.gift_data.description}</p>
+                        {msg.content && !msg.content.includes('Sent you a') && (
+                          <p className="text-sm italic mt-2 bg-black/20 rounded p-2">"{msg.content}"</p>
+                        )}
+                      </div>
+                    ) : msg.type === 'date_suggestion' && msg.date_suggestion ? (
                       <div className="space-y-2">
                         <p className="font-medium">{msg.content}</p>
                         <div className="bg-black/20 rounded-lg p-3 mt-2 space-y-2">
