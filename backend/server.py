@@ -438,12 +438,6 @@ async def register(user_data: UserCreate):
     }
     
     await db.users.insert_one(user_doc)
-        'last_passed_at': None,
-        'created_at': now,
-        'last_active': now
-    }
-    
-    await db.users.insert_one(user_doc)
     token = create_token(user_id)
     
     return {'token': token, 'user': {k: v for k, v in user_doc.items() if k not in ['password', '_id']}}
