@@ -19,6 +19,7 @@ import Premium from "@/pages/Premium";
 import Standouts from "@/pages/Standouts";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Verification from "@/pages/Verification";
+import DailyPicksTab from "@/components/DailyPicksTab";
 
 // Contexts
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
