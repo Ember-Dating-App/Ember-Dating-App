@@ -11,6 +11,7 @@ import Navigation from '@/components/Navigation';
 import OutOfSwipesModal from '@/components/OutOfSwipesModal';
 import AdvancedFiltersModal from '@/components/AdvancedFiltersModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
+import AmbassadorBadge from '@/components/AmbassadorBadge';
 
 export default function Discover() {
   const navigate = useNavigate();
