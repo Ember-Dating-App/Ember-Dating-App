@@ -46,17 +46,19 @@ export default function Likes() {
   const handleLikeBack = async (like) => {
     try {
       const response = await axios.post(`${API}/likes`, {
-        liked_user_id: like.liker_id
+        liked_user_id: like.liker?.user_id || like.sender?.user_id
       }, { headers, withCredentials: true });
 
       if (response.data.match) {
-        toast.success(`It's a match with ${like.liker.name}!`, {
+        toast.success(`It's a match with ${like.liker?.name || like.sender?.name}!`, {
           action: {
             label: 'Message',
             onClick: () => navigate(`/messages/${response.data.match.match_id}`)
           }
         });
-        setLikes(likes.filter(l => l.like_id !== like.like_id));
+        if (likesData?.likes) {
+          setLikesData({ ...likesData, likes: likesData.likes.filter(l => l.like_id !== like.like_id) });
+        }
       }
     } catch (error) {
       toast.error('Failed to like back');
@@ -66,7 +68,9 @@ export default function Likes() {
   const handleReject = async (like) => {
     try {
       await axios.delete(`${API}/likes/${like.like_id}`, { headers, withCredentials: true });
-      setLikes(likes.filter(l => l.like_id !== like.like_id));
+      if (likesData?.likes) {
+        setLikesData({ ...likesData, likes: likesData.likes.filter(l => l.like_id !== like.like_id) });
+      }
       toast.success('Like removed');
     } catch (error) {
       toast.error('Failed to remove like');
