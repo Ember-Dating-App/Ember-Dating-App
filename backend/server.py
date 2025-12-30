@@ -2529,6 +2529,36 @@ async def get_premium_plans():
 
 @api_router.post("/payments/checkout")
 async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
+    """Create a Stripe checkout session for premium subscription"""
+    try:
+        # Create Stripe checkout session
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': f'Ember Premium - {checkout.plan_id.title()}',
+                    },
+                    'unit_amount': int(checkout.amount * 100),  # Convert to cents
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=checkout.success_url,
+            cancel_url=checkout.cancel_url,
+            client_reference_id=current_user['user_id'],
+            metadata={
+                'user_id': current_user['user_id'],
+                'plan_id': checkout.plan_id,
+                'type': checkout.type
+            }
+        )
+        
+        return {'url': session.url, 'session_id': session.id}
+    except Exception as e:
+        logger.error(f"Stripe checkout error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ==================== VIDEO CALL ENHANCEMENTS ====================
