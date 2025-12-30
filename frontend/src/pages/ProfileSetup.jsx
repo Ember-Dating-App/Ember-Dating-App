@@ -283,12 +283,13 @@ export default function ProfileSetup() {
                   ) : (
                     <label className="w-full h-full bg-muted rounded-xl border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors">
                       <Camera className="w-8 h-8 text-muted-foreground mb-2" />
-                      <span className="text-xs text-muted-foreground">Add photo</span>
+                      <span className="text-xs text-muted-foreground text-center px-2">Upload photo</span>
                       <input
-                        type="text"
+                        type="file"
+                        accept="image/*"
                         className="hidden"
-                        placeholder="Enter image URL"
-                        onBlur={(e) => e.target.value && addPhoto(e.target.value)}
+                        onChange={handlePhotoUpload}
+                        disabled={loading}
                         data-testid={`photo-input-${i}`}
                       />
                     </label>
@@ -297,41 +298,26 @@ export default function ProfileSetup() {
               ))}
             </div>
 
-            <div className="space-y-2">
-              <Label>Or paste image URL</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="https://example.com/photo.jpg"
-                  className="h-12 bg-muted/50 border-muted focus:border-primary rounded-xl"
-                  id="photo-url-input"
-                  data-testid="photo-url-input"
-                />
-                <Button
-                  type="button"
-                  className="h-12 px-6 ember-gradient rounded-xl"
-                  onClick={() => {
-                    const input = document.getElementById('photo-url-input');
-                    if (input.value) {
-                      addPhoto(input.value);
-                      input.value = '';
-                    }
-                  }}
-                  data-testid="add-photo-btn"
-                >
-                  <Plus className="w-5 h-5" />
-                </Button>
+            {loading && (
+              <div className="text-center text-muted-foreground">
+                <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
+                <p className="text-sm">Uploading photo...</p>
               </div>
-            </div>
+            )}
 
-            <div className="space-y-2">
-              <Label>Video profile URL (optional)</Label>
-              <Input
-                placeholder="https://youtube.com/watch?v=..."
-                className="h-12 bg-muted/50 border-muted focus:border-primary rounded-xl"
-                value={profile.video_url}
-                onChange={(e) => setProfile({ ...profile, video_url: e.target.value })}
-                data-testid="video-url-input"
-              />
+            <div className="bg-muted/50 rounded-xl p-4 border border-border/50">
+              <div className="flex items-start gap-3">
+                <Camera className="w-5 h-5 text-primary mt-0.5" />
+                <div className="text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground mb-1">Photo Tips</p>
+                  <ul className="space-y-1">
+                    <li>• Choose clear, well-lit photos</li>
+                    <li>• Include a mix of close-up and full-body shots</li>
+                    <li>• Show your genuine smile and personality</li>
+                    <li>• Maximum file size: 10MB per photo</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         );
