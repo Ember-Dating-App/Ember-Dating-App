@@ -144,6 +144,7 @@ class UserLogin(BaseModel):
     password: str
 
 class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
     age: Optional[int] = None
     gender: Optional[str] = None
     interested_in: Optional[str] = None
@@ -153,6 +154,16 @@ class ProfileUpdate(BaseModel):
     video_url: Optional[str] = None
     prompts: Optional[List[Dict[str, str]]] = None
     interests: Optional[List[str]] = None
+    height: Optional[int] = None
+    education: Optional[str] = None
+    dating_purpose: Optional[str] = None
+    religion: Optional[str] = None
+    languages: Optional[List[str]] = None
+    children: Optional[str] = None
+    political_view: Optional[str] = None
+    has_pets: Optional[str] = None
+    ethnicity: Optional[str] = None
+    sub_ethnicity: Optional[str] = None
 
 class LocationUpdate(BaseModel):
     city: str
