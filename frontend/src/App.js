@@ -27,6 +27,7 @@ import useNotifications from "@/hooks/useNotifications";
 
 // Contexts
 import { WebSocketProvider } from "@/contexts/WebSocketContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
