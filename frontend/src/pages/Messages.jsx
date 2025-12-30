@@ -334,6 +334,13 @@ export default function Messages() {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setShowDateSuggestionsModal(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-rose-500"
+              title="Suggest a date spot"
+            >
+              <MapPin className="w-5 h-5" />
+            </button>
+            <button
               onClick={() => setShowGameModal(true)}
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors text-primary"
               title="Play icebreaker game"
