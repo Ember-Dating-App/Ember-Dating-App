@@ -636,6 +636,822 @@ class EmberAPITester:
             return True
         return False
 
+    # ==================== COMPREHENSIVE API TESTS ====================
+    
+    def test_google_oauth(self):
+        """Test Google OAuth session (mock test)"""
+        # This would require actual Google session ID, so we test the endpoint structure
+        mock_data = {"session_id": "mock_session_123"}
+        
+        success, response = self.run_test(
+            "Google OAuth Session",
+            "POST",
+            "auth/google/session",
+            401,  # Expected to fail with mock data
+            data=mock_data
+        )
+        
+        if success:  # 401 is expected response for invalid session
+            print(f"   Google OAuth endpoint accessible")
+            return True
+        return False
+
+    def test_apple_signin(self):
+        """Test Apple Sign-In session (mock test)"""
+        mock_data = {
+            "apple_data": {
+                "email": "test@example.com",
+                "name": "Test User",
+                "session_token": "mock_apple_token"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Apple Sign-In Session",
+            "POST",
+            "auth/apple/session",
+            200,
+            data=mock_data
+        )
+        
+        if success and 'user' in response:
+            print(f"   Apple Sign-In working")
+            return True
+        return False
+
+    def test_verification_status(self):
+        """Test verification status endpoint"""
+        success, response = self.run_test(
+            "Get Verification Status",
+            "GET",
+            "verification/status",
+            200
+        )
+        
+        if success and 'verification_status' in response:
+            print(f"   Verification status: {response['verification_status']}")
+            return True
+        return False
+
+    def test_phone_verification_flow(self):
+        """Test phone verification flow"""
+        # Send verification code
+        phone_data = {"phone": "+1234567890"}
+        
+        success, response = self.run_test(
+            "Send Phone Verification Code",
+            "POST",
+            "verification/phone/send",
+            200,
+            data=phone_data
+        )
+        
+        if success and 'message' in response:
+            print(f"   Phone verification code sent")
+            
+            # Get the debug code if available
+            debug_code = response.get('debug_code')
+            if debug_code:
+                # Verify the code
+                verify_data = {
+                    "phone": "+1234567890",
+                    "code": debug_code
+                }
+                
+                success, response = self.run_test(
+                    "Verify Phone Code",
+                    "POST",
+                    "verification/phone/verify",
+                    200,
+                    data=verify_data
+                )
+                
+                if success and response.get('status') == 'verified':
+                    print(f"   Phone verification successful")
+                    return True
+        return False
+
+    def test_id_verification(self):
+        """Test ID verification endpoint"""
+        # Simple base64 encoded image for ID verification
+        id_data = {
+            "id_photo_data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77zgAAAABJRU5ErkJggg=="
+        }
+        
+        success, response = self.run_test(
+            "ID Verification",
+            "POST",
+            "verification/id",
+            200,
+            data=id_data
+        )
+        
+        if success and response.get('status') == 'verified':
+            print(f"   ID verification successful")
+            return True
+        return False
+
+    def test_swipe_limits(self):
+        """Test swipe limits endpoint"""
+        success, response = self.run_test(
+            "Get Swipe Limits",
+            "GET",
+            "limits/swipes",
+            200
+        )
+        
+        if success and 'swipes' in response:
+            swipes = response['swipes']
+            super_likes = response['super_likes']
+            roses = response['roses']
+            print(f"   Swipes: {swipes['remaining']}/{swipes['max']}")
+            print(f"   Super likes: {super_likes['remaining']}/{super_likes['max']}")
+            print(f"   Roses: {roses['remaining']}/{roses['max']}")
+            return True
+        return False
+
+    def test_discover_daily_picks(self):
+        """Test daily picks endpoint"""
+        success, response = self.run_test(
+            "Get Daily Picks",
+            "GET",
+            "discover/daily-picks",
+            200
+        )
+        
+        if success:
+            picks_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {picks_count} daily picks")
+            return True
+        return False
+
+    def test_pass_profile(self):
+        """Test pass profile endpoint"""
+        pass_data = {"liked_user_id": "test_user_pass_123"}
+        
+        success, response = self.run_test(
+            "Pass Profile",
+            "POST",
+            "discover/pass",
+            200,
+            data=pass_data
+        )
+        
+        if success and 'message' in response:
+            print(f"   Profile passed successfully")
+            return True
+        return False
+
+    def test_undo_pass(self):
+        """Test undo pass endpoint"""
+        success, response = self.run_test(
+            "Undo Pass",
+            "POST",
+            "discover/undo",
+            200
+        )
+        
+        if success:
+            print(f"   Undo pass endpoint working")
+            return True
+        return False
+
+    def test_roses_received(self):
+        """Test roses received endpoint"""
+        success, response = self.run_test(
+            "Get Roses Received",
+            "GET",
+            "likes/roses-received",
+            200
+        )
+        
+        if success:
+            roses_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {roses_count} roses received")
+            return True
+        return False
+
+    def test_match_operations(self):
+        """Test match operations"""
+        # Test getting matches
+        success, response = self.run_test(
+            "Get All Matches",
+            "GET",
+            "matches",
+            200,
+            is_critical=True
+        )
+        
+        if success:
+            matches_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {matches_count} matches")
+            
+            # Test unmatch (will fail without real match, but tests endpoint)
+            success, response = self.run_test(
+                "Unmatch User",
+                "DELETE",
+                "matches/test_match_123",
+                404  # Expected since match doesn't exist
+            )
+            
+            if success:
+                print(f"   Unmatch endpoint working (expected 404)")
+                return True
+        return False
+
+    def test_messaging_system(self):
+        """Test messaging system endpoints"""
+        # Test get messages
+        success, response = self.run_test(
+            "Get Messages",
+            "GET",
+            "messages/test_match_123",
+            404  # Expected since match doesn't exist
+        )
+        
+        if success:
+            print(f"   Get messages endpoint working (expected 404)")
+        
+        # Test send message
+        message_data = {
+            "match_id": "test_match_123",
+            "content": "Hello, this is a test message!"
+        }
+        
+        success, response = self.run_test(
+            "Send Message",
+            "POST",
+            "messages",
+            404,  # Expected since match doesn't exist
+            data=message_data
+        )
+        
+        if success:
+            print(f"   Send message endpoint working (expected 404)")
+        
+        # Test edit message
+        success, response = self.run_test(
+            "Edit Message",
+            "PUT",
+            "messages/test_message_123",
+            404,  # Expected since message doesn't exist
+            data={"content": "Edited message"}
+        )
+        
+        if success:
+            print(f"   Edit message endpoint working (expected 404)")
+        
+        # Test delete message
+        success, response = self.run_test(
+            "Delete Message",
+            "DELETE",
+            "messages/test_message_123",
+            404  # Expected since message doesn't exist
+        )
+        
+        if success:
+            print(f"   Delete message endpoint working (expected 404)")
+            return True
+        return False
+
+    def test_icebreaker_games(self):
+        """Test icebreaker games system"""
+        # Get available games
+        success, response = self.run_test(
+            "Get Icebreaker Games",
+            "GET",
+            "icebreakers/games",
+            200
+        )
+        
+        if success and 'games' in response:
+            games = response['games']
+            print(f"   Found {len(games)} icebreaker games")
+            
+            if games:
+                # Test starting a game
+                game_data = {
+                    "match_id": "test_match_123",
+                    "game_id": games[0]['id']
+                }
+                
+                success, response = self.run_test(
+                    "Start Icebreaker Game",
+                    "POST",
+                    "icebreakers/start",
+                    404,  # Expected since match doesn't exist
+                    data=game_data
+                )
+                
+                if success:
+                    print(f"   Start game endpoint working (expected 404)")
+                
+                # Test submitting answer
+                answer_data = {
+                    "answer": "Test answer"
+                }
+                
+                success, response = self.run_test(
+                    "Submit Game Answer",
+                    "POST",
+                    "icebreakers/test_game_123/answer",
+                    404,  # Expected since game doesn't exist
+                    data=answer_data
+                )
+                
+                if success:
+                    print(f"   Submit answer endpoint working (expected 404)")
+                    return True
+        return False
+
+    def test_virtual_gifts_comprehensive(self):
+        """Test comprehensive virtual gifts system"""
+        # Get available gifts
+        success, response = self.run_test(
+            "Get Virtual Gifts List",
+            "GET",
+            "virtual-gifts",
+            200,
+            is_critical=True
+        )
+        
+        if success and 'gifts' in response:
+            gifts = response['gifts']
+            print(f"   Found {len(gifts)} virtual gifts available")
+            
+            # Test sending a gift
+            if gifts:
+                gift_data = {
+                    "match_id": "test_match_123",
+                    "gift_id": gifts[0]['id'],
+                    "message": "Here's a virtual gift for you!"
+                }
+                
+                success, response = self.run_test(
+                    "Send Virtual Gift",
+                    "POST",
+                    "virtual-gifts/send",
+                    404,  # Expected since match doesn't exist
+                    data=gift_data
+                )
+                
+                if success:
+                    print(f"   Send gift endpoint working (expected 404)")
+            
+            # Test received gifts
+            success, response = self.run_test(
+                "Get Received Gifts",
+                "GET",
+                "virtual-gifts/received",
+                200
+            )
+            
+            if success:
+                received_count = len(response) if isinstance(response, list) else 0
+                print(f"   Found {received_count} received gifts")
+                return True
+        return False
+
+    def test_places_search(self):
+        """Test places search system"""
+        # Search places
+        success, response = self.run_test(
+            "Search Places",
+            "GET",
+            "places/search?query=restaurant&location=New York",
+            200
+        )
+        
+        if success and 'places' in response:
+            places = response['places']
+            print(f"   Found {len(places)} places")
+            
+            if places:
+                # Test place details
+                place_id = places[0].get('id', 'test_place_123')
+                success, response = self.run_test(
+                    "Get Place Details",
+                    "GET",
+                    f"places/{place_id}",
+                    200
+                )
+                
+                if success:
+                    print(f"   Place details retrieved")
+        
+        # Test place categories
+        success, response = self.run_test(
+            "Get Place Categories",
+            "GET",
+            "places/categories",
+            200
+        )
+        
+        if success and 'categories' in response:
+            categories = response['categories']
+            print(f"   Found {len(categories)} place categories")
+            return True
+        return False
+
+    def test_video_calls(self):
+        """Test video call system"""
+        # Test initiating a call
+        call_data = {
+            "match_id": "test_match_123",
+            "call_type": "video"
+        }
+        
+        success, response = self.run_test(
+            "Initiate Video Call",
+            "POST",
+            "calls/initiate",
+            404,  # Expected since match doesn't exist
+            data=call_data
+        )
+        
+        if success:
+            print(f"   Initiate call endpoint working (expected 404)")
+        
+        # Test ICE servers (already tested but part of video calls)
+        success, response = self.run_test(
+            "Get ICE Servers for Calls",
+            "GET",
+            "calls/ice-servers",
+            200,
+            is_critical=True
+        )
+        
+        if success and 'iceServers' in response:
+            ice_servers = response['iceServers']
+            print(f"   Found {len(ice_servers)} ICE servers")
+            
+            # Test call reaction
+            reaction_data = {
+                "reaction": "heart",
+                "timestamp": datetime.now().isoformat()
+            }
+            
+            success, response = self.run_test(
+                "Send Call Reaction",
+                "POST",
+                "calls/test_call_123/reaction",
+                404,  # Expected since call doesn't exist
+                data=reaction_data
+            )
+            
+            if success:
+                print(f"   Call reaction endpoint working (expected 404)")
+                return True
+        return False
+
+    def test_payment_system(self):
+        """Test comprehensive payment system"""
+        # Test premium plans
+        success, response = self.run_test(
+            "Get Premium Plans",
+            "GET",
+            "premium/plans",
+            200,
+            is_critical=True
+        )
+        
+        if success and 'plans' in response:
+            plans = response['plans']
+            print(f"   Found {len(plans)} premium plans")
+            
+            # Test checkout session creation
+            checkout_data = {
+                "package_id": "monthly",
+                "origin_url": self.base_url
+            }
+            
+            success, response = self.run_test(
+                "Create Stripe Checkout",
+                "POST",
+                "payments/checkout",
+                200,
+                data=checkout_data
+            )
+            
+            if success and 'url' in response and 'session_id' in response:
+                session_id = response['session_id']
+                print(f"   Checkout session created: {session_id}")
+                
+                # Test payment status
+                success, response = self.run_test(
+                    "Check Payment Status",
+                    "GET",
+                    f"payments/status/{session_id}",
+                    200
+                )
+                
+                if success:
+                    status = response.get('status', 'unknown')
+                    print(f"   Payment status: {status}")
+                    return True
+        return False
+
+    def test_push_notifications_system(self):
+        """Test push notifications system"""
+        # Test register FCM token
+        token_data = {
+            "fcm_token": "test_fcm_token_123",
+            "device_type": "android"
+        }
+        
+        success, response = self.run_test(
+            "Register FCM Token",
+            "POST",
+            "notifications/register-token",
+            200,
+            data=token_data
+        )
+        
+        if success:
+            print(f"   FCM token registered")
+        
+        # Test notification preferences
+        success, response = self.run_test(
+            "Get Notification Preferences",
+            "GET",
+            "notifications/preferences",
+            200
+        )
+        
+        if success:
+            print(f"   Notification preferences retrieved")
+        
+        # Test update preferences
+        prefs_data = {
+            "new_matches": True,
+            "new_messages": True,
+            "new_likes": False,
+            "standouts": True
+        }
+        
+        success, response = self.run_test(
+            "Update Notification Preferences",
+            "POST",
+            "notifications/preferences",
+            200,
+            data=prefs_data
+        )
+        
+        if success:
+            print(f"   Notification preferences updated")
+        
+        # Test notification history
+        success, response = self.run_test(
+            "Get Notification History",
+            "GET",
+            "notifications/history",
+            200
+        )
+        
+        if success:
+            history_count = len(response) if isinstance(response, list) else 0
+            print(f"   Found {history_count} notifications in history")
+            return True
+        return False
+
+    def test_user_blocking_reporting(self):
+        """Test user blocking and reporting system"""
+        # Test block user
+        block_data = {"blocked_user_id": "test_user_block_123"}
+        
+        success, response = self.run_test(
+            "Block User",
+            "POST",
+            "users/block",
+            200,
+            data=block_data
+        )
+        
+        if success:
+            print(f"   User blocked successfully")
+            
+            # Test get blocked users
+            success, response = self.run_test(
+                "Get Blocked Users",
+                "GET",
+                "users/blocked",
+                200
+            )
+            
+            if success:
+                blocked_count = len(response) if isinstance(response, list) else 0
+                print(f"   Found {blocked_count} blocked users")
+                
+                # Test unblock user
+                success, response = self.run_test(
+                    "Unblock User",
+                    "POST",
+                    "users/unblock",
+                    200,
+                    data=block_data
+                )
+                
+                if success:
+                    print(f"   User unblocked successfully")
+        
+        # Test report user
+        report_data = {
+            "reported_user_id": "test_user_report_123",
+            "reason": "inappropriate_content",
+            "details": "Test report for inappropriate behavior"
+        }
+        
+        success, response = self.run_test(
+            "Report User",
+            "POST",
+            "users/report",
+            200,
+            data=report_data
+        )
+        
+        if success:
+            print(f"   User reported successfully")
+            return True
+        return False
+
+    def test_advanced_filters(self):
+        """Test advanced filter system"""
+        # Test filter preferences update
+        filter_data = {
+            "age_min": 25,
+            "age_max": 35,
+            "max_distance": 25,
+            "height_min": 160,
+            "height_max": 180,
+            "education_levels": ["Bachelor's", "Master's"],
+            "specific_interests": ["Travel", "Fitness"],
+            "genders": ["woman"],
+            "dating_purposes": ["long_term"],
+            "religions": ["Christian", "Agnostic"],
+            "languages": ["English", "Spanish"],
+            "children_preference": ["no_children"],
+            "political_views": ["moderate"],
+            "pets": ["dog_lover"],
+            "ethnicities": ["caucasian"],
+            "sub_ethnicities": ["italian"]
+        }
+        
+        success, response = self.run_test(
+            "Update Filter Preferences",
+            "PUT",
+            "profile/filters",
+            200,
+            data=filter_data
+        )
+        
+        if success:
+            print(f"   Filter preferences updated")
+            return True
+        return False
+
+    def test_file_uploads(self):
+        """Test comprehensive file upload system"""
+        # Test photo upload (base64)
+        photo_data = {
+            "data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77zgAAAABJRU5ErkJggg=="
+        }
+        
+        success, response = self.run_test(
+            "Upload Photo Base64",
+            "POST",
+            "upload/photo/base64",
+            200,
+            data=photo_data
+        )
+        
+        if success and 'url' in response:
+            photo_url = response['url']
+            print(f"   Photo uploaded: {photo_url[:50]}...")
+            
+            # Test photo deletion
+            public_id = response.get('public_id')
+            if public_id:
+                success, response = self.run_test(
+                    "Delete Photo",
+                    "DELETE",
+                    f"upload/photo/{public_id}",
+                    200
+                )
+                
+                if success:
+                    print(f"   Photo deleted successfully")
+        
+        # Test video upload (base64)
+        video_data = {
+            "data": "data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAr1tZGF0"
+        }
+        
+        success, response = self.run_test(
+            "Upload Video Base64",
+            "POST",
+            "upload/video/base64",
+            200,
+            data=video_data
+        )
+        
+        if success and 'url' in response:
+            print(f"   Video uploaded: {response['url'][:50]}...")
+            return True
+        return False
+
+    def test_cloudinary_config(self):
+        """Test Cloudinary configuration endpoint"""
+        success, response = self.run_test(
+            "Get Cloudinary Config",
+            "GET",
+            "cloudinary/config",
+            200
+        )
+        
+        if success and 'cloud_name' in response:
+            print(f"   Cloudinary cloud name: {response['cloud_name']}")
+            return True
+        return False
+
+    def test_profile_management(self):
+        """Test comprehensive profile management"""
+        # Test profile update (already tested but more comprehensive)
+        profile_data = {
+            "age": 28,
+            "gender": "woman",
+            "interested_in": "men",
+            "location": "San Francisco",
+            "bio": "Love hiking, coffee, and good conversations. Looking for someone genuine!",
+            "photos": ["https://images.unsplash.com/photo-1759873821395-c29de82a5b99?w=400"],
+            "prompts": [
+                {"question": "A perfect Sunday looks like...", "answer": "Brunch with friends followed by a nature hike"},
+                {"question": "I'm looking for...", "answer": "Someone who shares my love for adventure and deep conversations"}
+            ],
+            "interests": ["Hiking", "Coffee", "Photography", "Travel", "Yoga"],
+            "height": 165,
+            "education": "Master's",
+            "dating_purpose": "long_term",
+            "religion": "Agnostic",
+            "languages": ["English", "Spanish"],
+            "children": "want_someday",
+            "political_view": "moderate",
+            "has_pets": "dog_lover",
+            "ethnicity": "mixed",
+            "sub_ethnicity": "latin_american"
+        }
+        
+        success, response = self.run_test(
+            "Comprehensive Profile Update",
+            "PUT",
+            "profile",
+            200,
+            data=profile_data,
+            is_critical=True
+        )
+        
+        if success and response.get('is_profile_complete'):
+            print(f"   Profile completed with all fields")
+            
+            # Test photo reordering
+            reorder_data = {
+                "photos": ["https://images.unsplash.com/photo-1759873821395-c29de82a5b99?w=400"]
+            }
+            
+            success, response = self.run_test(
+                "Reorder Profile Photos",
+                "PUT",
+                "profile/photos/reorder",
+                200,
+                data=reorder_data
+            )
+            
+            if success:
+                print(f"   Photos reordered successfully")
+                return True
+        return False
+
+    def test_account_deletion(self):
+        """Test account deletion (WARNING: This will delete the test account)"""
+        # Note: This test is commented out to prevent accidental deletion
+        # Uncomment only if you want to test the deletion endpoint
+        
+        # delete_data = {"password": self.test_user_password}
+        # 
+        # success, response = self.run_test(
+        #     "Delete Account",
+        #     "DELETE",
+        #     "account",
+        #     200,
+        #     data=delete_data
+        # )
+        # 
+        # if success and 'deleted_at' in response:
+        #     print(f"   Account deleted at: {response['deleted_at']}")
+        #     return True
+        
+        print("   Account deletion test skipped (would delete test account)")
+        return True
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🔥 Starting Ember Dating App API Tests\n")
