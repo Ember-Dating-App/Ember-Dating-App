@@ -4,6 +4,7 @@ import {
   X, Sliders, ChevronDown, ChevronUp, User, Heart, Compass, 
   GraduationCap, MapPin, Ruler, Users, Sparkles 
 } from 'lucide-react';
+import LocationPicker from './LocationPicker';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -26,6 +27,8 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     ethnicities: [],
     sub_ethnicities: []
   });
+  const [location, setLocation] = useState(null);
+  const [locationDetails, setLocationDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [expandedEthnicity, setExpandedEthnicity] = useState(null);
   const [expandedSections, setExpandedSections] = useState({
