@@ -39,7 +39,7 @@ class EmberAPITester:
             "is_critical": is_critical
         })
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, is_critical=False):
         """Run a single API test"""
         url = f"{self.base_url}/api/{endpoint}"
         test_headers = {'Content-Type': 'application/json'}
@@ -63,17 +63,17 @@ class EmberAPITester:
             success = response.status_code == expected_status
             
             if success:
-                self.log_test(name, True)
+                self.log_test(name, True, is_critical=is_critical)
                 try:
                     return True, response.json()
                 except:
                     return True, response.text
             else:
-                self.log_test(name, False, f"Expected {expected_status}, got {response.status_code}: {response.text}")
+                self.log_test(name, False, f"Expected {expected_status}, got {response.status_code}: {response.text}", is_critical=is_critical)
                 return False, {}
 
         except Exception as e:
-            self.log_test(name, False, f"Error: {str(e)}")
+            self.log_test(name, False, f"Error: {str(e)}", is_critical=is_critical)
             return False, {}
 
     def test_prompts_library(self):
