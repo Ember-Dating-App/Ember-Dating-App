@@ -92,10 +92,12 @@ class EmberAPITester:
     def test_registration(self):
         """Test user registration"""
         timestamp = datetime.now().strftime('%H%M%S')
+        self.test_user_email = f"ember.test.{timestamp}@example.com"
+        self.test_user_password = "EmberTest123!"
         test_user = {
-            "email": f"test.user.{timestamp}@example.com",
-            "password": "TestPass123!",
-            "name": f"Test User {timestamp}"
+            "email": self.test_user_email,
+            "password": self.test_user_password,
+            "name": f"Ember Test User {timestamp}"
         }
         
         success, response = self.run_test(
@@ -103,7 +105,8 @@ class EmberAPITester:
             "POST",
             "auth/register",
             200,
-            data=test_user
+            data=test_user,
+            is_critical=True
         )
         
         if success and 'token' in response and 'user' in response:
