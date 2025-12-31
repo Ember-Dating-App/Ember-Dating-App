@@ -51,6 +51,17 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFilters({ ...filters, ...response.data });
+      
+      // Also fetch current user location
+      const userResponse = await axios.get(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (userResponse.data.location) {
+        setLocation(userResponse.data.location);
+      }
+      if (userResponse.data.location_details) {
+        setLocationDetails(userResponse.data.location_details);
+      }
     } catch (error) {
       console.error('Error fetching filters:', error);
     }
