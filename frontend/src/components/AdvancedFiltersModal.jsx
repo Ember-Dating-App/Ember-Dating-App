@@ -454,17 +454,18 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                       <select
                         value={filters.height_min || ''}
                         onChange={(e) => setFilters({ ...filters, height_min: e.target.value ? parseInt(e.target.value) : null })}
-                        className="w-full px-4 py-3 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer shadow-lg hover:shadow-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-black border border-orange-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer shadow-lg hover:shadow-orange-500/20 transition-all dark-select"
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                           backgroundRepeat: 'no-repeat',
                           backgroundPosition: 'right 0.75rem center',
-                          backgroundSize: '1.25rem'
+                          backgroundSize: '1.25rem',
+                          colorScheme: 'dark'
                         }}
                       >
-                        <option value="" style={{ background: '#000000', color: '#9ca3af' }}>Min Height</option>
+                        <option value="" className="bg-black text-gray-400">Min Height</option>
                         {heightOptions.map(h => (
-                          <option key={h.value} value={h.value} style={{ background: '#000000', color: '#ffffff', padding: '8px' }}>{h.label}</option>
+                          <option key={h.value} value={h.value} className="bg-black text-white">{h.label}</option>
                         ))}
                       </select>
                     </div>
@@ -472,17 +473,18 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                       <select
                         value={filters.height_max || ''}
                         onChange={(e) => setFilters({ ...filters, height_max: e.target.value ? parseInt(e.target.value) : null })}
-                        className="w-full px-4 py-3 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer shadow-lg hover:shadow-orange-500/20 transition-all"
+                        className="w-full px-4 py-3 bg-black border border-orange-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer shadow-lg hover:shadow-orange-500/20 transition-all dark-select"
                         style={{
                           backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                           backgroundRepeat: 'no-repeat',
                           backgroundPosition: 'right 0.75rem center',
-                          backgroundSize: '1.25rem'
+                          backgroundSize: '1.25rem',
+                          colorScheme: 'dark'
                         }}
                       >
-                        <option value="" style={{ background: '#000000', color: '#9ca3af' }}>Max Height</option>
+                        <option value="" className="bg-black text-gray-400">Max Height</option>
                         {heightOptions.map(h => (
-                          <option key={h.value} value={h.value} style={{ background: '#000000', color: '#ffffff', padding: '8px' }}>{h.label}</option>
+                          <option key={h.value} value={h.value} className="bg-black text-white">{h.label}</option>
                         ))}
                       </select>
                     </div>
