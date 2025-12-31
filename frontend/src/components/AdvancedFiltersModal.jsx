@@ -380,18 +380,65 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                     <MapPin className="w-4 h-4 inline mr-2" />
                     Change Location
                   </label>
-                  <div className="bg-black/40 rounded-xl p-4 border border-orange-500/20 backdrop-blur-sm">
-                    <LocationPicker
-                      value={location}
-                      onChange={(newLocation, details) => {
-                        setLocation(newLocation);
-                        setLocationDetails(details);
-                      }}
-                    />
+                  <div className="bg-black/40 rounded-xl p-4 border border-orange-500/20 backdrop-blur-sm space-y-3">
                     {location && (
-                      <p className="text-xs text-gray-400 mt-2">
-                        Current: {location}
-                      </p>
+                      <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-2 mb-3">
+                        <p className="text-xs text-gray-400">Current Location</p>
+                        <p className="text-sm text-white font-medium">{location}</p>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">City *</label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="Enter city"
+                        className="w-full px-3 py-2 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">State/Province (Optional)</label>
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="Enter state"
+                        className="w-full px-3 py-2 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1.5">Country *</label>
+                      <div className="relative">
+                        <select
+                          value={country}
+                          onChange={(e) => setCountry(e.target.value)}
+                          className="w-full px-3 py-2 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer transition-all"
+                          style={{
+                            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'right 0.5rem center',
+                            backgroundSize: '1rem'
+                          }}
+                        >
+                          {COUNTRIES.map((c) => (
+                            <option key={c} value={c} style={{ background: '#0a0a0a', color: '#fff' }}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {(city !== (locationDetails?.city || '') || 
+                      state !== (locationDetails?.state || '') || 
+                      country !== (locationDetails?.country || '')) && city.trim() && country.trim() && (
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-2 mt-2">
+                        <p className="text-xs text-green-400">
+                          Location will be updated to: {city}{state ? `, ${state}` : ''}, {country}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
