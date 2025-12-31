@@ -118,14 +118,12 @@ class EmberAPITester:
 
     def test_login(self):
         """Test user login with existing credentials"""
-        if not self.user_id:
+        if not self.test_user_email or not self.test_user_password:
             return False
             
-        # Use the same credentials from registration
-        timestamp = datetime.now().strftime('%H%M%S')
         login_data = {
-            "email": f"test.user.{timestamp}@example.com",
-            "password": "TestPass123!"
+            "email": self.test_user_email,
+            "password": self.test_user_password
         }
         
         success, response = self.run_test(
@@ -133,7 +131,8 @@ class EmberAPITester:
             "POST",
             "auth/login",
             200,
-            data=login_data
+            data=login_data,
+            is_critical=True
         )
         
         if success and 'token' in response:
