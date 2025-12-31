@@ -929,7 +929,7 @@ class EmberAPITester:
                 # Test starting a game with correct parameters
                 game_data = {
                     "match_id": "test_match_123",
-                    "game_type": games[0]['type']  # Use game type instead of game_id
+                    "game_type": games[0].get('game_type', 'two_truths_one_lie')  # Use game_type field
                 }
                 
                 success, response = self.run_test(
