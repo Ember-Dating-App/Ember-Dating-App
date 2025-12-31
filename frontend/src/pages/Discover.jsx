@@ -12,6 +12,7 @@ import OutOfSwipesModal from '@/components/OutOfSwipesModal';
 import AdvancedFiltersModal from '@/components/AdvancedFiltersModal';
 import VerifiedBadge from '@/components/VerifiedBadge';
 import AmbassadorBadge from '@/components/AmbassadorBadge';
+import OnboardingTour from '@/components/OnboardingTour';
 
 export default function Discover() {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ export default function Discover() {
   const [showFiltersModal, setShowFiltersModal] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [showTour, setShowTour] = useState(false);
 
   const token = localStorage.getItem('ember_token');
   const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -37,6 +39,13 @@ export default function Discover() {
   useEffect(() => {
     fetchProfiles();
     fetchLimits();
+    
+    // Check if user should see tour (first time on Discover)
+    const tourCompleted = localStorage.getItem('ember_tour_completed');
+    const tourSkipped = localStorage.getItem('ember_tour_skipped');
+    if (!tourCompleted && !tourSkipped) {
+      setShowTour(true);
+    }
   }, [showCompatible]);
 
   const fetchProfiles = async () => {
