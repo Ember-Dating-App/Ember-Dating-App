@@ -3,6 +3,8 @@
 import requests
 import sys
 import json
+import time
+import base64
 from datetime import datetime
 
 class EmberAPITester:
@@ -10,9 +12,13 @@ class EmberAPITester:
         self.base_url = base_url
         self.token = None
         self.user_id = None
+        self.test_user_email = None
+        self.test_user_password = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.failed_tests = []
+        self.critical_failures = []
 
     def log_test(self, name, success, details=""):
         """Log test result"""
