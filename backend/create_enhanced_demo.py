@@ -12,7 +12,7 @@ import bcrypt
 load_dotenv()
 
 MONGO_URL = os.getenv('MONGO_URL', 'mongodb://localhost:27017')
-DB_NAME = 'ember_dating'
+DB_NAME = os.getenv('DB_NAME', 'test_database')  # Use env variable
 
 async def create_enhanced_demo_profile():
     """Create a complete, realistic demo profile"""
