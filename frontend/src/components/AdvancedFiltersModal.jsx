@@ -417,16 +417,17 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         <select
                           value={country}
                           onChange={(e) => setCountry(e.target.value)}
-                          className="w-full px-3 py-2 bg-gradient-to-br from-black via-gray-950 to-black border border-orange-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer transition-all"
+                          className="w-full px-3 py-2 bg-black border border-orange-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 appearance-none cursor-pointer transition-all dark-select"
                           style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23f97316' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
                             backgroundRepeat: 'no-repeat',
                             backgroundPosition: 'right 0.5rem center',
-                            backgroundSize: '1rem'
+                            backgroundSize: '1rem',
+                            colorScheme: 'dark'
                           }}
                         >
                           {COUNTRIES.map((c) => (
-                            <option key={c} value={c} style={{ background: '#000000', color: '#ffffff' }}>{c}</option>
+                            <option key={c} value={c} className="bg-black text-white">{c}</option>
                           ))}
                         </select>
                       </div>
