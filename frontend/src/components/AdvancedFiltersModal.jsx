@@ -390,7 +390,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                     <select
                       value={filters.height_min || ''}
                       onChange={(e) => setFilters({ ...filters, height_min: e.target.value ? parseInt(e.target.value) : null })}
-                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="flex-1 px-4 py-3 bg-black/40 border border-orange-500/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
                       <option value="">Min Height</option>
                       {heightOptions.map(h => (
@@ -400,7 +400,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                     <select
                       value={filters.height_max || ''}
                       onChange={(e) => setFilters({ ...filters, height_max: e.target.value ? parseInt(e.target.value) : null })}
-                      className="flex-1 px-4 py-3 bg-gray-800/50 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      className="flex-1 px-4 py-3 bg-black/40 border border-orange-500/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                     >
                       <option value="">Max Height</option>
                       {heightOptions.map(h => (
@@ -423,7 +423,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.genders || []).includes(gender)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {gender}
@@ -436,10 +436,10 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           </div>
 
           {/* Dating Preferences Section */}
-          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+          <div className="bg-black/40 rounded-2xl border border-orange-500/20 overflow-hidden shadow-xl">
             <button
               onClick={() => toggleSection('dating')}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-orange-500/10 transition-all group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-red-600 group-hover:shadow-lg transition-all">
@@ -458,7 +458,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
             </button>
 
             {expandedSections.dating && (
-              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+              <div className="p-6 space-y-6 bg-black/60 border-t border-orange-500/20">
                 {/* Dating Purpose */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -472,7 +472,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.dating_purposes || []).includes(purpose)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {purpose}
@@ -494,7 +494,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.religions || []).includes(religion)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {religion}
@@ -516,7 +516,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.languages || []).includes(language)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {language}
@@ -529,10 +529,10 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           </div>
 
           {/* Lifestyle Section */}
-          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+          <div className="bg-black/40 rounded-2xl border border-orange-500/20 overflow-hidden shadow-xl">
             <button
               onClick={() => toggleSection('lifestyle')}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-orange-500/10 transition-all group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-teal-600 group-hover:shadow-lg transition-all">
@@ -551,7 +551,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
             </button>
 
             {expandedSections.lifestyle && (
-              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+              <div className="p-6 space-y-6 bg-black/60 border-t border-orange-500/20">
                 {/* Children */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -565,7 +565,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.children_preference || []).includes(child)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {child}
@@ -587,7 +587,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.political_views || []).includes(political)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {political}
@@ -609,7 +609,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.pets || []).includes(pet)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {pet}
@@ -631,7 +631,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.specific_interests || []).includes(interest)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {interest}
@@ -644,10 +644,10 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           </div>
 
           {/* Background Section */}
-          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+          <div className="bg-black/40 rounded-2xl border border-orange-500/20 overflow-hidden shadow-xl">
             <button
               onClick={() => toggleSection('background')}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-orange-500/10 transition-all group"
             >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-600 group-hover:shadow-lg transition-all">
@@ -666,7 +666,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
             </button>
 
             {expandedSections.background && (
-              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+              <div className="p-6 space-y-6 bg-black/60 border-t border-orange-500/20">
                 {/* Education */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-3">
@@ -680,7 +680,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                           (filters.education_levels || []).includes(edu)
                             ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg'
-                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-white/10'
+                            : 'bg-black/40 text-gray-300 hover:bg-gray-900/50 border border-orange-500/20'
                         }`}
                       >
                         {edu}
@@ -696,7 +696,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                   </label>
                   <div className="space-y-2">
                     {Object.keys(ethnicityData).map((ethnicity) => (
-                      <div key={ethnicity} className="bg-gray-800/30 rounded-xl overflow-hidden border border-white/10">
+                      <div key={ethnicity} className="bg-gray-800/30 rounded-xl overflow-hidden border border-orange-500/20">
                         {/* Main ethnicity button */}
                         <button
                           onClick={() => {
@@ -706,7 +706,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
                             (filters.ethnicities || []).includes(ethnicity)
                               ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white'
-                              : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50'
+                              : 'bg-black/40 text-gray-300 hover:bg-gray-900/50'
                           }`}
                         >
                           <span className="font-medium">{ethnicity}</span>
@@ -719,7 +719,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
 
                         {/* Sub-ethnicities */}
                         {expandedEthnicity === ethnicity && (
-                          <div className="p-4 bg-gray-900/50 border-t border-white/5">
+                          <div className="p-4 bg-gray-900/50 border-t border-orange-500/20">
                             <div className="flex flex-wrap gap-2">
                               {ethnicityData[ethnicity].map((subEthnicity) => (
                                 <button
@@ -728,7 +728,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                                     (filters.sub_ethnicities || []).includes(subEthnicity)
                                       ? 'bg-orange-500 text-white shadow-lg'
-                                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50 border border-white/10'
+                                      : 'bg-gray-900/50 text-gray-300 hover:bg-gray-600/50 border border-orange-500/20'
                                   }`}
                                 >
                                   {subEthnicity}
@@ -751,7 +751,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           <div className="flex gap-3">
             <button
               onClick={handleReset}
-              className="flex-1 py-3.5 bg-gray-800/50 border border-white/10 rounded-xl font-semibold text-white hover:bg-gray-700/50 transition-all"
+              className="flex-1 py-3.5 bg-black/40 border border-orange-500/20 rounded-xl font-semibold text-white hover:bg-gray-900/50 transition-all"
             >
               Reset All
             </button>
