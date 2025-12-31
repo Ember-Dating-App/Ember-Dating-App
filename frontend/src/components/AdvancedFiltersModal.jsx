@@ -426,7 +426,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           }}
                         >
                           {COUNTRIES.map((c) => (
-                            <option key={c} value={c} style={{ background: '#0a0a0a', color: '#fff' }}>{c}</option>
+                            <option key={c} value={c} style={{ background: '#000000', color: '#ffffff' }}>{c}</option>
                           ))}
                         </select>
                       </div>
