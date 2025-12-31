@@ -20,7 +20,7 @@ class EmberAPITester:
         self.failed_tests = []
         self.critical_failures = []
 
-    def log_test(self, name, success, details=""):
+    def log_test(self, name, success, details="", is_critical=False):
         """Log test result"""
         self.tests_run += 1
         if success:
@@ -28,11 +28,15 @@ class EmberAPITester:
             print(f"✅ {name}")
         else:
             print(f"❌ {name} - {details}")
+            self.failed_tests.append({"test": name, "details": details})
+            if is_critical:
+                self.critical_failures.append({"test": name, "details": details})
         
         self.test_results.append({
             "test": name,
             "success": success,
-            "details": details
+            "details": details,
+            "is_critical": is_critical
         })
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
