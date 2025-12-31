@@ -195,7 +195,7 @@ A **fully-featured Hinge-style dating application** with advanced matching, veri
 
 **API Used:**
 - Google Places API (New)
-- API Key: AIzaSyDa__cWDgSQtGCRWDnlxLX6QEGGSuJtUhQ
+- API Key: [REDACTED - Stored in backend .env]
 
 #### 2. Virtual Date Features ✅ COMPLETE
 **A. Enhanced Icebreaker Games (3 New Games):**
