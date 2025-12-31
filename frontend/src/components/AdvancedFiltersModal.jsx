@@ -305,7 +305,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                   <label className="block text-sm font-medium text-gray-300 mb-3">
                     Age Range
                   </label>
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                  <div className="bg-black/40 rounded-xl p-4 border border-orange-500/20 backdrop-blur-sm">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-2xl font-bold ember-text-gradient">{filters.age_min}</span>
                       <span className="text-gray-500">to</span>
@@ -319,7 +319,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           max="100"
                           value={filters.age_min}
                           onChange={(e) => setFilters({ ...filters, age_min: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                          className="w-full h-2 bg-gray-900 rounded-lg appearance-none cursor-pointer accent-orange-500"
                         />
                         <p className="text-xs text-gray-500 mt-2 text-center">Minimum</p>
                       </div>
@@ -330,7 +330,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           max="100"
                           value={filters.age_max}
                           onChange={(e) => setFilters({ ...filters, age_max: parseInt(e.target.value) })}
-                          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                          className="w-full h-2 bg-gray-900 rounded-lg appearance-none cursor-pointer accent-orange-500"
                         />
                         <p className="text-xs text-gray-500 mt-2 text-center">Maximum</p>
                       </div>
@@ -343,7 +343,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                   <label className="block text-sm font-medium text-gray-300 mb-3">
                     Maximum Distance
                   </label>
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                  <div className="bg-black/40 rounded-xl p-4 border border-orange-500/20 backdrop-blur-sm">
                     <div className="flex items-center justify-center mb-3">
                       <span className="text-3xl font-bold ember-text-gradient">{filters.max_distance}</span>
                       <span className="text-gray-400 ml-2">miles</span>
@@ -354,7 +354,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                       max="100"
                       value={filters.max_distance}
                       onChange={(e) => setFilters({ ...filters, max_distance: parseInt(e.target.value) })}
-                      className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-orange-500"
+                      className="w-full h-2 bg-gray-900 rounded-lg appearance-none cursor-pointer accent-orange-500"
                     />
                   </div>
                 </div>
@@ -365,7 +365,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                     <MapPin className="w-4 h-4 inline mr-2" />
                     Change Location
                   </label>
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                  <div className="bg-black/40 rounded-xl p-4 border border-orange-500/20 backdrop-blur-sm">
                     <LocationPicker
                       value={location}
                       onChange={(newLocation, details) => {
