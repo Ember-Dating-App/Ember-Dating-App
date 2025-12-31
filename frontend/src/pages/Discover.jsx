@@ -635,6 +635,14 @@ export default function Discover() {
         onFiltersApplied={handleFiltersApplied}
       />
 
+      {/* Onboarding Tour */}
+      {showTour && (
+        <OnboardingTour 
+          onComplete={() => setShowTour(false)}
+          onSkip={() => setShowTour(false)}
+        />
+      )}
+
       <Navigation />
     </div>
   );
