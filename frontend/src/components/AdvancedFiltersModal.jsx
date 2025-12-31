@@ -280,10 +280,10 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           <div className="bg-black/40 rounded-2xl border border-orange-500/20 overflow-hidden shadow-xl backdrop-blur-sm">
             <button
               onClick={() => toggleSection('personal')}
-              className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
+              className="w-full px-6 py-4 flex items-center justify-between hover:bg-orange-500/10 transition-all group"
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 group-hover:shadow-lg transition-all">
+                <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 group-hover:shadow-lg group-hover:shadow-blue-500/30 transition-all">
                   <User className="w-5 h-5 text-white" />
                 </div>
                 <div className="text-left">
@@ -299,7 +299,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
             </button>
 
             {expandedSections.personal && (
-              <div className="p-6 space-y-6 bg-gray-900/30 border-t border-white/5">
+              <div className="p-6 space-y-6 bg-black/60 border-t border-orange-500/20">
                 {/* Age Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-3">
