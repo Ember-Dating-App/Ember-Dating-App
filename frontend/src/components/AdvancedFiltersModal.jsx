@@ -747,18 +747,18 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
         </div>
 
         {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-gradient-to-t from-gray-900 via-gray-900 to-transparent p-6 pt-8">
+        <div className="sticky bottom-0 bg-gradient-to-t from-black via-black to-transparent p-6 pt-8 border-t border-orange-500/20">
           <div className="flex gap-3">
             <button
               onClick={handleReset}
-              className="flex-1 py-3.5 bg-black/40 border border-orange-500/20 rounded-xl font-semibold text-white hover:bg-gray-900/50 transition-all"
+              className="flex-1 py-3.5 bg-black/60 border border-orange-500/30 rounded-xl font-semibold text-white hover:bg-orange-500/10 hover:border-orange-500/50 transition-all shadow-lg"
             >
               Reset All
             </button>
             <button
               onClick={handleApply}
               disabled={loading}
-              className="flex-1 py-3.5 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-semibold hover:shadow-xl hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="flex-1 py-3.5 bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-xl font-semibold hover:shadow-2xl hover:shadow-orange-500/40 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-orange-500/25"
             >
               {loading ? 'Applying...' : 'Apply Filters'}
             </button>
