@@ -926,10 +926,10 @@ class EmberAPITester:
             print(f"   Found {len(games)} icebreaker games")
             
             if games:
-                # Test starting a game
+                # Test starting a game with correct parameters
                 game_data = {
                     "match_id": "test_match_123",
-                    "game_id": games[0]['id']
+                    "game_type": games[0]['type']  # Use game type instead of game_id
                 }
                 
                 success, response = self.run_test(
