@@ -207,3 +207,38 @@ input[type="range"]::-moz-range-thumb:hover {
     display: contents !important;
   }
 }
+
+/* Force dark styling on select dropdowns */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+}
+
+select option:checked {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+select option:hover {
+  background-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+/* Firefox specific */
+@-moz-document url-prefix() {
+  select option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+  }
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+select option {
+  background: #000000;
+  color: #ffffff;
+}
