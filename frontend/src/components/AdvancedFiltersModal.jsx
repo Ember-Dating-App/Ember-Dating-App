@@ -36,6 +36,17 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     lifestyle: true,
     background: true
   });
+  
+  // Location picker states
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [country, setCountry] = useState('United States');
+
+  const COUNTRIES = [
+    'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 
+    'France', 'Spain', 'Italy', 'Netherlands', 'Japan', 'Singapore', 
+    'UAE', 'India', 'Brazil', 'Mexico'
+  ];
 
   useEffect(() => {
     if (isOpen) {
