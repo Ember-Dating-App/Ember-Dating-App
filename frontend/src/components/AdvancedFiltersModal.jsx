@@ -52,6 +52,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     if (isOpen) {
       fetchFilters();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const fetchFilters = async () => {
