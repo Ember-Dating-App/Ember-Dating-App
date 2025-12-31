@@ -1057,6 +1057,21 @@ export default function Profile() {
             </Button>
 
             <Button
+              variant="outline"
+              className="w-full rounded-xl"
+              onClick={() => {
+                setShowSettings(false);
+                localStorage.removeItem('ember_tour_completed');
+                localStorage.removeItem('ember_tour_skipped');
+                navigate('/discover');
+                window.location.reload();
+              }}
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Restart App Tour
+            </Button>
+
+            <Button
               variant="destructive"
               className="w-full rounded-xl"
               onClick={handleLogout}
