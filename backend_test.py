@@ -787,14 +787,11 @@ class EmberAPITester:
 
     def test_pass_profile(self):
         """Test pass profile endpoint"""
-        pass_data = {"liked_user_id": "test_user_pass_123"}
-        
         success, response = self.run_test(
             "Pass Profile",
             "POST",
-            "discover/pass",
-            200,
-            data=pass_data
+            "discover/pass?liked_user_id=test_user_pass_123",
+            200
         )
         
         if success and 'message' in response:
