@@ -1453,61 +1453,122 @@ class EmberAPITester:
         return True
 
     def run_all_tests(self):
-        """Run all API tests"""
-        print("🔥 Starting Ember Dating App API Tests\n")
+        """Run all comprehensive API tests"""
+        print("🔥 Starting Comprehensive Ember Dating App API Tests\n")
         
         # Test public endpoints first
+        print("📋 Testing Public Endpoints...")
         self.test_prompts_library()
         self.test_premium_plans()
-        self.test_popular_locations()  # NEW: Test popular locations
-        self.test_ambassador_info()  # NEW: Test ambassador program info
+        self.test_popular_locations()
+        self.test_ambassador_info()
+        self.test_cloudinary_config()
         
         # Test authentication flow
+        print("\n🔐 Testing Authentication...")
         if self.test_registration():
             self.test_auth_me()
+            self.test_login()
             
-            # Test profile management
-            self.test_profile_update()
-            self.test_location_update()  # NEW: Test location update
+            # Test OAuth endpoints (mock tests)
+            self.test_google_oauth()
+            self.test_apple_signin()
             
-            # Test verification (required for other features)
-            self.test_verification_photo()  # NEW: Test photo verification
+            # Test comprehensive profile management
+            print("\n👤 Testing Profile Management...")
+            self.test_profile_management()
+            self.test_location_update()
             
-            # Test ambassador features
-            self.test_ambassador_status()  # NEW: Test ambassador status
-            self.test_ambassador_apply()   # NEW: Test ambassador application
+            # Test verification system
+            print("\n✅ Testing Verification System...")
+            self.test_verification_status()
+            self.test_verification_photo()
+            self.test_phone_verification_flow()
+            self.test_id_verification()
             
-            # Test discovery features
-            self.test_discover_ambassador_priority()  # NEW: Test ambassador priority in discover
+            # Test swipe limits and discovery
+            print("\n🔍 Testing Discovery & Limits...")
+            self.test_swipe_limits()
+            self.test_discover_ambassador_priority()
+            self.test_discover_daily_picks()
             self.test_most_compatible()
             self.test_standouts()
+            self.test_pass_profile()
+            self.test_undo_pass()
             
-            # Test social features
-            self.test_matches()
+            # Test likes system
+            print("\n💖 Testing Likes System...")
+            self.test_likes_with_push_notifications()
             self.test_received_likes()
+            self.test_roses_received()
             
-            # Test push notification features
-            self.test_likes_with_push_notifications()  # NEW: Test likes with push notifications
-            self.test_virtual_gifts()  # NEW: Test virtual gifts
-            self.test_date_suggestions()  # NEW: Test date suggestions
+            # Test matching and messaging
+            print("\n💬 Testing Matching & Messaging...")
+            self.test_match_operations()
+            self.test_messaging_system()
+            
+            # Test virtual features
+            print("\n🎮 Testing Virtual Features...")
+            self.test_icebreaker_games()
+            self.test_virtual_gifts_comprehensive()
+            
+            # Test date suggestions and places
+            print("\n📍 Testing Places & Date Suggestions...")
+            self.test_places_search()
+            self.test_date_suggestions()
+            
+            # Test video calls
+            print("\n📹 Testing Video Calls...")
+            self.test_video_calls()
+            self.test_ice_servers()
+            
+            # Test payment system
+            print("\n💳 Testing Payment System...")
+            self.test_payment_system()
+            
+            # Test ambassador features
+            print("\n🏆 Testing Ambassador Program...")
+            self.test_ambassador_status()
+            self.test_ambassador_apply()
+            
+            # Test push notifications
+            print("\n🔔 Testing Push Notifications...")
+            self.test_push_notifications_system()
+            
+            # Test user safety features
+            print("\n🛡️ Testing User Safety...")
+            self.test_user_blocking_reporting()
+            
+            # Test advanced filters
+            print("\n🔧 Testing Advanced Filters...")
+            self.test_advanced_filters()
+            
+            # Test file uploads
+            print("\n📁 Testing File Uploads...")
+            self.test_file_uploads()
             
             # Test notifications
+            print("\n📬 Testing Notifications...")
             self.test_notifications()
             
-            # Test file upload
-            self.test_photo_upload_base64()
-            
-            # NEW: Test Stripe payment integration
-            session_id = None
-            checkout_success, session_id = self.test_stripe_checkout()
-            if checkout_success and session_id:
-                self.test_payment_status(session_id)
-            
-            # NEW: Test TURN server support
-            self.test_ice_servers()
+            # Test account management (deletion test is skipped)
+            print("\n⚙️ Testing Account Management...")
+            self.test_account_deletion()
         
-        # Print summary
-        print(f"\n📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
+        # Print comprehensive summary
+        print(f"\n📊 Comprehensive Test Results: {self.tests_passed}/{self.tests_run} passed")
+        
+        # Print failed tests summary
+        if self.failed_tests:
+            print(f"\n❌ Failed Tests ({len(self.failed_tests)}):")
+            for failed in self.failed_tests:
+                print(f"   • {failed['test']}: {failed['details']}")
+        
+        # Print critical failures
+        if self.critical_failures:
+            print(f"\n🚨 Critical Failures ({len(self.critical_failures)}):")
+            for critical in self.critical_failures:
+                print(f"   • {critical['test']}: {critical['details']}")
         
         if self.tests_passed == self.tests_run:
             print("🎉 All tests passed!")
