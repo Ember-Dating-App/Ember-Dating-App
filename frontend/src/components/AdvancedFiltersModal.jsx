@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   X, Sliders, ChevronDown, ChevronUp, User, Heart, Compass, 
-  GraduationCap, MapPin, Ruler, Users, Sparkles 
+  GraduationCap, MapPin, Ruler, Users, Sparkles, Search 
 } from 'lucide-react';
-import LocationPicker from './LocationPicker';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
