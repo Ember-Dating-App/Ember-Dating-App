@@ -462,9 +462,9 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           backgroundSize: '1.25rem'
                         }}
                       >
-                        <option value="" style={{ background: '#0a0a0a', color: '#9ca3af' }}>Min Height</option>
+                        <option value="" style={{ background: '#000000', color: '#9ca3af' }}>Min Height</option>
                         {heightOptions.map(h => (
-                          <option key={h.value} value={h.value} style={{ background: '#0a0a0a', color: '#fff', padding: '8px' }}>{h.label}</option>
+                          <option key={h.value} value={h.value} style={{ background: '#000000', color: '#ffffff', padding: '8px' }}>{h.label}</option>
                         ))}
                       </select>
                     </div>
@@ -480,9 +480,9 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                           backgroundSize: '1.25rem'
                         }}
                       >
-                        <option value="" style={{ background: '#0a0a0a', color: '#9ca3af' }}>Max Height</option>
+                        <option value="" style={{ background: '#000000', color: '#9ca3af' }}>Max Height</option>
                         {heightOptions.map(h => (
-                          <option key={h.value} value={h.value} style={{ background: '#0a0a0a', color: '#fff', padding: '8px' }}>{h.label}</option>
+                          <option key={h.value} value={h.value} style={{ background: '#000000', color: '#ffffff', padding: '8px' }}>{h.label}</option>
                         ))}
                       </select>
                     </div>
