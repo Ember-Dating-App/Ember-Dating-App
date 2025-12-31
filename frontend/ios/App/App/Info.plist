@@ -45,5 +45,19 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Ember needs access to your camera to take photos for your profile and verification.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Ember needs access to your photo library to select photos for your profile.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Ember would like to save photos to your photo library.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Ember uses your location to show you potential matches nearby.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Ember uses your location to show you potential matches nearby.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Ember needs access to your microphone for video calls.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This allows us to provide you with a better experience and personalized content.</string>
 </dict>
 </plist>
