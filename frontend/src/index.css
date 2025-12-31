@@ -229,9 +229,30 @@ select option:hover {
   color: #ffffff !important;
 }
 
+/* Specific dark select styling */
+.dark-select {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.dark-select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+}
+
+.dark-select option[value=""] {
+  color: #9ca3af !important;
+}
+
 /* Firefox specific */
 @-moz-document url-prefix() {
   select option {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .dark-select option {
     background-color: #000000 !important;
     color: #ffffff !important;
   }
@@ -239,6 +260,11 @@ select option:hover {
 
 /* Webkit browsers (Chrome, Safari, Edge) */
 select option {
+  background: #000000;
+  color: #ffffff;
+}
+
+.dark-select option {
   background: #000000;
   color: #ffffff;
 }
