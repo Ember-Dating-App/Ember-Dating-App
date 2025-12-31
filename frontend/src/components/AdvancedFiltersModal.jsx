@@ -251,23 +251,23 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl max-w-4xl w-full relative my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-white/10">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-gradient-to-br from-black via-gray-950 to-black rounded-3xl max-w-4xl w-full relative my-8 max-h-[90vh] overflow-y-auto shadow-2xl border border-orange-500/20">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 backdrop-blur-xl border-b border-white/10 p-6 rounded-t-3xl">
+        <div className="sticky top-0 z-10 bg-gradient-to-r from-orange-500/20 via-red-500/20 to-orange-500/20 backdrop-blur-xl border-b border-orange-500/30 p-6 rounded-t-3xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 shadow-lg">
+              <div className="p-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 shadow-lg shadow-orange-500/30">
                 <Sliders className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Advanced Filters</h2>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">Advanced Filters</h2>
                 <p className="text-sm text-gray-400 mt-0.5">Customize your match preferences</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+              className="p-2 rounded-xl text-gray-400 hover:text-white hover:bg-orange-500/20 transition-all"
             >
               <X className="w-6 h-6" />
             </button>
@@ -277,7 +277,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
         {/* Content */}
         <div className="p-6 space-y-4">
           {/* Personal Section */}
-          <div className="bg-gray-800/50 rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+          <div className="bg-black/40 rounded-2xl border border-orange-500/20 overflow-hidden shadow-xl backdrop-blur-sm">
             <button
               onClick={() => toggleSection('personal')}
               className="w-full px-6 py-4 flex items-center justify-between hover:bg-white/5 transition-all group"
