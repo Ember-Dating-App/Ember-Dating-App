@@ -71,11 +71,26 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('ember_token');
+      
+      // Save filters
       await axios.put(
         `${API_BASE}/api/preferences/filters`,
         filters,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      
+      // Save location if changed
+      if (location && locationDetails) {
+        await axios.put(
+          `${API_BASE}/api/profile/location`,
+          {
+            location: location,
+            location_details: locationDetails
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      
       onApply?.();
       onClose();
     } catch (error) {
