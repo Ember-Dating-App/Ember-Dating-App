@@ -1152,7 +1152,7 @@ class EmberAPITester:
         """Test push notifications system"""
         # Test register FCM token
         token_data = {
-            "fcm_token": "test_fcm_token_123",
+            "fcm_token": "test_fcm_token_123456789",
             "device_type": "android"
         }
         
