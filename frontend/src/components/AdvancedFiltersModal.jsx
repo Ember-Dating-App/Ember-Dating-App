@@ -94,12 +94,13 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
       );
       
       // Save location if changed
-      if (location && locationDetails) {
+      if (city.trim() && country.trim()) {
         await axios.put(
           `${API_BASE}/api/profile/location`,
           {
-            location: location,
-            location_details: locationDetails
+            city: city.trim(),
+            state: state.trim() || null,
+            country: country.trim()
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
