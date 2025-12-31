@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Camera, Phone, IdCard, Check, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../App';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
 const VerificationWizard = () => {
+  const { setUser } = useAuth();
   const [step, setStep] = useState('intro');
   const [completedMethods, setCompletedMethods] = useState([]);
   const [loading, setLoading] = useState(false);
