@@ -70,7 +70,11 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
         setLocation(userResponse.data.location);
       }
       if (userResponse.data.location_details) {
-        setLocationDetails(userResponse.data.location_details);
+        const details = userResponse.data.location_details;
+        setLocationDetails(details);
+        setCity(details.city || '');
+        setState(details.state || '');
+        setCountry(details.country || 'United States');
       }
     } catch (error) {
       console.error('Error fetching filters:', error);
