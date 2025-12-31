@@ -1296,14 +1296,25 @@ class EmberAPITester:
         success, response = self.run_test(
             "Update Filter Preferences",
             "PUT",
-            "profile/filters",
+            "preferences/filters",
             200,
             data=filter_data
         )
         
         if success:
             print(f"   Filter preferences updated")
-            return True
+            
+            # Test get filter preferences
+            success, response = self.run_test(
+                "Get Filter Preferences",
+                "GET",
+                "preferences/filters",
+                200
+            )
+            
+            if success:
+                print(f"   Filter preferences retrieved")
+                return True
         return False
 
     def test_file_uploads(self):
