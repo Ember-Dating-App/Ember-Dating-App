@@ -288,7 +288,7 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                 </div>
                 <div className="text-left">
                   <h3 className="text-lg font-semibold text-white">Personal</h3>
-                  <p className="text-xs text-gray-400">Age, Distance, Height, Gender</p>
+                  <p className="text-xs text-gray-400">Age, Distance, Location, Height, Gender</p>
                 </div>
               </div>
               {expandedSections.personal ? (
