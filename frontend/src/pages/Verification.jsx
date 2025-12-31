@@ -107,6 +107,12 @@ const VerificationWizard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      // Fetch updated user data
+      const userResponse = await axios.get(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(userResponse.data);
+
       setCompletedMethods([...completedMethods, 'phone']);
       setStep('success');
     } catch (err) {
