@@ -140,8 +140,28 @@ const VerificationWizard = () => {
     }
   };
 
-  const handleContinue = () => {
-    navigate('/profile-setup');
+  const handleContinue = async () => {
+    // Fetch updated user data to reflect verification status
+    try {
+      const token = localStorage.getItem('ember_token');
+      const response = await axios.get(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update user context with new verification status
+      setUser(response.data);
+      
+      // Navigate based on profile completion
+      if (response.data.is_profile_complete) {
+        navigate('/discover');
+      } else {
+        navigate('/setup');
+      }
+    } catch (err) {
+      console.error('Failed to fetch user data:', err);
+      // Fallback navigation
+      navigate('/setup');
+    }
   };
 
   return (
