@@ -359,6 +359,28 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                   </div>
                 </div>
 
+                {/* Location */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-3">
+                    <MapPin className="w-4 h-4 inline mr-2" />
+                    Change Location
+                  </label>
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-white/5">
+                    <LocationPicker
+                      value={location}
+                      onChange={(newLocation, details) => {
+                        setLocation(newLocation);
+                        setLocationDetails(details);
+                      }}
+                    />
+                    {location && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        Current: {location}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Height Range */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-3">
