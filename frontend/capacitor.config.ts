@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.ember.dating',
-  appName: 'Ember',
+  appName: 'Ember Dating App',
   webDir: 'build',
   server: {
     androidScheme: 'https'
