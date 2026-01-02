@@ -1024,29 +1024,47 @@ export default function Profile() {
           {/* Interests */}
           <div className="bg-card rounded-2xl p-4 border border-border/50">
             <h3 className="font-semibold mb-3">Interests</h3>
-            <div className="flex flex-wrap gap-2">
-              {(editing ? INTERESTS : profile.interests).map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => editing && toggleInterest(interest)}
-                  disabled={!editing}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    profile.interests.includes(interest)
-                      ? 'ember-gradient text-white'
-                      : editing
-                        ? 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        : 'bg-muted text-muted-foreground opacity-50'
-                  }`}
-                  data-testid={`interest-${interest.toLowerCase()}`}
-                >
-                  {interest}
-                </button>
-              ))}
-            </div>
-            {editing && (
-              <p className="text-xs text-muted-foreground mt-2">
-                {profile.interests.length}/10 selected
-              </p>
+            {editing ? (
+              <div className="space-y-4">
+                {Object.entries(INTERESTS_BY_CATEGORY).map(([category, interests]) => (
+                  <div key={category} className="space-y-2">
+                    <h4 className="text-xs font-semibold text-orange-500 uppercase tracking-wider">
+                      {category}
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {interests.map((interest) => (
+                        <button
+                          key={interest}
+                          onClick={() => toggleInterest(interest)}
+                          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                            profile.interests.includes(interest)
+                              ? 'ember-gradient text-white'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                          data-testid={`interest-${interest.toLowerCase()}`}
+                        >
+                          {interest}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground mt-2">
+                  {profile.interests.length}/10 selected
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map((interest) => (
+                  <span
+                    key={interest}
+                    className="px-3 py-1.5 rounded-full text-sm font-medium ember-gradient text-white"
+                    data-testid={`interest-${interest.toLowerCase()}`}
+                  >
+                    {interest}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>
