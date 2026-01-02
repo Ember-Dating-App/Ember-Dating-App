@@ -273,8 +273,11 @@ export default function Discover() {
     <div className="min-h-screen bg-background pb-24" data-testid="discover-page">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-center relative">
-          <div className="absolute left-6 flex items-center gap-2">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
+          </div>
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -295,12 +298,34 @@ export default function Discover() {
                 Undo
               </Button>
             )}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
-          </div>
-          <div className="absolute right-6 flex items-center gap-2">
-            {/* Quick actions moved to Advanced Filters modal */}
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
+              onClick={() => navigate('/standouts')}
+            >
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              Standouts
+            </Button>
+            <Button
+              variant={showCompatible ? 'default' : 'outline'}
+              size="sm"
+              className={`rounded-full gap-2 ${showCompatible ? 'ember-gradient' : ''}`}
+              onClick={() => setShowCompatible(!showCompatible)}
+              data-testid="compatible-toggle"
+            >
+              <Sparkles className="w-4 h-4" />
+              Compatible
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-2"
+              onClick={() => navigate('/daily-picks')}
+            >
+              <Crown className="w-4 h-4 text-orange-500" />
+              Daily Picks
+            </Button>
           </div>
         </div>
       </header>
