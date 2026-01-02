@@ -290,50 +290,6 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="px-6 py-4 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 border-b border-orange-500/20">
-          <h3 className="text-sm font-semibold text-gray-300 mb-3 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" />
-            Quick Actions
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
-            <button
-              onClick={() => {
-                onClose();
-                window.location.href = '/standouts';
-              }}
-              className="flex flex-col items-center gap-2 p-4 bg-black/40 hover:bg-orange-500/20 border border-orange-500/30 rounded-xl transition-all group"
-            >
-              <Sparkles className="w-6 h-6 text-orange-500 group-hover:text-orange-400" />
-              <span className="text-sm font-medium text-white">Standouts</span>
-              <span className="text-xs text-gray-400">Premium profiles</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                window.location.href = '/daily-picks';
-              }}
-              className="flex flex-col items-center gap-2 p-4 bg-black/40 hover:bg-blue-500/20 border border-blue-500/30 rounded-xl transition-all group"
-            >
-              <Heart className="w-6 h-6 text-blue-500 group-hover:text-blue-400" />
-              <span className="text-sm font-medium text-white">Daily Picks</span>
-              <span className="text-xs text-gray-400">Curated for you</span>
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                // This will trigger the compatible view in Discover
-                if (onApply) onApply({ showCompatible: true });
-              }}
-              className="flex flex-col items-center gap-2 p-4 bg-black/40 hover:bg-purple-500/20 border border-purple-500/30 rounded-xl transition-all group"
-            >
-              <Users className="w-6 h-6 text-purple-500 group-hover:text-purple-400" />
-              <span className="text-sm font-medium text-white">Compatible</span>
-              <span className="text-xs text-gray-400">Best matches</span>
-            </button>
-          </div>
-        </div>
-
         {/* Content */}
         <div className="p-6 space-y-4">
           {/* Personal Section */}
