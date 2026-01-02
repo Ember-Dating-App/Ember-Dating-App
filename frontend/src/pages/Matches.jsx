@@ -57,11 +57,13 @@ export default function Matches() {
     <div className="min-h-screen bg-background pb-24" data-testid="matches-page">
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="container mx-auto px-6 h-16 flex items-center justify-center relative">
           <div className="flex items-center gap-2">
             <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
-          <h1 className="text-lg font-semibold">Matches</h1>
+          <div className="absolute right-6">
+            <h1 className="text-lg font-semibold">Matches</h1>
+          </div>
         </div>
       </header>
 
