@@ -300,34 +300,7 @@ export default function Discover() {
             <span className="font-heading text-xl font-bold tracking-wider ember-text-gradient">EMBER</span>
           </div>
           <div className="absolute right-6 flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full gap-2"
-              onClick={() => navigate('/standouts')}
-            >
-              <Sparkles className="w-4 h-4 text-yellow-400" />
-              Standouts
-            </Button>
-            <Button
-              variant={showCompatible ? 'default' : 'outline'}
-              size="sm"
-              className={`rounded-full gap-2 ${showCompatible ? 'ember-gradient' : ''}`}
-              onClick={() => setShowCompatible(!showCompatible)}
-              data-testid="compatible-toggle"
-            >
-              <Sparkles className="w-4 h-4" />
-              Compatible
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full gap-2"
-              onClick={() => navigate('/daily-picks')}
-            >
-              <Crown className="w-4 h-4 text-orange-500" />
-              Daily Picks
-            </Button>
+            {/* Quick actions moved to Advanced Filters modal */}
           </div>
         </div>
       </header>
