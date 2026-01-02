@@ -404,21 +404,30 @@ export default function ProfileSetup() {
               <p className="text-muted-foreground">Select 3-10 interests to help us find compatible matches</p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {INTERESTS.map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => toggleInterest(interest)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                    profile.interests.includes(interest)
-                      ? 'ember-gradient text-white ember-glow'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  }`}
-                  data-testid={`interest-${interest.toLowerCase()}`}
-                >
-                  {profile.interests.includes(interest) && <Check className="w-4 h-4 inline mr-1" />}
-                  {interest}
-                </button>
+            <div className="space-y-6">
+              {Object.entries(INTERESTS_BY_CATEGORY).map(([category, interests]) => (
+                <div key={category} className="space-y-3">
+                  <h3 className="text-sm font-semibold text-orange-500 uppercase tracking-wider">
+                    {category}
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {interests.map((interest) => (
+                      <button
+                        key={interest}
+                        onClick={() => toggleInterest(interest)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          profile.interests.includes(interest)
+                            ? 'ember-gradient text-white ember-glow'
+                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                        }`}
+                        data-testid={`interest-${interest.toLowerCase()}`}
+                      >
+                        {profile.interests.includes(interest) && <Check className="w-4 h-4 inline mr-1" />}
+                        {interest}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
 
