@@ -268,3 +268,12 @@ select option {
   background: #000000;
   color: #ffffff;
 }
+
+/* Force hide Emergent badge if it exists */
+#emergent-badge,
+a[href*="emergent.sh"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
