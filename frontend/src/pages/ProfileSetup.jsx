@@ -27,11 +27,40 @@ const PROMPTS_LIBRARY = [
   "My love language is...",
 ];
 
-const INTERESTS = [
-  'Travel', 'Music', 'Movies', 'Fitness', 'Cooking', 'Art', 'Photography', 'Reading',
-  'Gaming', 'Sports', 'Hiking', 'Yoga', 'Dancing', 'Wine', 'Coffee', 'Dogs', 'Cats',
-  'Tech', 'Fashion', 'Food', 'Nature', 'Beach', 'Mountains', 'Concerts', 'Festivals'
-];
+const INTERESTS_BY_CATEGORY = {
+  'Sports & Fitness': [
+    'F1 Racing', 'Football', 'Basketball', 'Tennis', 'Golf', 'Soccer', 'Baseball', 'Hockey',
+    'Boxing', 'MMA', 'Cycling', 'Running', 'Swimming', 'Gym', 'Yoga', 'Pilates',
+    'CrossFit', 'Hiking', 'Rock Climbing', 'Skiing', 'Snowboarding', 'Surfing', 'Skateboarding'
+  ],
+  'Entertainment': [
+    'Movies', 'TV Shows', 'Netflix', 'Stand-up Comedy', 'Theater', 'Concerts', 'Music Festivals',
+    'Live Music', 'Clubbing', 'Dancing', 'Karaoke', 'Board Games', 'Video Games', 'Gaming', 'Anime'
+  ],
+  'Arts & Culture': [
+    'Art', 'Photography', 'Painting', 'Drawing', 'Museums', 'Architecture', 'Writing',
+    'Poetry', 'Reading', 'Books', 'History', 'Philosophy', 'Languages', 'Fashion'
+  ],
+  'Food & Drink': [
+    'Cooking', 'Baking', 'Wine', 'Coffee', 'Craft Beer', 'Cocktails', 'Food', 'Restaurants',
+    'Brunch', 'BBQ', 'Vegan', 'Vegetarian', 'Sushi', 'Pizza', 'Street Food'
+  ],
+  'Outdoors & Nature': [
+    'Travel', 'Beach', 'Mountains', 'Camping', 'Fishing', 'Nature', 'Gardening',
+    'Wildlife', 'Sunset', 'Stargazing', 'Road Trips', 'Adventures'
+  ],
+  'Music': [
+    'Pop', 'Rock', 'Hip Hop', 'Jazz', 'Classical', 'Electronic', 'Country', 'R&B',
+    'Indie', 'Metal', 'EDM', 'Reggae', 'Playing Guitar', 'Playing Piano', 'Singing'
+  ],
+  'Lifestyle': [
+    'Dogs', 'Cats', 'Pets', 'Tech', 'Entrepreneurship', 'Volunteering', 'Sustainability',
+    'Meditation', 'Spirituality', 'Self-improvement', 'Podcasts', 'Astrology', 'DIY'
+  ]
+};
+
+// Flatten for backward compatibility
+const INTERESTS = Object.values(INTERESTS_BY_CATEGORY).flat();
 
 export default function ProfileSetup() {
   const navigate = useNavigate();
