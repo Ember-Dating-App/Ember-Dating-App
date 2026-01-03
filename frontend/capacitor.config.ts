@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.ember.dating',
+  appId: 'com.mycompany.emberdatingapp',
   appName: 'Ember Dating App',
   webDir: 'build',
   server: {
