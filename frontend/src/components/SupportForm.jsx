@@ -17,7 +17,7 @@ export default function SupportForm({ isOpen, onClose }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/support/contact?type=${encodeURIComponent(type)}&subject=${encodeURIComponent(subject)}&message=${encodeURIComponent(message)}`, {
         method: 'POST',
         headers: {
