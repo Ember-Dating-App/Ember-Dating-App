@@ -440,6 +440,78 @@ frontend:
           agent: "testing"
           comment: "Main app pages exist but require completed profile setup and authentication to test fully. Pages correctly redirect to /setup when profile incomplete. Unable to test full functionality due to profile setup requirements (photo upload needed). Pages are protected and routing works correctly."
 
+  - task: "Legal Pages (Privacy Policy & Terms of Service)"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/PrivacyPolicy.jsx, frontend/src/pages/TermsOfService.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Legal pages fully implemented and working. Privacy Policy and Terms of Service pages accessible at /privacy-policy and /terms-of-service. Content is comprehensive and properly formatted. Back navigation working. Premium dark theme maintained throughout."
+
+  - task: "Legal Text on Auth Pages"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Login.jsx, frontend/src/pages/Register.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Legal text successfully added to both login and register pages. Text reads 'By continuing, you agree to our Terms of Service and Privacy Policy' with clickable links. Links navigate correctly to legal pages. Styling is consistent with form design."
+
+  - task: "Profile Settings - Support Section"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Profile.jsx, frontend/src/components/SupportForm.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Support section added to Profile settings with Contact Support button. SupportForm modal implemented with type dropdown, subject field (100 char limit), message field (1000 char limit), and character counters. Form integrates with backend /api/support/contact endpoint. Token authentication fixed to use ember_token."
+
+  - task: "Profile Settings - Legal Section"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Profile.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Legal section added to Profile settings with Privacy Policy and Terms of Service links. Links navigate correctly to legal pages and return to settings. Section positioned below Support section as requested. Icons and styling consistent with settings design."
+
+  - task: "Ambassador Section Fixes"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AmbassadorSection.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Ambassador section fixed according to requirements. Entire section now hidden when program is full AND user is not an ambassador. Current ambassadors always see their status. Spot count display removed (total_limit, current_count, available_slots). Token authentication fixed to use ember_token."
+
+  - task: "Messages GIF Support"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Messages.jsx, frontend/src/components/GifPicker.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GIF support added to Messages page. GIF button (camera icon) added next to message input. GifPicker modal integrated with GIPHY API. GIF search with debounce and trending GIFs on open. Selected GIFs sent as messages with gif_url field. GIFs display in conversation with max 320px width and rounded corners. Responsive design maintained."
+
 metadata:
   created_by: "testing_agent"
   version: "2.0"
