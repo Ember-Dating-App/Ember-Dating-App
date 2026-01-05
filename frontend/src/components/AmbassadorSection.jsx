@@ -30,7 +30,7 @@ export default function AmbassadorSection({ user }) {
 
   const loadAmbassadorStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('ember_token');
       const response = await axios.get(`${API}/ambassador/status`, {
         headers: { Authorization: `Bearer ${token}` }
       });
