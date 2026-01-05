@@ -520,7 +520,17 @@ export default function Messages() {
                         </div>
                       </div>
                     ) : (
-                      <p>{msg.content}</p>
+                      <div>
+                        {msg.gif_url && (
+                          <img 
+                            src={msg.gif_url} 
+                            alt="GIF" 
+                            className="max-w-80 rounded-lg mb-2"
+                            style={{ maxWidth: '320px' }}
+                          />
+                        )}
+                        <p>{msg.content}</p>
+                      </div>
                     )}
                     <div className="flex items-center gap-1 mt-1">
                       <p className={`text-xs ${isSent ? 'text-white/70' : 'text-muted-foreground'}`}>
