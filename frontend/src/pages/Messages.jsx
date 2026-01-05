@@ -7,6 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import IcebreakerGameModal from '@/components/IcebreakerGameModal';
 import DateSuggestionsModal from '@/components/DateSuggestionsModal';
 import VirtualGiftsModal from '@/components/VirtualGiftsModal';
+import GifPicker from '@/components/GifPicker';
 import { useAuth, API } from '@/App';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { VideoCall, IncomingCallModal } from '@/components/VideoCall';
