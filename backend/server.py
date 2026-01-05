@@ -3628,6 +3628,19 @@ async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
     await db.users.update_one(
         {'user_id': current_user['user_id']},
         {
+            '$set': {
+                'is_ambassador': True,
+                'ambassador_since': datetime.now(timezone.utc),
+                'is_premium': True,
+                'premium_end_date': premium_end_date
+            }
+        }
+    )
+    
+    return {
+        'success': True,
+        'message': 'Congratulations! You are now an Ember Ambassador with 2 months of premium access!'
+    }
 
 # ==================== SUPPORT ROUTES ====================
 
