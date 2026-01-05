@@ -149,6 +149,24 @@ export default function Messages() {
     }
   };
 
+  const sendGif = async (gifData) => {
+    setSending(true);
+    try {
+      const response = await axios.post(`${API}/messages`, {
+        match_id: matchId,
+        content: 'Sent a GIF',
+        gif_url: gifData.url
+      }, { headers, withCredentials: true });
+
+      setMessages([...messages, response.data]);
+      setShowGifPicker(false);
+    } catch (error) {
+      toast.error('Failed to send GIF');
+    } finally {
+      setSending(false);
+    }
+  };
+
 
   const startEditMessage = (message) => {
     setEditingMessage(message);
