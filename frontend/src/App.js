@@ -20,6 +20,8 @@ import Premium from "@/pages/Premium";
 import Standouts from "@/pages/Standouts";
 import PaymentSuccess from "@/pages/PaymentSuccess";
 import Verification from "@/pages/Verification";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import TermsOfService from "@/pages/TermsOfService";
 import DailyPicksTab from "@/components/DailyPicksTab";
 
 // Hooks
