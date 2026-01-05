@@ -1593,10 +1593,42 @@ async def discover_profiles(current_user: dict = Depends(get_current_user)):
                             filtered_profiles.append(profile)
             profiles = filtered_profiles
     
-    # Prioritize ambassadors - show them first
-    ambassador_profiles = [p for p in profiles if p.get('is_ambassador', False)]
-    non_ambassador_profiles = [p for p in profiles if not p.get('is_ambassador', False)]
-    profiles = ambassador_profiles + non_ambassador_profiles
+    # Prioritize ambassadors and new users - show them first
+    # New users = created within last 48 hours
+    now = datetime.now(timezone.utc)
+    two_days_ago = now - timedelta(hours=48)
+    
+    new_ambassador_profiles = []
+    new_user_profiles = []
+    ambassador_profiles = []
+    non_ambassador_profiles = []
+    
+    for p in profiles:
+        created_at = p.get('created_at')
+        is_ambassador = p.get('is_ambassador', False)
+        
+        # Parse created_at if it's a string
+        if isinstance(created_at, str):
+            try:
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            except:
+                created_at = now  # Default to now if parsing fails
+        
+        # Determine if user is new (< 48 hours old)
+        is_new_user = created_at > two_days_ago if created_at else False
+        
+        # Categorize profiles by priority
+        if is_new_user and is_ambassador:
+            new_ambassador_profiles.append(p)
+        elif is_new_user:
+            new_user_profiles.append(p)
+        elif is_ambassador:
+            ambassador_profiles.append(p)
+        else:
+            non_ambassador_profiles.append(p)
+    
+    # Combine in priority order: New Ambassadors → New Users → Ambassadors → Regular
+    profiles = new_ambassador_profiles + new_user_profiles + ambassador_profiles + non_ambassador_profiles
     
     return profiles
 
