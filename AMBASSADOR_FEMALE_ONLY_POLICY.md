@@ -110,25 +110,28 @@ Male User → API Call → Backend Checks Gender →
 
 ---
 
-## 💡 Why Female-Only?
+## 💡 Why Silent Policy?
 
-**Safety & Community:**
-- Creates a safe space for female users
-- Encourages more women to join the platform
-- Reduces potential harassment of ambassadors
-- Builds trust with female user base
-
-**Marketing Value:**
-- Female ambassadors are more likely to attract both genders
-- Women's word-of-mouth is powerful in dating apps
-- Creates aspirational community
-- Positions Ember as women-friendly platform
+**User Experience:**
+- No discrimination messaging
+- Clean, simple interface
+- Users don't feel excluded
+- No need to explain or justify
+- Appears as a natural feature for eligible users
 
 **Business Strategy:**
-- Dating apps need more women than men (typical ratio is 30:70)
-- Female ambassadors help balance gender ratios
-- Women-first approach differentiates from competitors
-- Attracts quality male users who value women's preferences
+- Avoids potential controversy
+- No public backlash about gender restrictions
+- Female users feel special (exclusive access)
+- Male users unaware = no complaints
+- Maintains positive brand image
+
+**Safety & Community (Internal Benefits):**
+- Creates safe space for female ambassadors
+- Reduces potential harassment
+- Encourages women to join platform
+- Builds trust with female user base
+- Positions Ember as women-friendly (without explicitly saying so)
 
 ---
 
