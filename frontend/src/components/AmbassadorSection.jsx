@@ -202,12 +202,9 @@ export default function AmbassadorSection({ user }) {
                   <p className="text-xs font-semibold text-red-400">Full</p>
                 </div>
               ) : (
-                <>
-                  <div className="px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
-                    <p className="text-xs font-semibold text-green-400">Open</p>
-                  </div>
-                  <p className="text-xs text-muted-foreground">{info.available_slots}/{info.total_limit} spots</p>
-                </>
+                <div className="px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+                  <p className="text-xs font-semibold text-green-400">Open</p>
+                </div>
               )}
             </div>
           </div>
