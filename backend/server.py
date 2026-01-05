@@ -3697,17 +3697,6 @@ async def contact_support(
         'message': 'Your message has been sent to our support team. We will respond within 24-48 hours.',
         'message_id': support_message['message_id']
     }
-        'success': True,
-        'message': 'Congratulations! You are now an Ember Ambassador!',
-        'is_ambassador': True,
-        'premium_until': premium_end_date.isoformat(),
-        'benefits_activated': [
-            '2 months Premium membership',
-            'Ambassador badge',
-            'Priority in Discover',
-            'Social media feature eligibility'
-        ]
-    }
 
 @api_router.get("/ambassador/status")
 async def get_ambassador_status(current_user: dict = Depends(get_current_user)):
