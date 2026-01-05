@@ -12,7 +12,7 @@
 **Details:**
 - API Key Type: **LIVE** (sk_live_...)
 - Location: `/app/backend/.env`
-- Key: `STRIPE_API_KEY=sk_live_51Sjo0SC1nDu5YAfm...`
+- Key: `STRIPE_API_KEY=sk_live_***REDACTED***`
 - ✅ Successfully integrated with backend
 - ✅ Generating real Stripe Checkout sessions
 

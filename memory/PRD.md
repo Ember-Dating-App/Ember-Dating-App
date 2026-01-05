@@ -144,7 +144,7 @@ Build a fully functioning dating app with a similar style of Hinge. The name of 
 
 ### Stripe (Production Setup Required)
 ```
-STRIPE_API_KEY=sk_live_xxx (or sk_test_xxx for testing)
+STRIPE_API_KEY=sk_live_***REDACTED*** (or sk_test_***REDACTED*** for testing)
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 ```
 
