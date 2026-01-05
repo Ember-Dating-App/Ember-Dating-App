@@ -35,6 +35,7 @@ export default function Messages() {
   const [showGameModal, setShowGameModal] = useState(false);
   const [showDateSuggestionsModal, setShowDateSuggestionsModal] = useState(false);
   const [showGiftsModal, setShowGiftsModal] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
