@@ -692,6 +692,13 @@ export default function Messages() {
           scrollToBottom();
         }}
       />
+
+      {/* GIF Picker Modal */}
+      <GifPicker
+        isOpen={showGifPicker}
+        onClose={() => setShowGifPicker(false)}
+        onSelectGif={sendGif}
+      />
     </div>
   );
 }
