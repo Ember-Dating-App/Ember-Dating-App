@@ -3628,6 +3628,63 @@ async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
     await db.users.update_one(
         {'user_id': current_user['user_id']},
         {
+
+# ==================== SUPPORT ROUTES ====================
+
+# Helper function to get current user optionally (for both logged in and anonymous)
+async def get_current_user_optional(authorization: str = Header(None)):
+    """Get current user if token provided, otherwise return None"""
+    if not authorization or not authorization.startswith('Bearer '):
+        return None
+    
+    token = authorization.split(' ')[1]
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
+        user_id = payload.get('user_id')
+        if not user_id:
+            return None
+        
+        user = await db.users.find_one({'user_id': user_id}, {'_id': 0, 'hashed_password': 0})
+        return user
+    except:
+        return None
+
+@api_router.post("/support/contact")
+async def contact_support(
+    type: str,
+    subject: str,
+    message: str,
+    current_user: dict = Depends(get_current_user_optional)
+):
+    """Contact support - stores message in database and can send email"""
+    # Create support message record
+    support_message = {
+        'message_id': f"support_{uuid.uuid4().hex[:12]}",
+        'user_id': current_user['user_id'] if current_user else None,
+        'user_email': current_user.get('email') if current_user else 'anonymous',
+        'user_name': current_user.get('name') if current_user else 'Anonymous User',
+        'type': type,
+        'subject': subject,
+        'message': message,
+        'status': 'new',
+        'created_at': datetime.now(timezone.utc).isoformat(),
+        'resolved_at': None
+    }
+    
+    # Store in database
+    await db.support_messages.insert_one(support_message)
+    
+    # Log to console (email integration can be added later)
+    logger.info(f"Support message received: {type} - {subject} from {support_message['user_email']}")
+    logger.info(f"Message: {message}")
+    logger.info(f"Send notification to: ember.dating.app25@gmail.com")
+    
+    return {
+        'success': True,
+        'message': 'Your message has been sent to our support team. We will respond within 24-48 hours.',
+        'message_id': support_message['message_id']
+    }
+
             '$set': {
                 'is_ambassador': True,
                 'ambassador_status': 'approved',
