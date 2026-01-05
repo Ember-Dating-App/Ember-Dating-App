@@ -3588,14 +3588,14 @@ async def get_ambassador_info():
 
 @api_router.post("/ambassador/apply")
 async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
-    """Apply for the Ambassador role - ONLY FOR FEMALE USERS"""
+    """Apply for the Ambassador role"""
     
-    # CHECK #1: User must be female
+    # CHECK #1: User must be female (silent check - no explicit messaging)
     user_gender = current_user.get('gender', '').lower()
     if user_gender not in ['female', 'woman']:
         raise HTTPException(
             status_code=403, 
-            detail='The Ambassador program is currently only available for female users'
+            detail='The Ambassador program is currently at capacity for your profile type'
         )
     
     # CHECK #2: User must be verified
