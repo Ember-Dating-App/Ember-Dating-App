@@ -55,9 +55,10 @@ if (!isFemale && !status?.is_ambassador) {
 
 **What This Means:**
 - Female users: See the Ambassador section and can apply
-- Male users: Cannot see the section at all (hidden completely)
-- Non-binary users: Cannot see the section (unless you want to add them)
+- Male users: Cannot see the section at all (hidden silently, no explanation given)
+- Non-binary users: Cannot see the section (hidden silently)
 - **Current ambassadors:** Always see their status regardless of gender (existing ambassadors protected)
+- **No messaging:** Users are never told it's female-only
 
 ---
 
@@ -91,13 +92,15 @@ Grants Ambassador Status + 2 Months Premium
 - Ambassador section is completely hidden
 - Cannot see any information about the program
 - No UI elements related to ambassadors
+- **No explanation given - it simply doesn't exist for them**
 
 **2. If They Try to Access API Directly:**
 ```
 Male User → API Call → Backend Checks Gender → 
-❌ Rejected → Returns Error: 
-"The Ambassador program is currently only available for female users"
+❌ Rejected → Returns Generic Error: 
+"The Ambassador program is currently at capacity for your profile type"
 ```
+**Note:** Error message is intentionally vague, doesn't mention gender.
 
 **3. Existing Male Ambassadors (If Any):**
 - Can still see their ambassador status
