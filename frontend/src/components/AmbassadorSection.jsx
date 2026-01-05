@@ -68,6 +68,11 @@ export default function AmbassadorSection({ user }) {
 
   if (!info) return null;
 
+  // Hide entire section if program is full AND user is not an ambassador
+  if (info.is_full && !status?.is_ambassador) {
+    return null;
+  }
+
   // If user is already an ambassador - Premium Success State
   if (status?.is_ambassador) {
     return (
