@@ -1,8 +1,8 @@
-# 👸 Ambassador Program - Female-Only Policy
+# 👸 Ambassador Program - Silent Gender Policy
 
 ## 📋 Overview
 
-The Ember Dating App Ambassador Program is now **exclusively for female users**. This policy has been implemented to maintain a safe and supportive community for women on the platform.
+The Ember Dating App Ambassador Program is **internally restricted to female users**, but this policy is **not explicitly communicated** to users. Non-female users simply won't see the Ambassador section, without any explanation.
 
 ---
 
@@ -13,28 +13,30 @@ The Ember Dating App Ambassador Program is now **exclusively for female users**.
 **Endpoint Modified:** `POST /api/ambassador/apply`
 
 **New Logic:**
-1. ✅ First check: User must be female/woman
+1. ✅ First check: User must be female/woman (silent check)
 2. ✅ Second check: User must be verified
 3. ✅ Third check: User must not already be an ambassador
 4. ✅ Fourth check: No pending application
 5. ✅ Fifth check: Program must not be full
 
-**Gender Check:**
+**Gender Check (Silent):**
 ```python
 user_gender = current_user.get('gender', '').lower()
 if user_gender not in ['female', 'woman']:
     raise HTTPException(
         status_code=403, 
-        detail='The Ambassador program is currently only available for female users'
+        detail='The Ambassador program is currently at capacity for your profile type'
     )
 ```
 
-**Error Response for Non-Female Users:**
+**Error Response for Non-Female Users (Generic):**
 ```json
 {
-  "detail": "The Ambassador program is currently only available for female users"
+  "detail": "The Ambassador program is currently at capacity for your profile type"
 }
 ```
+
+**Key Point:** The error message does NOT mention gender or female-only. It's intentionally vague.
 
 ### Frontend Changes (`/app/frontend/src/components/AmbassadorSection.jsx`)
 
