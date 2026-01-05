@@ -1257,6 +1257,12 @@ export default function Profile() {
       {/* Ambassador Section */}
       <AmbassadorSection user={user} />
 
+      {/* Support Form Modal */}
+      <SupportForm 
+        isOpen={showSupportForm} 
+        onClose={() => setShowSupportForm(false)} 
+      />
+
       <Navigation />
     </div>
   );
