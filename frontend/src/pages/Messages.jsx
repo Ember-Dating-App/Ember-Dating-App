@@ -624,14 +624,24 @@ export default function Messages() {
 
           <form onSubmit={editingMessage ? (e) => { e.preventDefault(); saveEditMessage(); } : sendMessage} className="flex gap-2">
             {!editingMessage && (
-              <button
-                type="button"
-                onClick={fetchStarters}
-                className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
-                data-testid="starters-btn"
-              >
-                <Sparkles className="w-5 h-5 text-primary" />
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={fetchStarters}
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                  data-testid="starters-btn"
+                >
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGifPicker(true)}
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                  data-testid="gif-btn"
+                >
+                  <Camera className="w-5 h-5 text-primary" />
+                </button>
+              </>
             )}
             <Input
               value={editingMessage ? editContent : newMessage}
