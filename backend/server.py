@@ -3538,14 +3538,12 @@ AMBASSADOR_LIMIT = 200  # Maximum number of ambassadors
 
 @api_router.get("/ambassador/info")
 async def get_ambassador_info():
-    """Get information about the Ambassador program"""
+    """Get information about the Ambassador program - spot count hidden"""
     # Get current count of ambassadors
     ambassador_count = await db.users.count_documents({'is_ambassador': True})
     
+    # Hide spot count to avoid pressure - only show if program is full
     return {
-        'total_limit': AMBASSADOR_LIMIT,
-        'current_count': ambassador_count,
-        'available_slots': max(0, AMBASSADOR_LIMIT - ambassador_count),
         'is_full': ambassador_count >= AMBASSADOR_LIMIT,
         'benefits': [
             '2 months of Premium membership for free',
