@@ -12,6 +12,9 @@ export default function AmbassadorSection({ user }) {
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
 
+  // Check if user is female
+  const isFemale = user?.gender?.toLowerCase() === 'female' || user?.gender?.toLowerCase() === 'woman';
+  
   useEffect(() => {
     loadAmbassadorInfo();
     if (user) {
@@ -70,6 +73,11 @@ export default function AmbassadorSection({ user }) {
 
   // Hide entire section if program is full AND user is not an ambassador
   if (info.is_full && !status?.is_ambassador) {
+    return null;
+  }
+
+  // Hide section if user is not female AND not already an ambassador
+  if (!isFemale && !status?.is_ambassador) {
     return null;
   }
 
