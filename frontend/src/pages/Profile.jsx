@@ -142,6 +142,7 @@ export default function Profile() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState('');
   const [hasReorderedPhotos, setHasReorderedPhotos] = useState(false);
+  const [showSupportForm, setShowSupportForm] = useState(false);
   const [profile, setProfile] = useState({
     name: user?.name || '',
     age: user?.age || '',
