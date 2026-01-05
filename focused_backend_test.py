@@ -270,6 +270,22 @@ class FocusedEmberAPITester:
         if not self.token:
             return False
             
+        # First verify the user to enable discover
+        verification_data = {
+            "selfie_data": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChAI9jU77zgAAAABJRU5ErkJggg=="
+        }
+        
+        success, response = self.run_test(
+            "Photo Verification (Required for Discover)",
+            "POST",
+            "verification/photo",
+            200,
+            data=verification_data
+        )
+        
+        if success:
+            print(f"   ✅ User verified successfully")
+        
         # Test discover feed
         success, response = self.run_test(
             "Get Discover Feed (with Ambassador Priority)",
