@@ -3588,12 +3588,21 @@ async def get_ambassador_info():
 
 @api_router.post("/ambassador/apply")
 async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
-    """Apply for the Ambassador role"""
-    # Check if user is verified
+    """Apply for the Ambassador role - ONLY FOR FEMALE USERS"""
+    
+    # CHECK #1: User must be female
+    user_gender = current_user.get('gender', '').lower()
+    if user_gender not in ['female', 'woman']:
+        raise HTTPException(
+            status_code=403, 
+            detail='The Ambassador program is currently only available for female users'
+        )
+    
+    # CHECK #2: User must be verified
     if current_user.get('verification_status') != 'verified':
         raise HTTPException(status_code=403, detail='Profile verification required to apply for Ambassador role')
     
-    # Check if user already has ambassador status
+    # CHECK #3: User already has ambassador status
     if current_user.get('is_ambassador'):
         return {
             'success': False,
@@ -3601,7 +3610,7 @@ async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
             'is_ambassador': True
         }
     
-    # Check if user has already applied (pending)
+    # CHECK #4: User has already applied (pending)
     if current_user.get('ambassador_status') == 'pending':
         return {
             'success': False,
@@ -3609,7 +3618,7 @@ async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
             'status': 'pending'
         }
     
-    # Check if program is full
+    # CHECK #5: Program is full
     ambassador_count = await db.users.count_documents({'is_ambassador': True})
     if ambassador_count >= AMBASSADOR_LIMIT:
         return {
@@ -3618,7 +3627,7 @@ async def apply_for_ambassador(current_user: dict = Depends(get_current_user)):
             'is_full': True
         }
     
-    # Auto-approve since there's space available
+    # Auto-approve since there's space available and all checks passed
     now = datetime.now(timezone.utc).isoformat()
     
     # Calculate 2 months premium (60 days)
