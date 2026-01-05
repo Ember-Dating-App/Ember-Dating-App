@@ -19,7 +19,7 @@ import json
 import asyncio
 import aiofiles
 import base64
-import stripe
+# import stripe  # REMOVED - No longer using Stripe
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
@@ -55,8 +55,8 @@ db = client[os.environ['DB_NAME']]
 # OpenAI client for AI features
 openai_client = OpenAI(api_key=os.environ.get('EMERGENT_LLM_KEY', ''))
 
-# Stripe configuration
-stripe.api_key = os.environ.get('STRIPE_API_KEY', '')
+# Stripe configuration - REMOVED (no longer using Stripe)
+# stripe.api_key = os.environ.get('STRIPE_API_KEY', '')
 
 # JWT Secret
 JWT_SECRET = os.environ.get('JWT_SECRET', 'ember-secret-key-2024')
@@ -2696,10 +2696,11 @@ async def mark_notification_read(notification_id: str, current_user: dict = Depe
     
     return {'message': 'Notification marked as read'}
 
-# ==================== STRIPE PAYMENT ROUTES ====================
+# ==================== PREMIUM PLANS (NO PAYMENT PROCESSING) ====================
 
 @api_router.get("/premium/plans")
 async def get_premium_plans():
+    """Get premium plans and pricing (payment processing to be implemented via Apple/Google IAP)"""
     return {
         'plans': [
             {
@@ -2729,68 +2730,31 @@ async def get_premium_plans():
             {'id': 'roses_12', 'name': '12 Roses', 'price': 9.99, 'quantity': 12},
             {'id': 'super_likes_5', 'name': '5 Super Likes', 'price': 4.99, 'quantity': 5},
             {'id': 'super_likes_15', 'name': '15 Super Likes', 'price': 12.99, 'quantity': 15}
-        ]
+        ],
+        'message': 'Payment processing will be handled via Apple In-App Purchase and Google Play Billing'
     }
 
-@api_router.post("/payments/checkout")
-async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
-    """Create Stripe checkout session - amount defined server-side only"""
-    package_id = checkout.package_id
-    origin_url = checkout.origin_url
-    
-    # Get package from server-defined packages
-    package = PREMIUM_PACKAGES.get(package_id) or ADDON_PACKAGES.get(package_id)
-    if not package:
-        raise HTTPException(status_code=400, detail='Invalid package')
-    
-    price = package['price']
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # Build URLs dynamically from frontend origin
-    success_url = f"{origin_url}/payment/success?session_id={{CHECKOUT_SESSION_ID}}"
-    cancel_url = f"{origin_url}/premium"
-    
-    try:
-        # Create Stripe checkout session
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price_data': {
-                    'currency': 'usd',
-                    'product_data': {
-                        'name': package.get('name', package_id),
-                    },
-                    'unit_amount': int(price * 100),  # Stripe uses cents
-                },
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
-                'user_id': current_user['user_id'],
-                'package_id': package_id,
-                'package_type': 'premium' if package_id in PREMIUM_PACKAGES else 'addon'
-            }
-        )
-        
-        # Create pending transaction record
-        await db.payment_transactions.insert_one({
-            'transaction_id': f"txn_{uuid.uuid4().hex[:12]}",
-            'session_id': session.id,
-            'user_id': current_user['user_id'],
-            'package_id': package_id,
-            'amount': price,
-            'currency': 'usd',
-            'status': 'pending',
-            'payment_status': 'initiated',
-            'created_at': now
-        })
-        
-        return {'url': session.url, 'session_id': session.id}
-    except stripe.error.StripeError as e:
-        logger.error(f"Stripe error: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+# ==================== STRIPE PAYMENT ROUTES - REMOVED ====================
+# These endpoints have been removed as Stripe is no longer being used
+# Payment processing will be handled via:
+# - Apple In-App Purchase (for iOS)
+# - Google Play Billing (for Android)
+# - Alternative payment processor for web (TBD)
+
+# @api_router.post("/payments/checkout")
+# async def create_checkout_session(checkout: CheckoutRequest, current_user: dict = Depends(get_current_user)):
+#     """REMOVED - Stripe checkout no longer used"""
+#     raise HTTPException(status_code=501, detail='Stripe payment removed. Use Apple IAP or Google Play Billing')
+
+# @api_router.get("/payments/status/{session_id}")
+# async def get_payment_status(session_id: str, current_user: dict = Depends(get_current_user)):
+#     """REMOVED - Stripe payment status check no longer used"""
+#     raise HTTPException(status_code=501, detail='Stripe payment removed. Use Apple IAP or Google Play Billing')
+
+# @api_router.post("/webhook/stripe")
+# async def stripe_webhook(request: Request):
+#     """REMOVED - Stripe webhook no longer used"""
+#     raise HTTPException(status_code=501, detail='Stripe webhook removed')
 
 
 # ==================== VIDEO CALL ENHANCEMENTS ====================
