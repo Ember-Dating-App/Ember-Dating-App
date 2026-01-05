@@ -3697,27 +3697,6 @@ async def contact_support(
         'message': 'Your message has been sent to our support team. We will respond within 24-48 hours.',
         'message_id': support_message['message_id']
     }
-
-            '$set': {
-                'is_ambassador': True,
-                'ambassador_status': 'approved',
-                'ambassador_applied_at': now,
-                'ambassador_approved_at': now,
-                'premium_until': premium_end_date.isoformat(),
-                'is_premium': True
-            }
-        }
-    )
-    
-    # Send notification
-    asyncio.create_task(send_push_notification(
-        current_user['user_id'],
-        "Welcome, Ambassador! 🎖️",
-        "Congratulations! You're now an Ember Ambassador with 2 months of free Premium!",
-        {'type': 'ambassador_approved'}
-    ))
-    
-    return {
         'success': True,
         'message': 'Congratulations! You are now an Ember Ambassador!',
         'is_ambassador': True,
