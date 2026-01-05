@@ -1120,6 +1120,51 @@ export default function Profile() {
               Restart App Tour
             </Button>
 
+            {/* Support Section */}
+            <div className="pt-4 border-t border-border">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Support</h3>
+              <Button
+                variant="outline"
+                className="w-full rounded-xl"
+                onClick={() => {
+                  setShowSettings(false);
+                  setShowSupportForm(true);
+                }}
+              >
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Contact Support
+              </Button>
+            </div>
+
+            {/* Legal Section */}
+            <div className="pt-4 border-t border-border">
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Legal</h3>
+              <div className="space-y-2">
+                <Button
+                  variant="ghost"
+                  className="w-full rounded-xl justify-start"
+                  onClick={() => {
+                    setShowSettings(false);
+                    navigate('/privacy-policy');
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Privacy Policy
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="w-full rounded-xl justify-start"
+                  onClick={() => {
+                    setShowSettings(false);
+                    navigate('/terms-of-service');
+                  }}
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Terms of Service
+                </Button>
+              </div>
+            </div>
+
             <Button
               variant="destructive"
               className="w-full rounded-xl"
