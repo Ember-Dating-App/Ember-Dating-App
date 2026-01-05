@@ -6,7 +6,7 @@
 **Root Cause:** Environment variables not properly loaded in React runtime
 
 ### Technical Details:
-- Frontend `.env` file contains: `REACT_APP_BACKEND_URL=https://sparkconnect-4.preview.emergentagent.com`
+- Frontend `.env` file contains: `REACT_APP_BACKEND_URL=https://datingspark-1.preview.emergentagent.com`
 - React was returning `undefined` for `process.env.REACT_APP_BACKEND_URL`
 - This caused API constant to become `undefined/api` instead of proper URL
 - All authentication API calls were failing due to malformed URLs
@@ -57,7 +57,7 @@ export const API = `${BACKEND_URL}/api`;
 
 // In Login.jsx
 const response = await axios.post(`${API}/auth/login`, formData);
-// Resolves to: https://sparkconnect-4.preview.emergentagent.com/api/auth/login
+// Resolves to: https://datingspark-1.preview.emergentagent.com/api/auth/login
 ```
 
 ### Backend Flow:
@@ -107,7 +107,7 @@ GET  /api/auth/me
 
 ### Backend URL:
 ```
-https://sparkconnect-4.preview.emergentagent.com/api
+https://datingspark-1.preview.emergentagent.com/api
 ```
 
 ---
@@ -166,7 +166,7 @@ https://sparkconnect-4.preview.emergentagent.com/api
 
 ### Frontend (.env):
 ```
-REACT_APP_BACKEND_URL=https://sparkconnect-4.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://datingspark-1.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 ENABLE_HEALTH_CHECK=false
 ```
@@ -174,7 +174,7 @@ ENABLE_HEALTH_CHECK=false
 ### Backend:
 ```
 Running on: http://0.0.0.0:8001
-External URL: https://sparkconnect-4.preview.emergentagent.com
+External URL: https://datingspark-1.preview.emergentagent.com
 API Prefix: /api
 ```
 

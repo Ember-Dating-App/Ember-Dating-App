@@ -8,7 +8,7 @@ import base64
 from datetime import datetime
 
 class EmberAPITester:
-    def __init__(self, base_url="https://sparkconnect-4.preview.emergentagent.com"):
+    def __init__(self, base_url="https://datingspark-1.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
@@ -353,7 +353,7 @@ class EmberAPITester:
         """Test Stripe checkout session creation"""
         checkout_data = {
             "package_id": "monthly",
-            "origin_url": "https://sparkconnect-4.preview.emergentagent.com"
+            "origin_url": "https://datingspark-1.preview.emergentagent.com"
         }
         
         success, response = self.run_test(
