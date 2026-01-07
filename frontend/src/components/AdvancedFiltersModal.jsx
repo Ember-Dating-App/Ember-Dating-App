@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { 
   X, Sliders, ChevronDown, ChevronUp, User, Heart, Compass, 
-  GraduationCap, MapPin, Ruler, Users, Sparkles, Search 
+  GraduationCap, MapPin, Ruler, Users, Sparkles, Search, Map
 } from 'lucide-react';
+import LocationMapPicker from './LocationMapPicker';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -41,6 +42,8 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [country, setCountry] = useState('United States');
+  const [showMapPicker, setShowMapPicker] = useState(false);
+  const [selectedCoordinates, setSelectedCoordinates] = useState(null);
 
   const COUNTRIES = [
     'United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 
