@@ -881,6 +881,14 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           </div>
         </div>
       </div>
+
+      {/* Location Map Picker */}
+      <LocationMapPicker
+        isOpen={showMapPicker}
+        onClose={() => setShowMapPicker(false)}
+        onSelectLocation={handleLocationSelect}
+        initialLocation={selectedCoordinates ? [selectedCoordinates.latitude, selectedCoordinates.longitude] : null}
+      />
     </div>
   );
 };
