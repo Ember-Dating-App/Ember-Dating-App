@@ -672,6 +672,16 @@ export default function Messages() {
       {/* Input */}
       <div className="fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border/50 p-4">
         <div className="max-w-lg mx-auto">
+          {/* Voice Recorder */}
+          {showVoiceRecorder && (
+            <div className="mb-3">
+              <VoiceRecorder
+                onSend={sendVoiceMessage}
+                onCancel={handleCancelRecording}
+              />
+            </div>
+          )}
+
           {/* Edit mode indicator */}
           {editingMessage && (
             <div className="mb-2 p-2 bg-primary/10 rounded-lg flex items-center justify-between">
