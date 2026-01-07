@@ -5,6 +5,11 @@ import os
 from datetime import datetime, timezone
 import uuid
 import bcrypt
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(Path('/app/backend/.env'))
 
 # MongoDB connection
 mongo_url = os.environ['MONGO_URL']
