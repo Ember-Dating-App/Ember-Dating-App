@@ -66,13 +66,21 @@ export const AuthProvider = ({ children }) => {
 
   const checkAuth = async () => {
     try {
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const storedToken = localStorage.getItem('ember_token');
+      if (!storedToken) {
+        setLoading(false);
+        return;
+      }
+      
+      const headers = { Authorization: `Bearer ${storedToken}` };
       const response = await axios.get(`${API}/auth/me`, { 
         headers,
         withCredentials: true 
       });
       setUser(response.data);
+      setToken(storedToken);
     } catch (e) {
+      console.error('Auth check failed:', e);
       setUser(null);
       setToken(null);
       localStorage.removeItem('ember_token');
