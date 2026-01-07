@@ -23,9 +23,10 @@ export default function Matches() {
 
   const fetchMatches = async () => {
     try {
-      const response = await axios.get(`${API}/matches`, { headers, withCredentials: true });
+      const response = await axios.get(`${API}/matches`, { headers });
       setMatches(response.data);
     } catch (error) {
+      console.error('Fetch matches error:', error);
       toast.error('Failed to load matches');
     } finally {
       setLoading(false);
@@ -37,7 +38,7 @@ export default function Matches() {
     if (!confirm('Are you sure you want to unmatch?')) return;
     
     try {
-      await axios.delete(`${API}/matches/${matchId}`, { headers, withCredentials: true });
+      await axios.delete(`${API}/matches/${matchId}`, { headers });
       setMatches(matches.filter(m => m.match_id !== matchId));
       toast.success('Unmatched');
     } catch (error) {
