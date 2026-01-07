@@ -3885,6 +3885,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Start background tasks"""
+    asyncio.create_task(cleanup_expired_voice_messages())
+    logger.info("Voice message cleanup task started")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
