@@ -2142,6 +2142,12 @@ async def delete_message(message_id: str, current_user: dict = Depends(get_curre
     if match:
         other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
         ws_message = {
+            'type': 'message_deleted',
+            'message_id': message_id
+        }
+        await websocket_manager.send_to_user(other_id, ws_message)
+    
+    return {'message': 'Message deleted successfully'}
 
 # ==================== VOICE MESSAGE ROUTES ====================
 
