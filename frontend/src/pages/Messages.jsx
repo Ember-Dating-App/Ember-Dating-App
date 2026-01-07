@@ -699,8 +699,17 @@ export default function Messages() {
           )}
 
           <form onSubmit={editingMessage ? (e) => { e.preventDefault(); saveEditMessage(); } : sendMessage} className="flex gap-2">
-            {!editingMessage && (
+            {!editingMessage && !showVoiceRecorder && (
               <>
+                <button
+                  type="button"
+                  onClick={handleStartRecording}
+                  className="w-12 h-12 rounded-full flex items-center justify-center bg-muted hover:bg-muted/80 transition-colors"
+                  data-testid="voice-btn"
+                  disabled={sending}
+                >
+                  <Mic className="w-5 h-5 text-primary" />
+                </button>
                 <button
                   type="button"
                   onClick={fetchStarters}
@@ -719,21 +728,25 @@ export default function Messages() {
                 </button>
               </>
             )}
-            <Input
-              value={editingMessage ? editContent : newMessage}
-              onChange={(e) => editingMessage ? setEditContent(e.target.value) : handleTyping(e)}
-              placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
-              className="flex-1 h-12 bg-muted/50 border-muted focus:border-primary rounded-full px-5"
-              data-testid="message-input"
-            />
-            <Button
-              type="submit"
-              disabled={editingMessage ? !editContent.trim() : (!newMessage.trim() || sending)}
-              className="w-12 h-12 ember-gradient rounded-full p-0"
-              data-testid="send-btn"
-            >
-              <Send className="w-5 h-5" />
-            </Button>
+            {!showVoiceRecorder && (
+              <>
+                <Input
+                  value={editingMessage ? editContent : newMessage}
+                  onChange={(e) => editingMessage ? setEditContent(e.target.value) : handleTyping(e)}
+                  placeholder={editingMessage ? "Edit your message..." : "Type a message..."}
+                  className="flex-1 h-12 bg-muted/50 border-muted focus:border-primary rounded-full px-5"
+                  data-testid="message-input"
+                />
+                <Button
+                  type="submit"
+                  disabled={editingMessage ? !editContent.trim() : (!newMessage.trim() || sending)}
+                  className="w-12 h-12 ember-gradient rounded-full p-0"
+                  data-testid="send-btn"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </>
+            )}
           </form>
         </div>
       </div>
