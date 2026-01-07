@@ -55,7 +55,8 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post(`${API}/auth/logout`, {}, { withCredentials: true });
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.post(`${API}/auth/logout`, {}, { headers });
     } catch (e) {
       console.error('Logout error:', e);
     }
@@ -73,10 +74,7 @@ export const AuthProvider = ({ children }) => {
       }
       
       const headers = { Authorization: `Bearer ${storedToken}` };
-      const response = await axios.get(`${API}/auth/me`, { 
-        headers,
-        withCredentials: true 
-      });
+      const response = await axios.get(`${API}/auth/me`, { headers });
       setUser(response.data);
       setToken(storedToken);
     } catch (e) {
