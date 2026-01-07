@@ -2299,14 +2299,6 @@ async def cleanup_expired_voice_messages():
             logger.error(f"Voice cleanup task error: {e}")
 
 
-            'type': 'message_deleted',
-            'message_id': message_id
-        }
-        await manager.send_personal_message(ws_message, other_id)
-    
-    return {'message': 'Message deleted successfully', 'deleted_at': deleted_at}
-
-
 # ==================== AI ROUTES ====================
 
 @api_router.post("/ai/conversation-starters")
