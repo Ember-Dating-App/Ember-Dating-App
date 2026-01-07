@@ -2142,6 +2142,157 @@ async def delete_message(message_id: str, current_user: dict = Depends(get_curre
     if match:
         other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
         ws_message = {
+
+# ==================== VOICE MESSAGE ROUTES ====================
+
+@api_router.post("/messages/voice/upload")
+async def upload_voice_message(
+    match_id: str,
+    duration: int,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload a voice message to GridFS"""
+    match = await db.matches.find_one({
+        'match_id': match_id,
+        '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
+    })
+    if not match:
+        raise HTTPException(status_code=404, detail='Match not found')
+    
+    try:
+        # Read file content
+        content = await file.read()
+        
+        # Upload to GridFS
+        file_id = await fs.upload_from_stream(
+            filename=f"voice_{uuid.uuid4().hex[:12]}.webm",
+            source=content,
+            metadata={
+                'content_type': 'audio/webm',
+                'user_id': current_user['user_id'],
+                'match_id': match_id,
+                'duration': duration,
+                'created_at': datetime.now(timezone.utc).isoformat(),
+                'expires_at': (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+            }
+        )
+        
+        # Create message document
+        now = datetime.now(timezone.utc).isoformat()
+        message_doc = {
+            'message_id': f"msg_{uuid.uuid4().hex[:12]}",
+            'match_id': match_id,
+            'sender_id': current_user['user_id'],
+            'content': f'🎤 Voice message ({duration}s)',
+            'message_type': 'voice',
+            'voice_file_id': str(file_id),
+            'voice_duration': duration,
+            'created_at': now,
+            'delivered_at': now,
+            'read_at': None,
+            'read': False
+        }
+        await db.messages.insert_one(message_doc)
+        
+        # Update match
+        await db.matches.update_one(
+            {'match_id': match_id},
+            {'$set': {'last_message': '🎤 Voice message', 'last_message_at': now}}
+        )
+        
+        # Send WebSocket notification
+        other_id = match['user2_id'] if match['user1_id'] == current_user['user_id'] else match['user1_id']
+        ws_message = {
+            'type': 'new_message',
+            'message': message_doc,
+            'sender': {
+                'user_id': current_user['user_id'],
+                'name': current_user['name'],
+                'photo': current_user.get('photos', [None])[0]
+            }
+        }
+        await manager.send_personal_message(ws_message, other_id)
+        
+        return message_doc
+        
+    except Exception as e:
+        logger.error(f"Voice upload error: {e}")
+        raise HTTPException(status_code=500, detail='Failed to upload voice message')
+
+@api_router.get("/messages/voice/{file_id}")
+async def get_voice_message(
+    file_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Stream voice message from GridFS"""
+    try:
+        from bson import ObjectId
+        
+        # Verify user has access to this voice message
+        grid_out = await fs.open_download_stream(ObjectId(file_id))
+        metadata = grid_out.metadata
+        
+        # Check if user is part of the match
+        match = await db.matches.find_one({
+            'match_id': metadata['match_id'],
+            '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
+        })
+        if not match:
+            raise HTTPException(status_code=403, detail='Access denied')
+        
+        # Stream the audio file
+        content = await grid_out.read()
+        
+        return Response(
+            content=content,
+            media_type='audio/webm',
+            headers={
+                'Content-Disposition': f'inline; filename="{grid_out.filename}"',
+                'Accept-Ranges': 'bytes'
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Voice download error: {e}")
+        raise HTTPException(status_code=404, detail='Voice message not found')
+
+# Background task to clean up expired voice messages
+async def cleanup_expired_voice_messages():
+    """Delete voice messages older than 24 hours"""
+    while True:
+        try:
+            # Sleep for 1 hour between cleanups
+            await asyncio.sleep(3600)
+            
+            now = datetime.now(timezone.utc)
+            
+            # Find expired voice files in GridFS
+            async for grid_file in fs.find({'metadata.expires_at': {'$exists': True}}):
+                try:
+                    expires_at = datetime.fromisoformat(grid_file.metadata['expires_at'])
+                    if expires_at.tzinfo is None:
+                        expires_at = expires_at.replace(tzinfo=timezone.utc)
+                    
+                    if expires_at < now:
+                        # Delete from GridFS
+                        await fs.delete(grid_file._id)
+                        
+                        # Mark message as expired
+                        await db.messages.update_one(
+                            {'voice_file_id': str(grid_file._id)},
+                            {'$set': {'content': '🎤 Voice message (expired)', 'is_expired': True}}
+                        )
+                        
+                        logger.info(f"Deleted expired voice message: {grid_file._id}")
+                        
+                except Exception as e:
+                    logger.error(f"Error cleaning up voice file {grid_file._id}: {e}")
+                    
+        except Exception as e:
+            logger.error(f"Voice cleanup task error: {e}")
+
+
             'type': 'message_deleted',
             'message_id': message_id
         }
