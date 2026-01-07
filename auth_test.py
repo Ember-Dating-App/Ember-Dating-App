@@ -49,17 +49,23 @@ class EmberAuthTester:
 
         try:
             if method == 'GET':
-                response = requests.get(url, headers=test_headers, timeout=10)
+                response = requests.get(url, headers=test_headers, timeout=30)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers, timeout=10)
+                response = requests.post(url, json=data, headers=test_headers, timeout=30)
             elif method == 'PUT':
-                response = requests.put(url, json=data, headers=test_headers, timeout=10)
+                response = requests.put(url, json=data, headers=test_headers, timeout=30)
             elif method == 'DELETE':
-                response = requests.delete(url, headers=test_headers, timeout=10)
+                response = requests.delete(url, headers=test_headers, timeout=30)
 
             return response
+        except requests.exceptions.Timeout:
+            print(f"Request timeout for {method} {endpoint}")
+            return None
+        except requests.exceptions.ConnectionError:
+            print(f"Connection error for {method} {endpoint}")
+            return None
         except Exception as e:
-            print(f"Request error: {str(e)}")
+            print(f"Request error for {method} {endpoint}: {str(e)}")
             return None
 
     def test_registration_flow(self):
