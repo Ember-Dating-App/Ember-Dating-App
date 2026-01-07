@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Phone, Video, Sparkles, MoreVertical, Check, CheckCheck, Edit2, Trash2, Gamepad2, MapPin, Star, Gift, Camera } from 'lucide-react';
+import { ArrowLeft, Send, Phone, Video, Sparkles, MoreVertical, Check, CheckCheck, Edit2, Trash2, Gamepad2, MapPin, Star, Gift, Camera, Mic } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import IcebreakerGameModal from '@/components/IcebreakerGameModal';
 import DateSuggestionsModal from '@/components/DateSuggestionsModal';
 import VirtualGiftsModal from '@/components/VirtualGiftsModal';
 import GifPicker from '@/components/GifPicker';
+import VoiceRecorder from '@/components/VoiceRecorder';
+import VoiceMessage from '@/components/VoiceMessage';
 import { useAuth, API } from '@/App';
 import { useWebSocket } from '@/contexts/WebSocketContext';
 import { VideoCall, IncomingCallModal } from '@/components/VideoCall';
@@ -36,6 +38,8 @@ export default function Messages() {
   const [showDateSuggestionsModal, setShowDateSuggestionsModal] = useState(false);
   const [showGiftsModal, setShowGiftsModal] = useState(false);
   const [showGifPicker, setShowGifPicker] = useState(false);
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
