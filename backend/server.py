@@ -2145,7 +2145,7 @@ async def delete_message(message_id: str, current_user: dict = Depends(get_curre
             'type': 'message_deleted',
             'message_id': message_id
         }
-        await websocket_manager.send_to_user(other_id, ws_message)
+        await manager.send_personal_message(ws_message, other_id)
     
     return {'message': 'Message deleted successfully'}
 
