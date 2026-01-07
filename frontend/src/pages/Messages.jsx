@@ -171,6 +171,62 @@ export default function Messages() {
     }
   };
 
+  const sendVoiceMessage = async (audioBlob, duration) => {
+    setSending(true);
+    setIsRecording(false);
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', audioBlob, 'voice_message.webm');
+      
+      const response = await axios.post(
+        `${API}/messages/voice/upload?match_id=${matchId}&duration=${duration}`,
+        formData,
+        { 
+          headers: {
+            ...headers,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      setMessages([...messages, response.data]);
+      setShowVoiceRecorder(false);
+      toast.success('Voice message sent');
+      
+      // Send recording status via WebSocket
+      if (isConnected) {
+        sendTypingIndicator(matchId, false);
+      }
+    } catch (error) {
+      console.error('Voice message error:', error);
+      toast.error('Failed to send voice message');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleStartRecording = () => {
+    setShowVoiceRecorder(true);
+    setIsRecording(true);
+    
+    // Send recording indicator via WebSocket
+    if (isConnected) {
+      sendTypingIndicator(matchId, true, 'recording');
+    }
+  };
+
+  const handleCancelRecording = () => {
+    setShowVoiceRecorder(false);
+    setIsRecording(false);
+    
+    // Stop recording indicator
+    if (isConnected) {
+      sendTypingIndicator(matchId, false);
+    }
+  };
+
+
 
   const startEditMessage = (message) => {
     setEditingMessage(message);
