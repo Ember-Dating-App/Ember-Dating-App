@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer
 from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 import os
 import logging
 from pathlib import Path
@@ -51,6 +51,7 @@ cloudinary.config(
 mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
+fs = AsyncIOMotorGridFSBucket(db)
 
 # OpenAI client for AI features
 openai_client = OpenAI(api_key=os.environ.get('EMERGENT_LLM_KEY', ''))
@@ -193,6 +194,8 @@ class LikeCreate(BaseModel):
 class MessageCreate(BaseModel):
     match_id: str
     content: str
+    gif_url: Optional[str] = None
+    message_type: str = 'text'  # 'text', 'gif', 'voice'
 
 class CheckoutRequest(BaseModel):
     package_id: str
