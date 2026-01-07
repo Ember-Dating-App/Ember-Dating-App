@@ -170,7 +170,7 @@ WEBSITE_URL=https://www.emberdatingapp.org
 
 ### Current Frontend .env:
 ```
-REACT_APP_BACKEND_URL=https://datingspark-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://datenight-app-1.preview.emergentagent.com
 ```
 
 ### Should this change?

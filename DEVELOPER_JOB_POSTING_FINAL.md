@@ -162,7 +162,7 @@
    - ✅ Troubleshooting guides
 
 5. **Backend Access**
-   - ✅ Backend URL: https://datingspark-1.preview.emergentagent.com/api
+   - ✅ Backend URL: https://datenight-app-1.preview.emergentagent.com/api
    - ✅ MongoDB Atlas access (for payment records)
    - ✅ Premium plans endpoint already created
    - ✅ User authentication system ready

@@ -70,7 +70,7 @@ https://github.com/Ember-Dating-App/Ember-Dating-App
 
 **Backend:**
 - ✅ Deployed and operational
-- ✅ Backend URL: https://datingspark-1.preview.emergentagent.com/api
+- ✅ Backend URL: https://datenight-app-1.preview.emergentagent.com/api
 - ✅ MongoDB Atlas connected
 - ✅ All integrations working (Cloudinary, Firebase, etc.)
 
@@ -210,7 +210,7 @@ npx cap open ios
 
 ## 🔐 Backend API Endpoints
 
-**Base URL:** `https://datingspark-1.preview.emergentagent.com/api`
+**Base URL:** `https://datenight-app-1.preview.emergentagent.com/api`
 
 ### You'll Need These:
 

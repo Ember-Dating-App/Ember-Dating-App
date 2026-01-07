@@ -262,7 +262,7 @@ CLOUDINARY_API_SECRET=xxx
 ### Cron Job Required
 Set up hourly cron job for auto-disconnect:
 ```bash
-0 * * * * curl -X POST https://datingspark-1.preview.emergentagent.com/api/matches/check-expired
+0 * * * * curl -X POST https://datenight-app-1.preview.emergentagent.com/api/matches/check-expired
 ```
 
 ### SMS Integration (Future)
