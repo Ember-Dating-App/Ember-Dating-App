@@ -538,7 +538,13 @@ export default function Messages() {
                     className={`message-bubble ${isSent ? 'message-sent' : 'message-received'} ${msg.is_deleted ? 'opacity-60 italic' : ''}`}
                     data-testid={`message-${msg.message_id}`}
                   >
-                    {msg.type === 'virtual_gift' && msg.gift_data ? (
+                    {msg.message_type === 'voice' ? (
+                      <VoiceMessage
+                        audioUrl={msg.voice_file_id ? `${API}/messages/voice/${msg.voice_file_id}` : null}
+                        duration={msg.voice_duration || 0}
+                        isOwn={isSent}
+                      />
+                    ) : msg.type === 'virtual_gift' && msg.gift_data ? (
                       <div className="text-center space-y-2">
                         <div className="text-6xl">{msg.gift_data.emoji}</div>
                         <p className="font-medium">{msg.gift_data.name}</p>
