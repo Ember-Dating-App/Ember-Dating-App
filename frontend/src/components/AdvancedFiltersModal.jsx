@@ -104,7 +104,9 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
           {
             city: city.trim(),
             state: state.trim() || null,
-            country: country.trim()
+            country: country.trim(),
+            latitude: selectedCoordinates?.latitude || null,
+            longitude: selectedCoordinates?.longitude || null
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -118,6 +120,16 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLocationSelect = (locationData) => {
+    setCity(locationData.city);
+    setState(''); // Can be extracted from locationData if needed
+    setCountry(locationData.country);
+    setSelectedCoordinates({
+      latitude: locationData.latitude,
+      longitude: locationData.longitude
+    });
   };
 
   const handleReset = () => {
@@ -391,6 +403,25 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
                         <p className="text-sm text-white font-medium">{location}</p>
                       </div>
                     )}
+                    
+                    {/* Map Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowMapPicker(true)}
+                      className="w-full px-4 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 transition-all"
+                    >
+                      <Map className="w-5 h-5" />
+                      Select Location on Map
+                    </button>
+                    
+                    <div className="relative my-3">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-700" />
+                      </div>
+                      <div className="relative flex justify-center text-xs">
+                        <span className="px-2 bg-black text-gray-500">or type manually</span>
+                      </div>
+                    </div>
                     
                     <div>
                       <label className="block text-xs text-gray-400 mb-1.5">City *</label>
