@@ -24,8 +24,8 @@ messaging.onBackgroundMessage((payload) => {
   // Premium notification styling
   const notificationOptions = {
     body: notificationBody,
-    icon: '/ember-icon-192.png',
-    badge: '/ember-badge.png',
+    icon: '../icons/icon-192.webp',
+    badge: '../icons/icon-96.webp',
     image: payload.data?.image || null, // Optional large image
     tag: payload.data?.tag || 'ember-notification',
     renotify: true,
@@ -36,12 +36,12 @@ messaging.onBackgroundMessage((payload) => {
       {
         action: 'view',
         title: '💬 View Message',
-        icon: '/message-icon.png'
+        icon: '../icons/icon-96.webp'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/close-icon.png'
+        icon: '../icons/icon-96.webp'
       }
     ],
     // Premium styling with colors

@@ -90,8 +90,8 @@ export function useNotifications(user) {
           if (document.hidden && Notification.permission === 'granted') {
             const notif = new Notification(title, {
               body: body,
-              icon: '/ember-icon-192.png',
-              badge: '/ember-badge.png',
+              icon: '/icons/icon-192.webp',
+              badge: '/icons/icon-96.webp',
               tag: data.tag || 'ember-notification',
               image: data.sender_photo || null,
               requireInteraction: false,
