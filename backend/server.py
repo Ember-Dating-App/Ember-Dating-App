@@ -2020,14 +2020,34 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
     }
     await manager.send_personal_message(ws_message, other_id)
     
-    # Send push notification
+    # Send premium push notification with message preview
     other_user = await db.users.find_one({'user_id': other_id}, {'_id': 0})
-    asyncio.create_task(send_push_notification(
-        other_id,
-        f"New message from {current_user['name']}",
-        content[:100] + ('...' if len(content) > 100 else ''),
-        {'type': 'new_messages', 'match_id': match_id, 'message_id': message_doc['message_id']}
-    ))
+    if other_user:
+        # Prepare notification content
+        notification_title = f"💬 {current_user['name']}"
+        
+        # Show actual message content (truncate if too long)
+        if msg.message_type == 'voice':
+            notification_body = "🎤 Sent a voice message"
+        elif msg.gif_url:
+            notification_body = "📷 Sent a GIF"
+        else:
+            notification_body = msg.content[:150] + ('...' if len(msg.content) > 150 else '')
+        
+        asyncio.create_task(send_push_notification(
+            other_id,
+            notification_title,
+            notification_body,
+            {
+                'type': 'new_message',
+                'match_id': msg.match_id,
+                'message_id': message_doc['message_id'],
+                'sender_id': current_user['user_id'],
+                'sender_name': current_user['name'],
+                'sender_photo': current_user.get('photos', [None])[0],
+                'tag': f"message_{msg.match_id}"  # Group notifications by conversation
+            }
+        ))
     
     return message_doc
 
