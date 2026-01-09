@@ -36,7 +36,7 @@ export function useNotifications(user) {
             
             await axios.post(`${API}/notifications/register-token`, 
               { token },
-              { headers, withCredentials: true }
+              { headers }
             );
             
             console.log('Token registered with backend');
