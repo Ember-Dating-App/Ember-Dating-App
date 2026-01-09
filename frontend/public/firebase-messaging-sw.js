@@ -19,11 +19,34 @@ messaging.onBackgroundMessage((payload) => {
   console.log('Received background message:', payload);
   
   const notificationTitle = payload.notification.title || 'Ember';
+  const notificationBody = payload.notification.body || '';
+  
+  // Premium notification styling
   const notificationOptions = {
-    body: payload.notification.body || '',
-    icon: '/ember-icon.png',
+    body: notificationBody,
+    icon: '/ember-icon-192.png',
     badge: '/ember-badge.png',
-    data: payload.data
+    image: payload.data?.image || null, // Optional large image
+    tag: payload.data?.tag || 'ember-notification',
+    renotify: true,
+    requireInteraction: false, // Auto-dismiss after timeout
+    vibrate: [200, 100, 200], // Vibration pattern
+    data: payload.data,
+    actions: [
+      {
+        action: 'view',
+        title: '💬 View Message',
+        icon: '/message-icon.png'
+      },
+      {
+        action: 'close',
+        title: 'Close',
+        icon: '/close-icon.png'
+      }
+    ],
+    // Premium styling with colors
+    dir: 'auto',
+    timestamp: Date.now()
   };
 
   self.registration.showNotification(notificationTitle, notificationOptions);
@@ -32,22 +55,48 @@ messaging.onBackgroundMessage((payload) => {
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
   console.log('Notification clicked:', event);
+  
+  // Close notification
   event.notification.close();
 
   const data = event.notification.data;
+  const action = event.action;
+  
+  // Handle action buttons
+  if (action === 'close') {
+    return;
+  }
+  
   let urlToOpen = '/';
 
   if (data) {
-    if (data.type === 'new_matches' && data.match_id) {
+    if (data.type === 'new_message' && data.match_id) {
       urlToOpen = `/messages/${data.match_id}`;
-    } else if (data.type === 'new_messages' && data.match_id) {
+    } else if (data.type === 'new_match' && data.match_id) {
       urlToOpen = `/messages/${data.match_id}`;
-    } else if (data.type === 'new_likes') {
+    } else if (data.type === 'new_like') {
       urlToOpen = '/likes';
+    } else if (data.type === 'video_call' && data.match_id) {
+      urlToOpen = `/messages/${data.match_id}`;
     }
   }
 
+  // Open or focus window
   event.waitUntil(
-    clients.openWindow(urlToOpen)
+    clients.matchAll({
+      type: 'window',
+      includeUncontrolled: true
+    }).then((clientList) => {
+      // Check if app is already open
+      for (const client of clientList) {
+        if (client.url.includes(urlToOpen) && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Open new window if not already open
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });
