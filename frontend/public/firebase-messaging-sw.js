@@ -1,6 +1,7 @@
 // Firebase Cloud Messaging Service Worker
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+importScripts('/notification-sound.js');
 
 firebase.initializeApp({
   apiKey: "AIzaSyB9MqwSIY7CCPvUmjLIyxyRBCDO5LjCfcE",
@@ -14,12 +15,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Play notification sound
+function playNotificationSound() {
+  try {
+    // Try to play the custom sound
+    if (typeof createEmberNotificationSound === 'function') {
+      createEmberNotificationSound();
+    }
+  } catch (error) {
+    console.log('Could not play notification sound:', error);
+  }
+}
+
 // Handle background messages
 messaging.onBackgroundMessage((payload) => {
   console.log('Received background message:', payload);
   
   const notificationTitle = payload.notification.title || 'Ember';
   const notificationBody = payload.notification.body || '';
+  
+  // Play custom notification sound
+  playNotificationSound();
   
   // Premium notification styling
   const notificationOptions = {
@@ -31,6 +47,7 @@ messaging.onBackgroundMessage((payload) => {
     renotify: true,
     requireInteraction: false, // Auto-dismiss after timeout
     vibrate: [200, 100, 200], // Vibration pattern
+    silent: false, // Allow sound
     data: payload.data,
     actions: [
       {
