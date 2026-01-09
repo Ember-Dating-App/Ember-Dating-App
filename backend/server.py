@@ -2240,6 +2240,24 @@ async def upload_voice_message(
         }
         await manager.send_personal_message(ws_message, other_id)
         
+        # Send premium push notification
+        other_user = await db.users.find_one({'user_id': other_id}, {'_id': 0})
+        if other_user:
+            asyncio.create_task(send_push_notification(
+                other_id,
+                f"💬 {current_user['name']}",
+                f"🎤 Sent a voice message ({duration}s)",
+                {
+                    'type': 'new_message',
+                    'match_id': match_id,
+                    'message_id': message_doc['message_id'],
+                    'sender_id': current_user['user_id'],
+                    'sender_name': current_user['name'],
+                    'sender_photo': current_user.get('photos', [None])[0],
+                    'tag': f"message_{match_id}"
+                }
+            ))
+        
         return message_doc
         
     except Exception as e:
