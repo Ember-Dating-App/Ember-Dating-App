@@ -3898,6 +3898,61 @@ async def contact_support(
     current_user: dict = Depends(get_current_user_optional)
 ):
     """Contact support - stores message in database and can send email"""
+
+# ==================== LANGUAGE/TRANSLATION ROUTES ====================
+
+@api_router.get("/languages/supported")
+async def get_supported_languages():
+    """Get list of supported languages"""
+    return {
+        'languages': get_popular_languages(),
+        'count': len(get_popular_languages())
+    }
+
+@api_router.put("/profile/language")
+async def update_preferred_language(
+    language: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user's preferred language"""
+    try:
+        await db.users.update_one(
+            {'user_id': current_user['user_id']},
+            {'$set': {'preferred_language': language}}
+        )
+        return {'message': 'Language updated successfully', 'language': language}
+    except Exception as e:
+        logger.error(f"Error updating language: {e}")
+        raise HTTPException(status_code=500, detail='Failed to update language')
+
+@api_router.post("/messages/translate")
+async def translate_message(
+    message_id: str,
+    target_language: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Manually translate a specific message"""
+    message = await db.messages.find_one({'message_id': message_id}, {'_id': 0})
+    if not message:
+        raise HTTPException(status_code=404, detail='Message not found')
+    
+    # Verify user has access to this message
+    match = await db.matches.find_one({
+        'match_id': message['match_id'],
+        '$or': [{'user1_id': current_user['user_id']}, {'user2_id': current_user['user_id']}]
+    })
+    if not match:
+        raise HTTPException(status_code=403, detail='Access denied')
+    
+    # Translate
+    translation_result = translation_service.translate_if_needed(
+        message['content'],
+        message.get('original_language', 'en'),
+        target_language
+    )
+    
+    return translation_result
+
     # Create support message record
     support_message = {
         'message_id': f"support_{uuid.uuid4().hex[:12]}",
