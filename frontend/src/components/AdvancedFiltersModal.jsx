@@ -4,7 +4,7 @@ import {
   X, Sliders, ChevronDown, ChevronUp, User, Heart, Compass, 
   GraduationCap, MapPin, Ruler, Users, Sparkles, Search, Map
 } from 'lucide-react';
-import LocationMapPicker from './LocationMapPicker';
+import GoogleMapPicker from './GoogleMapPicker';
 
 const API_BASE = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -882,8 +882,8 @@ const AdvancedFiltersModal = ({ isOpen, onClose, onApply }) => {
         </div>
       </div>
 
-      {/* Location Map Picker */}
-      <LocationMapPicker
+      {/* Google Map Picker */}
+      <GoogleMapPicker
         isOpen={showMapPicker}
         onClose={() => setShowMapPicker(false)}
         onSelectLocation={handleLocationSelect}
