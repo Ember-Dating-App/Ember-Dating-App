@@ -143,6 +143,8 @@ export default function Profile() {
   const [deletePassword, setDeletePassword] = useState('');
   const [hasReorderedPhotos, setHasReorderedPhotos] = useState(false);
   const [showSupportForm, setShowSupportForm] = useState(false);
+  const [showLanguageSelector, setShowLanguageSelector] = useState(false);
+  const [preferredLanguage, setPreferredLanguage] = useState(user?.preferred_language || 'en');
   const [profile, setProfile] = useState({
     name: user?.name || '',
     age: user?.age || '',
