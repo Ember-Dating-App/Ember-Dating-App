@@ -273,6 +273,31 @@ export default function Profile() {
     if (!file) return;
 
     // Validate file size (max 10MB)
+
+          {/* Language Preference */}
+          <button
+            onClick={() => setShowLanguageSelector(true)}
+            className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl hover:bg-muted/50 transition-colors"
+          >
+            <Globe className="w-5 h-5 text-primary" />
+            <div className="flex-1 text-left">
+              <div className="font-medium">Language</div>
+              <div className="text-sm text-muted-foreground">
+                {preferredLanguage === 'en' && 'English'}
+                {preferredLanguage === 'es' && 'Spanish'}
+                {preferredLanguage === 'fr' && 'French'}
+                {preferredLanguage === 'de' && 'German'}
+                {preferredLanguage === 'it' && 'Italian'}
+                {preferredLanguage === 'pt' && 'Portuguese'}
+                {preferredLanguage === 'ru' && 'Russian'}
+                {preferredLanguage === 'ja' && 'Japanese'}
+                {preferredLanguage === 'ko' && 'Korean'}
+                {preferredLanguage === 'zh-cn' && 'Chinese'}
+                {!['en','es','fr','de','it','pt','ru','ja','ko','zh-cn'].includes(preferredLanguage) && preferredLanguage.toUpperCase()}
+              </div>
+            </div>
+          </button>
+
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Photo size must be less than 10MB');
       return;
@@ -322,6 +347,19 @@ export default function Profile() {
     }
 
     // Validate file type
+
+
+      {/* Language Selector Modal */}
+      <LanguageSelector
+        isOpen={showLanguageSelector}
+        onClose={() => setShowLanguageSelector(false)}
+        currentLanguage={preferredLanguage}
+        onLanguageChange={(lang) => {
+          setPreferredLanguage(lang);
+          fetchProfile();
+        }}
+      />
+
     if (!file.type.startsWith('video/')) {
       toast.error('Please upload a video file');
       return;
