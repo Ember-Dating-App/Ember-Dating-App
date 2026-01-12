@@ -45,3 +45,4 @@ motor==3.3.1
 google-cloud-translate==3.23.0
 googletrans==4.0.0rc1
 deep-translator==1.11.4
+langdetect==1.0.9

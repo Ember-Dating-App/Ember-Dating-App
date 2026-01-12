@@ -1,8 +1,9 @@
 """Translation service for automatic message translation"""
 import os
 import logging
-from typing import Dict, Optional, List
-from googletrans import Translator, LANGUAGES
+from typing import Dict, Optional
+from deep_translator import GoogleTranslator
+from langdetect import detect, LangDetectException
 
 logger = logging.getLogger(__name__)
 
@@ -10,10 +11,13 @@ class TranslationService:
     """Service for translating messages between users"""
     
     def __init__(self):
-        self.translator = Translator()
         self.enabled = os.getenv('TRANSLATION_ENABLED', 'true').lower() == 'true'
         self.cache = {}  # Simple in-memory cache
         self.cache_ttl = int(os.getenv('TRANSLATION_CACHE_TTL', '86400'))
+        try:
+            self.supported_languages = GoogleTranslator().get_supported_languages(as_dict=True)
+        except:
+            self.supported_languages = {}
         
     def is_enabled(self) -> bool:
         """Check if translation is enabled"""
@@ -25,9 +29,9 @@ class TranslationService:
             if not text or not text.strip():
                 return 'en'
             
-            detection = self.translator.detect(text)
-            return detection.lang if detection.lang else 'en'
-        except Exception as e:
+            detected = detect(text)
+            return detected if detected else 'en'
+        except (LangDetectException, Exception) as e:
             logger.error(f"Language detection failed: {e}")
             return 'en'
     
@@ -44,13 +48,8 @@ class TranslationService:
                 return self.cache[cache_key]
             
             # Translate
-            translation = self.translator.translate(
-                text,
-                src=source_lang,
-                dest=target_lang
-            )
-            
-            translated_text = translation.text
+            translator = GoogleTranslator(source=source_lang, target=target_lang)
+            translated_text = translator.translate(text)
             
             # Cache the result
             self.cache[cache_key] = translated_text
@@ -63,7 +62,7 @@ class TranslationService:
     
     def get_supported_languages(self) -> Dict[str, str]:
         """Get all supported languages"""
-        return LANGUAGES
+        return self.supported_languages
     
     def translate_if_needed(self, text: str, sender_lang: str, receiver_lang: str) -> Dict[str, any]:
         """Translate message only if languages differ"""
