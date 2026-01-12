@@ -2018,7 +2018,21 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
             )
             if translation_result['was_translated']:
                 translated_content = translation_result['translated_text']
-
+    
+    # Create message document
+    now = datetime.now(timezone.utc).isoformat()
+    message_doc = {
+        'message_id': f"msg_{uuid.uuid4().hex[:12]}",
+        'match_id': msg.match_id,
+        'sender_id': current_user['user_id'],
+        'content': msg.content,
+        'original_language': original_language,
+        'translated_content': translated_content if translation_result and translation_result['was_translated'] else None,
+        'target_language': receiver_lang if translation_result and translation_result['was_translated'] else None,
+        'was_translated': translation_result['was_translated'] if translation_result else False,
+        'gif_url': msg.gif_url,
+        'message_type': msg.message_type,
+        'created_at': now,
         'delivered_at': now,
         'read_at': None,
         'read': False
