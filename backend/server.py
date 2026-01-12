@@ -196,6 +196,7 @@ class MessageCreate(BaseModel):
     content: str
     gif_url: Optional[str] = None
     message_type: str = 'text'  # 'text', 'gif', 'voice'
+    original_language: Optional[str] = None  # Language of the original message
 
 class CheckoutRequest(BaseModel):
     package_id: str
