@@ -1992,7 +1992,6 @@ async def send_message(msg: MessageCreate, current_user: dict = Depends(get_curr
         'sender_id': current_user['user_id'],
         'content': msg.content,
         'created_at': now,
-
     # Get receiver's language preference
     receiver = await db.users.find_one({'user_id': other_id}, {'_id': 0, 'preferred_language': 1})
     receiver_lang = receiver.get('preferred_language', 'en') if receiver else 'en'
