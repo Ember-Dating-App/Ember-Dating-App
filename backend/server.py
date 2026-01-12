@@ -436,6 +436,7 @@ async def register(user_data: UserCreate):
         'video_url': None,
         'prompts': [],
         'interests': [],
+        'preferred_language': 'en',  # NEW: User's preferred language for translations
         'is_profile_complete': False,
         'is_premium': False,
         'premium_expires': None,
