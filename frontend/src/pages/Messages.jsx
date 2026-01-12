@@ -595,7 +595,39 @@ export default function Messages() {
                             style={{ maxWidth: '320px' }}
                           />
                         )}
-                        <p>{msg.content}</p>
+                        {/* Show translated content if available */}
+                        {msg.was_translated && msg.translated_content ? (
+                          <div>
+                            <div className="flex items-center gap-1 text-xs opacity-70 mb-2">
+                              <span>🌍</span>
+                              <span>Translated</span>
+                            </div>
+                            <div className="translated-text">
+                              <p>{msg.translated_content}</p>
+                            </div>
+                            <div className="original-text hidden">
+                              <p className="opacity-70 italic">{msg.content}</p>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const parent = e.target.closest('.message-bubble');
+                                const translated = parent.querySelector('.translated-text');
+                                const original = parent.querySelector('.original-text');
+                                if (translated && original) {
+                                  translated.classList.toggle('hidden');
+                                  original.classList.toggle('hidden');
+                                  e.target.textContent = translated.classList.contains('hidden') ? 'Show translation' : 'See original';
+                                }
+                              }}
+                              className="text-xs underline opacity-70 hover:opacity-100 mt-2 block"
+                            >
+                              See original
+                            </button>
+                          </div>
+                        ) : (
+                          <p>{msg.content}</p>
+                        )}
                       </div>
                     )}
                     <div className="flex items-center gap-1 mt-1">
